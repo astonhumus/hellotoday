@@ -1,0 +1,87 @@
+/* Places: map with a search bar, a list/detail panel (side panel on desktop, bottom sheet on phones). */
+@media (prefers-color-scheme: dark) { .leaflet-container { background: #0e1210 !important; } }
+
+.places { flex: 1; min-height: 0; position: relative; display: flex; }
+.map-wrap { flex: 1; min-width: 0; position: relative; isolation: isolate; }
+.map { position: absolute; inset: 0; background: #cfe3ee; }
+.leaflet-bottom { bottom: var(--sheet-h, 0px); transition: bottom 0.26s; }
+
+/* ── side panel (desktop) ── */
+.pl-side { order: -1; width: 400px; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-right: 1px solid var(--border); }
+.pl-side-head { display: flex; align-items: center; gap: 4px; min-height: 46px; padding: 0 12px 0 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.pl-side-body { flex: 1; overflow-y: auto; }
+.pl-title { font-size: var(--fs-lg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-tools { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px; }
+.pl-list { list-style: none; margin: 0; padding: 0; }
+
+/* ── search + filters ── */
+.fb { display: grid; gap: 8px; padding: 12px 16px 10px; }
+.fb-search { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 6px 0 14px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-pill); box-shadow: var(--shadow-sm); color: var(--muted); }
+.fb-search:focus-within { outline: 2px solid var(--accent); color: var(--text); }
+.fb-search input { flex: 1; min-width: 0; width: auto; min-height: 0; padding: 10px 0; border: 0; border-radius: 0; background: none; outline: none; -webkit-appearance: none; appearance: none; }
+.fb-clear { width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.fb-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
+.fb-chips::-webkit-scrollbar { display: none; }
+.fb-chips .chip, .fb-district { flex-shrink: 0; white-space: nowrap; background: var(--panel); box-shadow: var(--shadow-sm); }
+.fb-chips .chip[aria-pressed="true"] { background: var(--accent); }
+.fb-district { width: auto; min-height: 36px; padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--r-pill); font-size: 14px; color: var(--text); }
+.fb-district[data-active="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.pl-side .fb-chips { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+.pl-side .fb-chips .chip, .pl-side .fb-district { box-shadow: none; }
+
+/* ── a place in the list ── */
+.pc { display: flex; align-items: stretch; border-bottom: 1px solid var(--border); }
+.pc.active { background: var(--active); }
+.pc-main { flex: 1; min-width: 0; display: flex; gap: 12px; padding: 12px 4px 12px 16px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pc-main:hover { background: var(--hover); }
+.pc-icon { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 14px; font-size: 22px; }
+.pc-text { display: grid; gap: 2px; min-width: 0; align-content: start; }
+.pc-name { font-weight: 600; font-size: var(--fs-md); }
+.pc-meta { font-size: var(--fs-sm); color: var(--muted); }
+.pc-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13.5px; }
+.pc-check { width: 56px; flex-shrink: 0; display: grid; place-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; }
+.pc-check .icon { width: 32px; height: 32px; padding: 6px; border: 1.5px solid var(--border); border-radius: 50%; }
+.pc-check.on { color: var(--on-accent); }
+.pc-check.on .icon { background: var(--accent); border-color: var(--accent); }
+.pl-list .badge { grid-column: auto; margin-top: 4px; }
+
+/* ── one place, in detail ── */
+.pd { padding: 4px 16px 24px; display: grid; gap: 12px; }
+.pd-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pd-tag { padding: 4px 10px; border-radius: var(--r-pill); font-size: var(--fs-sm); font-weight: 600; }
+.pd-tag.plain { background: var(--surface-2); color: var(--muted); font-weight: 500; }
+.pd-desc { margin: 0; font-size: var(--fs-md); }
+.pd-note { margin: 0; font-style: italic; }
+.pd-meta { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+.pd-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pd-actions .btn { min-height: 48px; }
+.pd-actions .btn.on { background: var(--active); border-color: var(--accent); }
+.pd-info { list-style: none; margin: 0; padding: 0; }
+.pd-info li { display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid var(--border); }
+.pd-info .icon { color: var(--muted); }
+.pd-info a { color: var(--accent); word-break: break-all; }
+.pd-info .link { margin-left: auto; }
+.pd-coords { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+.pd-admin { display: flex; gap: 8px; padding-top: 4px; }
+
+/* ── map overlays ── */
+.map-style { position: absolute; top: 10px; right: 10px; z-index: 1000; }
+.map-layers { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--panel); color: var(--text); box-shadow: var(--shadow-md); cursor: pointer; }
+.map-style-menu { position: absolute; top: 50px; right: 0; display: grid; gap: 4px; padding: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+.map-style-menu .chip { justify-content: center; white-space: nowrap; }
+.district-label { background: none; border: none; box-shadow: none; padding: 0; color: #374151; font: 600 11px/1.1 system-ui, sans-serif; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; pointer-events: none; }
+.district-label::before { display: none; }
+.hide-district-labels .district-label { display: none; }
+
+/* ── phones: map fills the screen; search floats on top; the list is a bottom sheet ── */
+.pl-float { display: none; }
+@media (max-width: 760px) {
+  .map-wrap { position: absolute; inset: 0; }
+  .pl-float { display: block; position: absolute; top: 0; left: 0; right: 0; z-index: 700; pointer-events: none; }
+  .pl-float .fb { padding: 10px 12px 6px; pointer-events: none; }
+  .pl-float .fb > * { pointer-events: auto; }
+  .pl-float .fb-chips { margin: 0 -12px; padding: 2px 12px 4px; pointer-events: auto; }
+  .leaflet-control-zoom { display: none; }
+  .map-style { top: 128px; }
+  .pc-main { padding-left: 14px; }
+}

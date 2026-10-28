@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Category, Place, StateInfo } from "../types";
-import { formatCoords } from "../lib/coords";
-import { appleMapsUrl, googleMapsUrl } from "../lib/nav";
-import { loadJson, store } from "../lib/data";
+import type { Category, Place, StateInfo } from "../../types";
+import { loadJson, store } from "../../lib/data";
+import { Icon } from "../../ui/Icon";
 
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
 // Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
@@ -17,8 +16,8 @@ interface Props {
   places: Place[];
   categories: Record<string, Category>;
   selectedId: string | null;
-  isVisited: (id: string) => boolean;
-  onToggleVisited: (id: string) => void;
+  visitedIds: Set<string>;
+  insets: { top: number; bottom: number }; // screen covered by the search bar and the bottom sheet (phones)
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
 }
@@ -31,40 +30,15 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
-function buildPopup(p: Place, cat: Category, isVisited: boolean, toggleVisited: (id: string) => void): HTMLElement {
-  const coords = formatCoords(p.lat, p.lng);
-  const copy = el("button", { type: "button", className: "popup-copy", title: "Copy coordinates" }, "Copy");
-  copy.addEventListener("click", () => {
-    navigator.clipboard?.writeText(coords).then(() => { copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy"), 1500); });
-  });
-  let on = isVisited;
-  const label = () => (on ? "✅ You visited. Tap to undo" : "☐ Mark as visited");
-  const visit = el("button", { type: "button", className: "popup-visit", textContent: label() });
-  visit.addEventListener("click", () => { toggleVisited(p.id); on = !on; visit.textContent = label(); });
-  const link = (href: string, label: string) =>
-    el("a", { href, target: "_blank", rel: "noopener", className: "popup-btn" }, label);
-
-  return el("div", { className: "popup" },
-    el("b", {}, p.name),
-    el("div", { className: "popup-meta" }, `${cat.icon} ${cat.label}${p.district ? " · " + p.district : ""}`),
-    el("div", { className: "popup-coords" }, el("code", {}, coords), copy),
-    p.approx ? el("div", { className: "popup-meta" }, "📍 Approximate location") : "",
-    p.visited ? el("div", { className: "popup-meta" }, `📝 Editor visited ${p.visited}`) : "",
-    p.notes ? el("div", {}, p.notes) : "",
-    visit,
-    el("div", { className: "popup-actions" }, link(googleMapsUrl(p.lat, p.lng), "Google Maps ↗"), link(appleMapsUrl(p.lat, p.lng, p.name), "Apple Maps ↗"))
-  );
-}
-
-export function MapView({ state, places, categories, selectedId, focusTick, isVisited, onToggleVisited, onSelect }: Props) {
+export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, insets, onSelect }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.CircleMarker>());
   const pinLayer = useRef<L.FeatureGroup | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
-  const visitedRef = useRef({ isVisited, onToggleVisited });
-  visitedRef.current = { isVisited, onToggleVisited };
+  const insetsRef = useRef(insets);
+  insetsRef.current = insets;
   const selectedRef = useRef(selectedId);
   selectedRef.current = selectedId;
 
@@ -75,6 +49,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, isVi
   const districtLayer = useRef<L.GeoJSON | null>(null);
   const stateStroke = useRef<L.GeoJSON | null>(null);
   const haveDistrictOutline = useRef(false);
+  const [menu, setMenu] = useState(false); // the layers menu
   const [ready, setReady] = useState(0); // bumps when the map is rebuilt, so the tiles are re-added
 
   // Border maps below the street tiles: they show through wherever a tile can't be loaded (offline, not cached yet).
@@ -174,30 +149,40 @@ export function MapView({ state, places, categories, selectedId, focusTick, isVi
     pins.current.clear();
     places.forEach(p => {
       const cat = categories[p.category] ?? FALLBACK;
-      const m = L.circleMarker([p.lat, p.lng], {
-        radius: 8, weight: 2, color: "#fff", fillColor: cat.color, fillOpacity: 0.95
-      }).bindPopup(() => buildPopup(p, cat, visitedRef.current.isVisited(p.id), visitedRef.current.onToggleVisited), { minWidth: 210 });
+      const m = L.circleMarker([p.lat, p.lng], { radius: 8, weight: 2, color: "#fff", fillColor: cat.color, fillOpacity: 0.95 });
       m.on("click", () => onSelectRef.current(p.id));
       group.addLayer(m);
       pins.current.set(p.id, m);
     });
-    // Keep the open popup across filter changes; only re-zoom (after typing pauses) when nothing is selected.
-    const keep = selectedRef.current ? pins.current.get(selectedRef.current) : undefined;
-    if (keep) { keep.openPopup(); return; }
+    paint();
+    // Re-zoom only after typing pauses, and never while a place is selected.
+    if (selectedRef.current && pins.current.has(selectedRef.current)) return;
     const t = setTimeout(() => {
       if (places.length && map.getSize().x > 0) {
-        try { map.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 11 }); } catch { /* ignore */ }
+        const { top, bottom } = insetsRef.current;
+        try { map.fitBounds(group.getBounds(), { paddingTopLeft: [40, top + 16], paddingBottomRight: [40, bottom + 16], maxZoom: 11 }); } catch { /* ignore */ }
       }
     }, 300);
     return () => clearTimeout(t);
-  }, [places, categories, state]);
+  }, [places, categories, state]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Selecting a place from the list flies to its pin and opens it
+  // Pin looks: the selected one is big with a dark ring; places you have visited get a gold ring.
+  const paint = () => {
+    pins.current.forEach((m, id) => {
+      const selected = id === selectedRef.current, visited = visitedIds.has(id);
+      m.setStyle({ radius: selected ? 13 : 8, weight: selected ? 4 : visited ? 4 : 2, color: selected ? "#111827" : visited ? "#facc15" : "#fff" });
+      if (selected) m.bringToFront();
+    });
+  };
+  useEffect(paint, [selectedId, visitedIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Selecting a place flies to it, placing the pin in the part of the map the panels don't cover
   useEffect(() => {
     const map = mapRef.current, m = selectedId ? pins.current.get(selectedId) : null;
     if (!map || !m) return;
-    map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 10), { duration: 0.6 });
-    m.openPopup();
+    const zoom = Math.max(map.getZoom(), 11), { top, bottom } = insetsRef.current;
+    const centre = map.unproject(map.project(m.getLatLng(), zoom).add([0, (bottom - top) / 2]), zoom);
+    map.flyTo(centre, zoom, { duration: 0.6 });
   }, [selectedId, focusTick]);
 
   const choose = (s: MapStyle) => { setStyle(s); store.set("map-style", s); };
@@ -205,10 +190,15 @@ export function MapView({ state, places, categories, selectedId, focusTick, isVi
   return (
     <>
       <div ref={host} className="map" role="region" aria-label={`Map of ${state.name}`} />
-      <div className="map-style" role="group" aria-label="Map style">
-        <button className="chip" aria-pressed={style === "detailed"} onClick={() => choose("detailed")}>Streets</button>
-        <button className="chip" aria-pressed={style === "simple"} onClick={() => choose("simple")}>Simple</button>
-        <button className="chip" aria-pressed={showDistricts} onClick={() => { setShowDistricts(v => !v); store.set("map-districts", showDistricts ? "off" : "on"); }}>Districts</button>
+      <div className="map-style">
+        <button type="button" className="map-layers" aria-label="Map layers" aria-expanded={menu} onClick={() => setMenu(v => !v)}><Icon name="layers" /></button>
+        {menu && (
+          <div className="map-style-menu" role="group" aria-label="Map layers">
+            <button className="chip" aria-pressed={style === "detailed"} onClick={() => choose("detailed")}>Streets</button>
+            <button className="chip" aria-pressed={style === "simple"} onClick={() => choose("simple")}>Simple</button>
+            <button className="chip" aria-pressed={showDistricts} onClick={() => { setShowDistricts(v => !v); store.set("map-districts", showDistricts ? "off" : "on"); }}>Districts</button>
+          </div>
+        )}
       </div>
     </>
   );

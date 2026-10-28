@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { Category, Place } from "../types";
-import { formatCoords, parseCoords } from "../lib/coords";
+import type { Category, Place } from "../../types";
+import { formatCoords, parseCoords } from "../../lib/coords";
 
 interface Props {
   categories: Category[];

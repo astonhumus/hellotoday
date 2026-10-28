@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Category, Place, Song, StateInfo } from "./types";
 import { loadJson, store } from "./lib/data";
-import { PlacesPage } from "./components/PlacesPage";
+import { PlacesPage } from "./features/places/PlacesPage";
 import { MusicPage } from "./components/MusicPage";
 import { ChecklistPage, type Catalog } from "./components/ChecklistPage";
 import { useOverlay } from "./lib/overlay";

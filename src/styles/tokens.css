@@ -1,0 +1,69 @@
+/* Design tokens: the one place colours, spacing, corners and shadows are defined. */
+:root {
+  /* colour */
+  --bg: #f4f3ee;
+  --panel: #ffffff;
+  --surface-2: #f0efe9;
+  --text: #17201b;
+  --muted: #5b675f;
+  --border: #e3e1d9;
+  --accent: #1a7f5a;
+  --on-accent: #ffffff;
+  --hover: #efeee8;
+  --active: #e3f1ea;
+  --danger: #c0392b;
+  --warn-bg: #fef3c7;
+  --warn-text: #92400e;
+
+  /* shape */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* depth */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 20, 0.08);
+  --shadow-md: 0 4px 14px rgba(16, 24, 20, 0.12);
+  --shadow-lg: 0 -6px 28px rgba(16, 24, 20, 0.18);
+
+  /* spacing scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+
+  /* type scale */
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 22px;
+
+  --tabbar: 58px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101412;
+    --panel: #1a1f1c;
+    --surface-2: #222824;
+    --text: #e9eeea;
+    --muted: #9aa69f;
+    --border: #2c332f;
+    --accent: #4fbf92;
+    --on-accent: #08241a;
+    --hover: #232a26;
+    --active: #1f3229;
+    --danger: #ef6b5b;
+    --warn-bg: #3b3012;
+    --warn-text: #f5d58a;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 -6px 28px rgba(0, 0, 0, 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

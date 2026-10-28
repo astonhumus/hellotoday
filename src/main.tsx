@@ -7,6 +7,8 @@ import "@fontsource/noto-sans-meetei-mayek/meetei-mayek-400.css";
 import "@fontsource/noto-sans-meetei-mayek/meetei-mayek-600.css";
 import "@fontsource/noto-sans-bengali/bengali-400.css";
 import "@fontsource/noto-sans-bengali/bengali-600.css";
+import "./styles/tokens.css";
 import "./styles.css";
+import "./ui/ui.css";
 
 createRoot(document.getElementById("root")!).render(<StrictMode><ErrorBoundary><App /></ErrorBoundary></StrictMode>);
