@@ -69,7 +69,7 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
       }).addTo(map);
       if (mine.length) {
         const bounds = outline.getBounds();
-        map.fitBounds(bounds, { padding: [20, 20] });
+        try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
         map.setMinZoom(map.getZoom() - 1);
         map.setMaxBounds(bounds.pad(0.6));
       }
@@ -98,7 +98,9 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
       group.addLayer(m);
       pins.current.set(p.id, m);
     });
-    if (places.length) map.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 11 });
+    if (places.length && map.getSize().x > 0) {
+      try { map.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 11 }); } catch { /* ignore */ }
+    }
   }, [places, categories, state]);
 
   // Selecting a place from the list flies to its pin and opens it

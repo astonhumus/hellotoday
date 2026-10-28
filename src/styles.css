@@ -192,7 +192,9 @@ dialog label.check input { width: auto; }
   .places { flex-direction: column; }
   .view-toggle { display: flex; gap: 6px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--border); }
   .view-toggle .chip { flex: 1; justify-content: center; }
-  .places.show-list .map-wrap { display: none; }
+  /* Keep the hidden map laid out (never display:none): Leaflet breaks when its container has no size. */
+  .places { position: relative; }
+  .places.show-list .map-wrap { position: absolute; inset: 0; visibility: hidden; pointer-events: none; }
   .places.show-map aside { display: none; }
   .map-wrap { flex: 1; min-height: 0; order: 0; }
   aside { width: 100%; flex: 1; border-right: none; }
