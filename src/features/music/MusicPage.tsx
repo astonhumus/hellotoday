@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Song } from "../types";
-import { store } from "../lib/data";
-import { confirmAsk } from "../lib/ui";
-import { LIMITS } from "../lib/limits";
-import { useChipFilter } from "../ui/useChipFilter";
-import { FooterLinks, reportLink } from "./AboutPage";
-import { usePageMeta } from "../lib/pageMeta";
+import type { Song } from "../../types";
+import { store } from "../../lib/data";
+import { confirmAsk } from "../../lib/ui";
+import { LIMITS } from "../../lib/limits";
+import { useChipFilter } from "../../ui/useChipFilter";
+import { FooterLinks, reportLink } from "../../components/AboutPage";
+import { usePageMeta } from "../../lib/pageMeta";
+import { Button, IconButton } from "../../ui/Button";
+import { Chip } from "../../ui/Chip";
+import { Icon } from "../../ui/Icon";
+import { PageHeader } from "../../ui/PageHeader";
+import { SearchField } from "../../ui/SearchField";
+import "./music.css";
 
 interface Props {
   songs: Song[];
@@ -48,13 +54,14 @@ interface ListProps {
   open: (id: string) => void; onAdd: () => void; onEdit: (s: Song) => void; onDelete: (s: Song) => void;
 }
 
-function SongList({ songs, localIds, admin, canDelete, open, onAdd, onEdit, onDelete }: ListProps) {
+function SongList({ songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }: ListProps) {
   const [q, setQ] = useState("");
   const { picked, toggle, clear, multi, setMulti } = useChipFilter(); // languages: single-select unless "Select several" is on
   const [artist, setArtist] = useState("all");
   const langs = useMemo(() => uniq(songs.map(s => s.language)), [songs]);
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
   const count = (key: "language" | "artist", v: string) => songs.filter(s => s[key] === v).length;
+  const withLyrics = songs.filter(s => s.lyrics.trim()).length;
   const shown = useMemo(() => {
     const n = q.trim().toLowerCase();
     return songs
@@ -62,41 +69,54 @@ function SongList({ songs, localIds, admin, canDelete, open, onAdd, onEdit, onDe
         (!n || [s.title, s.artist, s.language].join(" ").toLowerCase().includes(n)))
       .sort((a, b) => a.title.localeCompare(b.title));
   }, [songs, q, picked, artist]);
+
   return (
-    <div className="page">
-      <h1>Songs</h1>
-      <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search songs…" aria-label="Search songs" />
-      <div className="chips" role="group" aria-label="Filter by language">
-        <button className="chip" aria-pressed={picked.size === 0} onClick={clear}>All languages</button>
-        {langs.map(l => (
-          <button key={l} className="chip" aria-pressed={picked.has(l)} onClick={() => toggle(l)}>
-            {l} <span className="chip-n">{count("language", l)}</span>
-          </button>
-        ))}
-        {langs.length > 2 && <button className="chip multi" aria-pressed={multi} onClick={() => setMulti(!multi)} title="Pick more than one language at a time">☑ Select several</button>}
+    <div className="page music">
+      <PageHeader title="Songs" sub={`${songs.length} song${songs.length === 1 ? "" : "s"} · ${withLyrics} with lyrics`}
+        actions={admin && <Button variant="primary" icon="plus" onClick={onAdd}>Add song</Button>} />
+      <SearchField value={q} onChange={setQ} placeholder="Search songs" />
+      <div className="chip-row" role="group" aria-label="Filter by language">
+        <Chip pressed={picked.size === 0} onClick={clear}>All languages</Chip>
+        {langs.map(l => <Chip key={l} pressed={picked.has(l)} count={count("language", l)} onClick={() => toggle(l)}>{l}</Chip>)}
+        {langs.length > 2 && <Chip className="multi" pressed={multi} onClick={() => setMulti(!multi)} title="Pick more than one language at a time">☑ Select several</Chip>}
+        {artists.length > 1 && (
+          <select className="pill-select" value={artist} onChange={e => setArtist(e.target.value)} aria-label="Filter by artist" data-active={artist !== "all"}>
+            <option value="all">All artists</option>
+            {artists.map(a => <option key={a} value={a}>{a} ({count("artist", a)})</option>)}
+          </select>
+        )}
       </div>
-      <div className="tools">
-        <select value={artist} onChange={e => setArtist(e.target.value)} aria-label="Filter by artist">
-          <option value="all">All artists</option>
-          {artists.map(a => <option key={a} value={a}>{a} ({count("artist", a)})</option>)}
-        </select>
-        {admin && <button className="btn primary" onClick={onAdd}>+ Add song</button>}
-      </div>
-      <ul className="songs">
-        {shown.length === 0 && <div className="empty">No songs found.</div>}
-        {shown.map(s => (
-          <li key={s.id} onClick={() => open(s.id)} tabIndex={0} onKeyDown={e => e.key === "Enter" && open(s.id)}>
-            <span className="name">{s.title}</span>
-            <span className="meta">{[s.artist, s.language].filter(Boolean).join(" · ")}{s.lyrics.trim() ? "" : " · lyrics coming soon"}{localIds.has(s.id) ? " · edited/added" : ""}</span>
-            {s.status && s.status !== "approved" && <span className={"badge " + s.status}>{s.status === "pending" ? "⏳ Waiting for approval" : `✖ Rejected${s.reviewNote ? ": " + s.reviewNote : ""}`}</span>}
-            {admin && (
-              <span className="row-actions" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
-                <button className="link" onClick={() => onEdit(s)}>Edit</button>
-                {canDelete && <button className="link danger" onClick={() => onDelete(s)}>Delete</button>}
-              </span>
-            )}
-          </li>
-        ))}
+
+      <ul className="song-list">
+        {shown.length === 0 && <li className="empty">No songs found.</li>}
+        {shown.map(s => {
+          const soon = !s.lyrics.trim();
+          return (
+            <li key={s.id} className="song-card">
+              <a className="sc-main" href={`#/music/${s.id}`}>
+                <span className="sc-icon" aria-hidden="true"><Icon name="music" size={22} /></span>
+                <span className="sc-text">
+                  <span className="sc-title">{s.title}</span>
+                  <span className="sc-meta">{[s.artist, s.language].filter(Boolean).join(" · ")}{localIds.has(s.id) ? " · edited/added" : ""}</span>
+                  {(soon || (s.status && s.status !== "approved")) && (
+                    <span className="sc-tags">
+                      {soon && <span className="tag">Lyrics coming soon</span>}
+                      {s.status === "pending" && <span className="badge pending">⏳ Waiting for approval</span>}
+                      {s.status === "rejected" && <span className="badge rejected">✖ Rejected{s.reviewNote ? `: ${s.reviewNote}` : ""}</span>}
+                    </span>
+                  )}
+                </span>
+                <Icon name="chevron" size={18} />
+              </a>
+              {admin && (
+                <span className="sc-admin">
+                  <IconButton className="sm" icon="edit" label={`Edit ${s.title}`} onClick={() => onEdit(s)} />
+                  {canDelete && <IconButton className="sm danger" icon="trash" label={`Delete ${s.title}`} onClick={() => onDelete(s)} />}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
       <FooterLinks />
     </div>
@@ -181,16 +201,21 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
 
   return (
     <div className="lyrics-page">
-      <div className="lyrics-bar">
-        <button className="btn" onClick={onBack}>← Songs</button>
-        <div className="lyrics-tools">
-          <button className="btn" onClick={() => setSize(s => Math.max(14, s - 2))} aria-label="Smaller text">A−</button>
-          <button className="btn" onClick={() => setSize(s => Math.min(48, s + 2))} aria-label="Larger text">A+</button>
-          <button className="btn" onClick={() => setSpeed(s => Math.max(10, s - 10))} aria-label="Slower scroll">🐢</button>
-          <button className="btn" onClick={() => setSpeed(s => Math.min(120, s + 10))} aria-label="Faster scroll">🐇</button>
-          <button className={"btn" + (scrolling ? " primary" : "")} onClick={() => setScrolling(v => !v)}>{scrolling ? "Pause" : "Auto-scroll"}</button>
-          {admin && <button className="btn" onClick={() => onEdit(song)}>Edit</button>}
-          {canDelete && <button className="btn" onClick={() => onDelete(song)}>Delete</button>}
+      <div className="lyr-bar">
+        <IconButton icon="back" label="Back to songs" onClick={onBack} />
+        <span className="lyr-name">{song.title}</span>
+        <div className="lyr-tools" role="group" aria-label="Reading tools">
+          <button type="button" className="tool-btn" onClick={() => setSize(s => Math.max(14, s - 2))} aria-label="Smaller text">A<small>−</small></button>
+          <button type="button" className="tool-btn" onClick={() => setSize(s => Math.min(48, s + 2))} aria-label="Larger text">A<small>+</small></button>
+          {scrolling && (
+            <>
+              <IconButton className="sm" icon="minus" label="Scroll slower" onClick={() => setSpeed(s => Math.max(10, s - 10))} />
+              <IconButton className="sm" icon="plus" label="Scroll faster" onClick={() => setSpeed(s => Math.min(120, s + 10))} />
+            </>
+          )}
+          <Button variant={scrolling ? "primary" : "secondary"} icon={scrolling ? "pause" : "play"} onClick={() => setScrolling(v => !v)}>{scrolling ? "Pause" : "Auto-scroll"}</Button>
+          {admin && <IconButton className="sm" icon="edit" label="Edit this song" onClick={() => onEdit(song)} />}
+          {canDelete && <IconButton className="sm danger" icon="trash" label="Delete this song" onClick={() => onDelete(song)} />}
         </div>
       </div>
       <div className="lyrics" ref={box} style={{ fontSize: size }} onTouchStart={() => setScrolling(false)} onWheel={() => setScrolling(false)}>

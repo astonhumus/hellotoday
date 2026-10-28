@@ -1,0 +1,68 @@
+/* Trip checklist: trip-type tiles, category cards, big tick boxes, a progress card. */
+.checklist { gap: 14px; }
+.ck-quick { display: grid; gap: 4px; }
+.ck-quick h2, .ck-add h2 { font-size: var(--fs-lg); margin: 0; }
+
+/* ── trip type tiles ── */
+.trip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin-top: 8px; }
+.trip-tile { display: grid; justify-items: center; gap: 2px; padding: 12px 6px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--panel); color: var(--text); font: inherit; box-shadow: var(--shadow-sm); cursor: pointer; text-align: center; transition: transform 0.1s, box-shadow 0.1s; }
+.trip-tile:hover:not(:disabled) { box-shadow: var(--shadow-md); }
+.trip-tile:active:not(:disabled) { transform: scale(0.97); }
+.trip-tile:disabled { opacity: 0.5; cursor: default; }
+.trip-emoji { font-size: 28px; line-height: 1.2; display: grid; place-items: center; height: 34px; }
+.trip-name { font-weight: 600; font-size: 14px; }
+.trip-n { font-size: 12px; color: var(--muted); }
+.trip-tile.clear { background: transparent; box-shadow: none; border-style: dashed; color: var(--muted); }
+
+/* ── a category ── */
+.ck-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.ck-card > summary, .ck-head { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 14px; margin: 0; font-size: var(--fs-md); font-weight: 600; cursor: pointer; list-style: none; }
+.ck-head { cursor: default; }
+.ck-card > summary::-webkit-details-marker { display: none; }
+.ck-card > summary .icon:last-child { color: var(--muted); transition: transform 0.2s; }
+.ck-card[open] > summary .icon:last-child { transform: rotate(180deg); }
+.ck-ic { width: 36px; height: 36px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px; background: var(--surface-2); font-size: 20px; }
+.ck-name { flex: 1; min-width: 0; }
+.ck-count { font-size: 13px; font-weight: 600; color: var(--muted); padding: 2px 10px; border-radius: var(--r-pill); background: var(--surface-2); }
+.ck-count.on { background: var(--active); color: var(--accent); }
+.ck-actions { display: flex; gap: 6px; padding: 0 14px 4px; }
+.ck-list { list-style: none; margin: 0; padding: 0 6px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 10px; }
+.ck-row { display: flex; align-items: center; justify-content: space-between; gap: 4px; border-radius: var(--r-md); }
+.ck-row:hover { background: var(--hover); }
+.ck-admin { display: flex; }
+
+/* ── big, friendly tick boxes ── */
+.ck-check { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 8px; cursor: pointer; font-size: var(--fs-md); }
+.ck-check input { appearance: none; -webkit-appearance: none; flex-shrink: 0; width: 24px; height: 24px; min-height: 0; margin: 0; padding: 0; border: 2px solid var(--muted); border-radius: 8px; background: transparent center / 70% no-repeat; cursor: pointer; transition: background-color 0.12s, border-color 0.12s; }
+.ck-check input:checked { background-color: var(--accent); border-color: var(--accent); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+.ck-check input:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+.ck-row.done .ck-check span { text-decoration: line-through; opacity: 0.5; }
+
+/* ── add your own ── */
+.ck-add-row { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 4px; }
+@media (min-width: 640px) { .ck-add-row { grid-template-columns: 2fr 1.4fr auto; } }
+
+/* the main action stays in reach while scrolling */
+.ck-cta { position: sticky; bottom: 10px; z-index: 3; }
+.ck-cta .btn { width: 100%; min-height: 52px; box-shadow: var(--shadow-md); font-size: var(--fs-lg); }
+
+/* ── my list ── */
+.ck-progress { gap: 10px; }
+.ckp-top { display: flex; align-items: baseline; gap: 10px; }
+.ckp-num { font-size: 36px; line-height: 1; letter-spacing: -0.02em; }
+.ckp-num span { font-size: 20px; color: var(--muted); font-weight: 500; }
+.ckp-label { color: var(--muted); }
+.ckp-bar { height: 12px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+.ckp-bar div { height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.25s; }
+.ck-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ck-tools .btn { padding: 0 8px; }
+.ck-empty { justify-items: center; text-align: center; padding: 28px 16px; }
+.ck-empty-ic { font-size: 44px; line-height: 1; }
+
+@media (max-width: 760px) { .ck-list { grid-template-columns: 1fr; } }
+
+@media print {
+  header, .tabs, .seg-ctl, .ph-sub, .ck-tools, .ck-cta, .bar, .footer-links, .search-field, .icon-btn, .ck-actions, .btn { display: none !important; }
+  .app, .page { height: auto !important; overflow: visible !important; }
+  .ck-card { box-shadow: none; break-inside: avoid; }
+}

@@ -1,0 +1,35 @@
+/* Songs: a list of cards, and a reading view with big type and auto-scroll. */
+.music { gap: 14px; }
+
+.song-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.song-card { display: flex; align-items: center; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.sc-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 10px 12px 14px; color: inherit; text-decoration: none; }
+.sc-main:hover { background: var(--hover); }
+.sc-main > .icon:last-child { color: var(--muted); }
+.sc-icon { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.sc-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sc-title { font-weight: 600; font-size: var(--fs-md); }
+.sc-meta { font-size: var(--fs-sm); color: var(--muted); }
+.sc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.tag { font-size: 12px; padding: 2px 9px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--muted); }
+.sc-admin { display: flex; padding-right: 6px; }
+.song-list .badge { grid-column: auto; }
+
+/* ── reading view ── */
+.lyrics-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.lyr-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; padding: 6px 8px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.lyr-name { flex: 1 1 0; min-width: 90px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lyr-tools { display: flex; align-items: center; gap: 6px; }
+.tool-btn { min-width: 44px; height: 44px; padding: 0 8px; border: 0; border-radius: var(--r-md); background: var(--surface-2); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.tool-btn small { font-size: 12px; vertical-align: super; margin-left: 1px; }
+.lyrics { flex: 1; overflow-y: auto; width: min(720px, 100%); margin: 0 auto; padding: 22px 18px 60vh; line-height: 1.55; }
+.lyrics h1 { margin: 0; font-size: 1.1em; line-height: 1.25; }
+.lyrics .meta { font-size: 0.6em; color: var(--muted); }
+.lyrics pre { font: inherit; white-space: pre-wrap; margin: 1em 0; }
+.lyrics .credit { margin-top: 2em; }
+.lyrics .soon { font-size: 0.7em; margin: 1.2em 0; }
+
+@media (max-width: 520px) {
+  .lyr-tools { order: 3; width: 100%; justify-content: space-between; }
+  .lyr-tools .btn { flex: 1; }
+}

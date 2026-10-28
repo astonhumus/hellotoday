@@ -16,16 +16,11 @@
 
 /* ── search + filters ── */
 .fb { display: grid; gap: 8px; padding: 12px 16px 10px; }
-.fb-search { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 6px 0 14px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-pill); box-shadow: var(--shadow-sm); color: var(--muted); }
-.fb-search:focus-within { outline: 2px solid var(--accent); color: var(--text); }
-.fb-search input { flex: 1; min-width: 0; width: auto; min-height: 0; padding: 10px 0; border: 0; border-radius: 0; background: none; outline: none; -webkit-appearance: none; appearance: none; }
-.fb-clear { width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
 .fb-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px 4px; }
 .fb-chips::-webkit-scrollbar { display: none; }
-.fb-chips .chip, .fb-district { flex-shrink: 0; white-space: nowrap; background: var(--panel); box-shadow: var(--shadow-sm); }
+.fb-chips .chip, .fb-district { flex-shrink: 0; white-space: nowrap; }
+.fb-chips .chip { background: var(--panel); box-shadow: var(--shadow-sm); }
 .fb-chips .chip[aria-pressed="true"] { background: var(--accent); }
-.fb-district { width: auto; min-height: 36px; padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--r-pill); font-size: 14px; color: var(--text); }
-.fb-district[data-active="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .pl-side .fb-chips { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
 .pl-side .fb-chips .chip, .pl-side .fb-district { box-shadow: none; }
 

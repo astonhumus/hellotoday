@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import type { Category, Place, Song, StateInfo } from "./types";
 import { loadJson, store } from "./lib/data";
-import { MusicPage } from "./components/MusicPage";
-import { ChecklistPage, type Catalog } from "./components/ChecklistPage";
+import { MusicPage } from "./features/music/MusicPage";
+import { ChecklistPage, type Catalog } from "./features/checklist/ChecklistPage";
 import { useOverlay } from "./lib/overlay";
 import { useRows } from "./lib/rows";
 import { supabase } from "./lib/supabase";
@@ -16,7 +16,7 @@ import { LIMITS } from "./lib/limits";
 
 // Heavy screens load only when opened, so the home page stays fast. (The map library lives in the Places chunk.)
 const PlacesPage = lazy(() => import("./features/places/PlacesPage").then(m => ({ default: m.PlacesPage })));
-const ReviewPage = lazy(() => import("./components/ReviewPage").then(m => ({ default: m.ReviewPage })));
+const ReviewPage = lazy(() => import("./features/review/ReviewPage").then(m => ({ default: m.ReviewPage })));
 
 interface Member { role: "admin" | "contributor"; auto_approve: boolean }
 

@@ -1,0 +1,33 @@
+/* Review: approve or reject what contributors send, and manage who can contribute. */
+.review { gap: 14px; }
+.rv-section { display: grid; gap: 10px; }
+.rv-section > h2 { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.rv-n { min-width: 24px; padding: 1px 8px; border-radius: var(--r-pill); background: var(--active); color: var(--accent); font-size: 13px; font-weight: 700; text-align: center; }
+
+.rv-card { gap: 10px; }
+.rv-title { margin: 0; font-size: var(--fs-lg); }
+.rv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.rv-body { margin: 0; color: var(--text); }
+.rv-pre { white-space: pre-wrap; font: inherit; font-size: 14px; max-height: 160px; overflow: auto; margin: 0; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); color: var(--muted); }
+.rv-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.rv-actions .btn { min-width: 110px; }
+
+/* what changed in a proposal */
+.diff { display: grid; gap: 2px; padding: 8px 12px; border-radius: var(--r-md); background: var(--surface-2); font-size: 14px; }
+.diff b { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.diff del { color: #b42318; text-decoration: line-through; }
+.diff ins { color: #166534; text-decoration: none; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .diff del { color: #f19a8f; } .diff ins { color: #7fd8a0; } }
+
+.rv-empty { justify-items: center; text-align: center; padding: 28px 16px; }
+.rv-empty-ic { font-size: 40px; line-height: 1; }
+
+/* people */
+.rv-members { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rv-member { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+.rv-avatar { width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); color: var(--muted); }
+.rv-who { flex: 1; min-width: 0; display: grid; gap: 4px; justify-items: start; }
+.rv-who strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rv-add { gap: 10px; }
+
+@media (max-width: 520px) { .rv-member { flex-wrap: wrap; } .rv-actions .btn { flex: 1; } }

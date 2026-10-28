@@ -15,6 +15,16 @@ const PATHS = {
   filter: "M4 6h16M7 12h10M10 18h4",
   back: "M15 5l-7 7 7 7",
   layers: "m12 3 9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17l9 5 9-5",
+  play: "M8 5v14l11-7z",
+  pause: "M8 5v14M16 5v14",
+  minus: "M5 12h14",
+  music: "M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  share: "M12 3v12M8 7l4-4 4 4M5 12v8h14v-8",
+  print: "M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z",
+  undo: "M4 9h11a5 5 0 1 1 0 10H8M4 9l4-4M4 9l4 4",
+  chevron: "m9 6 6 6-6 6",
+  download: "M12 4v12M8 12l4 4 4-4M5 20h14",
+  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
   pin: "M12 21s-6-5.5-6-11a6 6 0 1 1 12 0c0 5.5-6 11-6 11zm0-8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
 } as const;
 

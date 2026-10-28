@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { store } from "../lib/data";
-import { useOverlay } from "../lib/overlay";
-import { confirmAsk, notify } from "../lib/ui";
-import { FooterLinks } from "./AboutPage";
-import { usePageMeta } from "../lib/pageMeta";
+import { store } from "../../lib/data";
+import { useOverlay } from "../../lib/overlay";
+import { confirmAsk, notify } from "../../lib/ui";
+import { FooterLinks } from "../../components/AboutPage";
+import { usePageMeta } from "../../lib/pageMeta";
+import { Button, IconButton } from "../../ui/Button";
+import { Icon } from "../../ui/Icon";
+import { PageHeader } from "../../ui/PageHeader";
+import { SearchField } from "../../ui/SearchField";
+import { Segmented } from "../../ui/Segmented";
+import "./checklist.css";
 
 export interface Catalog {
   trips: { id: string; label: string; icon: string }[];
@@ -94,50 +100,62 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
   if (!catalog) return <div className="page"><div className="empty">Loading checklist…</div></div>;
 
   const needle = q.trim().toLowerCase();
+  const pct = chosen.length ? Math.round((done / chosen.length) * 100) : 0;
 
   return (
     <div className="page checklist">
-      <h1>Trip checklist</h1>
-      <div className="seg" role="group" aria-label="Checklist steps">
-        <button className="chip" aria-pressed={mode === "choose"} onClick={() => setMode("choose")}>1. Choose items</button>
-        <button className="chip" aria-pressed={mode === "list"} onClick={() => setMode("list")}>2. My list ({chosen.length})</button>
-      </div>
+      <PageHeader title="Trip checklist" sub={mode === "choose" ? "Pick what you need, then tick it off as you pack." : `${done} of ${chosen.length} packed`} />
+      <Segmented label="Checklist steps" value={mode} onChange={setMode}
+        options={[{ id: "choose", label: "1. Choose items" }, { id: "list", label: `2. My list (${chosen.length})` }]} />
 
       {mode === "choose" ? (
         <>
-          <div className="hint">Quick start: tap a trip type to tick everything usually needed, then adjust.</div>
-          <div className="chips wrap" role="group" aria-label="Trip type">
-            {catalog.trips.map(t => (
-              <button key={t.id} className="chip" onClick={() => toggleSel(items.filter(i => i.trips.includes(t.id)).map(i => i.id), true)}>
-                {t.icon} {t.label}
+          <section className="ck-quick" aria-labelledby="ck-quick-h">
+            <h2 id="ck-quick-h">Quick start</h2>
+            <p className="ph-sub">Tap a trip type to tick everything usually needed, then adjust.</p>
+            <div className="trip-grid" role="group" aria-label="Trip type">
+              {catalog.trips.map(t => (
+                <button key={t.id} type="button" className="trip-tile" onClick={() => toggleSel(items.filter(i => i.trips.includes(t.id)).map(i => i.id), true)}>
+                  <span className="trip-emoji" aria-hidden="true">{t.icon}</span>
+                  <span className="trip-name">{t.label}</span>
+                  <span className="trip-n">{items.filter(i => i.trips.includes(t.id)).length} items</span>
+                </button>
+              ))}
+              <button type="button" className="trip-tile clear" onClick={() => toggleSel(saved.sel, false)} disabled={!saved.sel.length}>
+                <span className="trip-emoji" aria-hidden="true"><Icon name="undo" size={24} /></span>
+                <span className="trip-name">Clear all</span>
+                <span className="trip-n">{saved.sel.length} ticked</span>
               </button>
-            ))}
-            <button className="chip" onClick={() => toggleSel(saved.sel, false)} disabled={!saved.sel.length}>Clear all</button>
-          </div>
-          <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search items…" aria-label="Search items" />
+            </div>
+          </section>
+
+          <SearchField value={q} onChange={setQ} placeholder="Search items" />
+
           {cats.map(c => {
             const rows = items.filter(i => i.cat === c.id && (!needle || i.name.toLowerCase().includes(needle)));
             if (!rows.length) return null;
             const n = rows.filter(i => sel.has(i.id)).length;
             return (
-              <details key={c.id} open={!!needle || undefined} className="ck-group">
+              <details key={c.id} open={!!needle || undefined} className="ck-card">
                 <summary>
-                  <span>{c.icon} {c.label}</span>
-                  <span className="chip-n">{n}/{rows.length}</span>
+                  <span className="ck-ic" aria-hidden="true">{c.icon}</span>
+                  <span className="ck-name">{c.label}</span>
+                  <span className={"ck-count" + (n ? " on" : "")}>{n}/{rows.length}</span>
+                  <Icon name="chevron-down" size={18} />
                 </summary>
                 <div className="ck-actions">
-                  <button className="link" onClick={() => toggleSel(rows.map(i => i.id), true)}>Select all</button>
-                  <button className="link" onClick={() => toggleSel(rows.map(i => i.id), false)}>None</button>
+                  <button type="button" className="link" onClick={() => toggleSel(rows.map(i => i.id), true)}>Select all</button>
+                  <button type="button" className="link" onClick={() => toggleSel(rows.map(i => i.id), false)}>None</button>
                 </div>
-                <ul className="ck-items">
+                <ul className="ck-list">
                   {rows.map(i => (
-                    <li key={i.id}>
-                      <label><input type="checkbox" checked={sel.has(i.id)} onChange={e => toggleSel([i.id], e.target.checked)} /> {i.name}</label>
-                      {i.id.startsWith("custom:") && <button className="link danger" onClick={() => removeCustom(i.id)}>Remove</button>}
+                    <li key={i.id} className="ck-row">
+                      <label className="ck-check"><input type="checkbox" checked={sel.has(i.id)} onChange={e => toggleSel([i.id], e.target.checked)} /><span>{i.name}</span></label>
+                      {i.id.startsWith("custom:") && <IconButton className="sm" icon="x" label={`Remove ${i.name}`} onClick={() => removeCustom(i.id)} />}
                       {admin && !i.id.startsWith("custom:") && (
-                        <span className="row-actions">
-                          <button className="link" onClick={() => setDialog({ editing: i })}>Edit</button>
-                          <button className="link danger" onClick={async () => { if (await confirmAsk(`Delete "${i.name}" from the catalog for everyone?`, { yes: "Delete", danger: true })) { void catalogItems.remove(i.id); toggleSel([i.id], false); } }}>Delete</button>
+                        <span className="ck-admin">
+                          <IconButton className="sm" icon="edit" label={`Edit ${i.name}`} onClick={() => setDialog({ editing: i })} />
+                          <IconButton className="sm danger" icon="trash" label={`Delete ${i.name}`} onClick={async () => { if (await confirmAsk(`Delete "${i.name}" from the catalog for everyone?`, { yes: "Delete", danger: true })) { void catalogItems.remove(i.id); toggleSel([i.id], false); } }} />
                         </span>
                       )}
                     </li>
@@ -146,51 +164,72 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
               </details>
             );
           })}
-          {admin && <button className="btn" onClick={() => setDialog({ editing: null })}>+ Add item to catalog (everyone)</button>}
-          <form className="ck-add" onSubmit={addCustom}>
-            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Add a personal item (only on this device)…" maxLength={80} aria-label="Custom item" />
-            <select value={newCat} onChange={e => setNewCat(e.target.value)} aria-label="Category for custom item">
-              {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-            </select>
-            <button className="btn primary" type="submit" disabled={!newName.trim()}>Add</button>
+
+          <form className="card ck-add" onSubmit={addCustom}>
+            <h2>Add your own item</h2>
+            <p className="ph-sub">Saved only on this device.</p>
+            <div className="ck-add-row">
+              <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Raincoat for the child" maxLength={80} aria-label="Custom item" />
+              <select value={newCat} onChange={e => setNewCat(e.target.value)} aria-label="Category for custom item">
+                {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+              </select>
+              <Button variant="primary" type="submit" icon="plus" disabled={!newName.trim()}>Add</Button>
+            </div>
+            {admin && <Button icon="plus" onClick={() => setDialog({ editing: null })}>Add item to the catalog (everyone)</Button>}
           </form>
-          <button className="btn primary" onClick={() => setMode("list")} disabled={!chosen.length}>Make my list ({chosen.length})</button>
+
+          <div className="ck-cta">
+            <Button variant="primary" onClick={() => setMode("list")} disabled={!chosen.length}>Make my list ({chosen.length})</Button>
+          </div>
         </>
       ) : (
         <>
           {chosen.length === 0 ? (
-            <div className="empty">Nothing chosen yet. Go to “Choose items”.</div>
+            <div className="card ck-empty">
+              <span className="ck-empty-ic" aria-hidden="true">🎒</span>
+              <strong>Nothing chosen yet</strong>
+              <p className="ph-sub">Pick a trip type or tick items to build your packing list.</p>
+              <Button variant="primary" onClick={() => setMode("choose")}>Choose items</Button>
+            </div>
           ) : (
             <>
-              <div className="ck-progress">
-                <div className="bar"><div style={{ width: `${(done / chosen.length) * 100}%` }} /></div>
-                <span>{done} of {chosen.length} packed{done === chosen.length ? " 🎉" : ""}</span>
-              </div>
-              <div className="tools">
-                <button className="btn" onClick={share}>Share / copy</button>
-                <button className="btn" onClick={() => window.print()}>Print</button>
-                <button className="btn" onClick={() => update(s => ({ ...s, packed: [] }))} disabled={!done}>Untick all</button>
+              <section className="card ck-progress" aria-label="Packing progress">
+                <div className="ckp-top">
+                  <strong className="ckp-num">{done}<span>/{chosen.length}</span></strong>
+                  <span className="ckp-label">packed{done === chosen.length ? " 🎉" : ` · ${pct}%`}</span>
+                </div>
+                <div className="ckp-bar" role="progressbar" aria-label="Packed" aria-valuemin={0} aria-valuemax={chosen.length} aria-valuenow={done}><div style={{ width: `${pct}%` }} /></div>
+              </section>
+              <div className="ck-tools">
+                <Button icon="share" onClick={share}>Share</Button>
+                <Button icon="print" onClick={() => window.print()}>Print</Button>
+                <Button icon="undo" onClick={() => update(s => ({ ...s, packed: [] }))} disabled={!done}>Untick all</Button>
               </div>
               {cats.map(c => {
                 const rows = chosen.filter(i => i.cat === c.id);
                 if (!rows.length) return null;
+                const d = rows.filter(i => packed.has(i.id)).length;
                 return (
-                  <section key={c.id} className="ck-group">
-                    <h2>{c.icon} {c.label} <span className="chip-n">{rows.filter(i => packed.has(i.id)).length}/{rows.length}</span></h2>
-                    <ul className="ck-items">
+                  <section key={c.id} className="ck-card open">
+                    <h2 className="ck-head">
+                      <span className="ck-ic" aria-hidden="true">{c.icon}</span>
+                      <span className="ck-name">{c.label}</span>
+                      <span className={"ck-count" + (d === rows.length ? " on" : "")}>{d}/{rows.length}</span>
+                    </h2>
+                    <ul className="ck-list">
                       {rows.map(i => (
-                        <li key={i.id} className={packed.has(i.id) ? "done" : ""}>
-                          <label><input type="checkbox" checked={packed.has(i.id)} onChange={() => togglePacked(i.id)} /> {i.name}</label>
-                          <button className="link" onClick={() => toggleSel([i.id], false)} aria-label={`Remove ${i.name}`}>✕</button>
+                        <li key={i.id} className={"ck-row" + (packed.has(i.id) ? " done" : "")}>
+                          <label className="ck-check"><input type="checkbox" checked={packed.has(i.id)} onChange={() => togglePacked(i.id)} /><span>{i.name}</span></label>
+                          <IconButton className="sm" icon="x" label={`Remove ${i.name} from my list`} onClick={() => toggleSel([i.id], false)} />
                         </li>
                       ))}
                     </ul>
                   </section>
                 );
               })}
+              <Button icon="plus" onClick={() => setMode("choose")}>Add more items</Button>
             </>
           )}
-          <button className="btn" onClick={() => setMode("choose")}>+ Add more items</button>
         </>
       )}
       <FooterLinks />
