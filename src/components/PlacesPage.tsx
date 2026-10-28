@@ -3,6 +3,7 @@ import type { Category, Place, StateInfo } from "../types";
 import { MapView } from "./MapView";
 import { AddPlaceDialog } from "./AddPlaceDialog";
 import { confirmAsk } from "../lib/ui";
+import { FooterLinks } from "./AboutPage";
 
 interface Props {
   state: StateInfo;
@@ -111,6 +112,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
               </li>
             );
           })}
+          <FooterLinks />
         </ul>
       </aside>
       <div className="map-wrap">

@@ -27,8 +27,9 @@ const LOCAL_ADMIN = (() => {
 })();
 if (LOCAL_ADMIN) navigator.storage?.persist?.(); // ask the browser not to clear the saved places
 
-// Secret address for the sign-in box, e.g. https://yoursite/#/manage-k7q2. Change it in .env.
+// The sign-in box opens at https://yoursite/#/admin (and at #/<VITE_ADMIN_ROUTE> if you set one). There is also a quiet footer link.
 const ADMIN_ROUTE = import.meta.env.VITE_ADMIN_ROUTE || "admin";
+const isAdminRoute = (route: string) => route === "admin" || route === ADMIN_ROUTE; // #/admin always works; the old secret word too
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -178,7 +179,7 @@ export default function App() {
           <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><span aria-hidden>🎒</span> Checklist</a>
         </nav>
         {supabase && IS_ADMIN && <a className="btn" href="#/review">Review{pending ? ` (${pending})` : ""}</a>}
-        <AdminLogin hasSession={hasSession} isMember={signedIn} show={route === ADMIN_ROUTE} onClose={() => { if (route === ADMIN_ROUTE) location.hash = "#/places"; }} />
+        <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) location.hash = "#/places"; }} />
       </header>
       <PwaBar />
       <main>

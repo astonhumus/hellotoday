@@ -303,3 +303,4 @@ dialog.msg .actions { position: static; border: none; padding: 0; }
 .about h3 { margin: 18px 0 4px; }
 .footer-links { display: flex; gap: 14px; justify-content: center; padding: 14px 0 6px; font-size: 13px; color: var(--muted); }
 .footer-links a { color: var(--muted); min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; }
+.footer-links .admin-link { font-size: 12px; opacity: 0.6; }

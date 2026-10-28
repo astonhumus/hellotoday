@@ -1,3 +1,6 @@
+import { supabase } from "../lib/supabase";
+import { useHasSession } from "../lib/auth";
+
 const CONTACT = import.meta.env.VITE_CONTACT_EMAIL;
 
 export const reportLink = (subject: string) =>
@@ -5,10 +8,13 @@ export const reportLink = (subject: string) =>
 
 export function FooterLinks({ report }: { report?: { subject: string } }) {
   const href = report ? reportLink(report.subject) : "";
+  const signedIn = useHasSession();
   return (
     <div className="footer-links">
       <a href="#/about">About &amp; privacy</a>
       {href && <a href={href}>Report a problem</a>}
+      {/* Deliberately quiet: small, grey, last. Only shown when the site has an admin backend and nobody is signed in. */}
+      {supabase && !signedIn && <a href="#/admin" className="admin-link">Admin sign in</a>}
     </div>
   );
 }
