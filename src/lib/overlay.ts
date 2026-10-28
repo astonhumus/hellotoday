@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { store } from "./data";
 import { supabase } from "./supabase";
+import { cacheGet, cacheSet } from "./cache";
 
 const read = <T,>(key: string): T[] => {
   try { const v = JSON.parse(store.get(key) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; }
@@ -27,11 +28,18 @@ export function useOverlay<T extends { id: string }>(key: string | null, base: T
       return;
     }
     let live = true;
+    const apply = (rows: { id: string; data: any; deleted: boolean }[]) => {
+      setLocal(rows.filter(r => !r.deleted && r.data).map(r => ({ ...r.data, id: r.id }) as T));
+      setDeleted(rows.filter(r => r.deleted).map(r => r.id));
+    };
+    let fresh = false;
+    void cacheGet<any[]>(`overlay:${key}`).then(c => { if (live && !fresh && c) apply(c); }); // offline copy first
     supabase.from("items").select("id,data,deleted").eq("kind", key).then(({ data, error }) => {
       if (!live) return;
       if (error) return console.warn("Could not load shared edits:", error.message);
-      setLocal((data ?? []).filter(r => !r.deleted && r.data).map(r => ({ ...r.data, id: r.id }) as T));
-      setDeleted((data ?? []).filter(r => r.deleted).map(r => r.id));
+      fresh = true;
+      apply(data ?? []);
+      void cacheSet(`overlay:${key}`, data ?? []);
     });
     return () => { live = false; };
   }, [key]);

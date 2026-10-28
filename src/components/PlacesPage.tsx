@@ -23,6 +23,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
   const [q, setQ] = useState("");
   const [visitedOnly, setVisitedOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [view, setView] = useState<"list" | "map">("list"); // phones show one at a time
   const [dialog, setDialog] = useState<{ editing: Place | null } | null>(null);
 
   const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
@@ -51,7 +52,11 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
   });
 
   return (
-    <div className="places">
+    <div className={"places show-" + view}>
+      <div className="view-toggle" role="group" aria-label="Show list or map">
+        <button className="chip" aria-pressed={view === "list"} onClick={() => setView("list")}>☰ List</button>
+        <button className="chip" aria-pressed={view === "map"} onClick={() => setView("map")}>🗺️ Map</button>
+      </div>
       <aside>
         <div className="controls">
           <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search places…" aria-label="Search places" />
@@ -86,7 +91,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
             const c = catById[p.category];
             const local = localIds.has(p.id);
             return (
-              <li key={p.id} className={p.id === selectedId ? "active" : ""} onClick={() => setSelectedId(p.id)}>
+              <li key={p.id} className={p.id === selectedId ? "active" : ""} onClick={() => { setSelectedId(p.id); setView("map"); }}>
                 <span className="dot" style={{ background: c?.color ?? "#64748b" }} />
                 <span className="name">{p.name}</span>
                 <span className="meta">{c?.label ?? p.category}{p.district ? ` · ${p.district}` : ""}{p.approx ? " · approx." : ""}{local ? " · edited/added" : ""}</span>

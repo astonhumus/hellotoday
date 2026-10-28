@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
+import { cacheGet, cacheSet } from "./cache";
 
 type Row = Record<string, unknown>;
 
@@ -27,11 +28,23 @@ export function useRows<T extends { id: string; status?: string }>(spec: Spec<T>
     let q = supabase.from(spec.table).select("*").limit(5000);
     if (spec.scope) q = q.eq(spec.scope.column, spec.scope.value);
     const { data, error } = await q;
-    if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return setRows(null); }
-    setRows((data as Row[]).map(spec.fromRow));
+    if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return; } // keep whatever is showing (cached copy)
+    const mapped = (data as Row[]).map(spec.fromRow);
+    setRows(mapped);
+    // Offline copy: only the public view, never a signed-in user's pending items.
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) void cacheSet(cacheKey, mapped);
   };
 
-  useEffect(() => { setRows(null); void load(); }, [table, scopeCol, scopeVal]); // eslint-disable-line react-hooks/exhaustive-deps
+  const cacheKey = `rows:${spec?.table}:${scopeVal ?? ""}`;
+  useEffect(() => {
+    let live = true;
+    setRows(null);
+    // Show the saved copy straight away (instant start, works offline), then refresh from the network.
+    if (spec) void cacheGet<T[]>(cacheKey).then(c => { if (live && c) setRows(cur => cur ?? c); });
+    void load();
+    return () => { live = false; };
+  }, [table, scopeCol, scopeVal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const items = rows ?? fallback;
   const scoped = (r: Row): Row => (spec?.scope ? { ...r, [spec.scope.column]: spec.scope.value } : r);

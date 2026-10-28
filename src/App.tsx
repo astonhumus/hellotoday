@@ -9,16 +9,17 @@ import { useRows } from "./lib/rows";
 import { supabase } from "./lib/supabase";
 import { AdminLogin } from "./components/AdminLogin";
 import { ReviewPage } from "./components/ReviewPage";
+import { PwaBar } from "./components/PwaBar";
 
 interface Member { role: "admin" | "contributor"; auto_approve: boolean }
 
-// The add/edit/delete tools are on by default. Changes are kept in this browser only; use Export and
-// paste the result into public/data/<state>/places.json to publish. ?admin=0 hides the tools on this
-// device and ?admin=1 shows them again.
+// Only used when Supabase is NOT configured (local development). Edits then stay in this browser only.
+// On a deployed site the edit tools stay hidden unless this device opted in with ?admin=1 (?admin=0 turns it off).
 const LOCAL_ADMIN = (() => {
   const v = new URLSearchParams(location.search).get("admin");
-  if (v !== null) store.set("admin", v === "0" ? "off" : "");
-  return store.get("admin") !== "off";
+  if (v !== null) store.set("admin", v === "1" ? "on" : "off");
+  const flag = store.get("admin");
+  return import.meta.env.DEV ? flag !== "off" : flag === "on";
 })();
 if (LOCAL_ADMIN) navigator.storage?.persist?.(); // ask the browser not to clear the saved places
 
@@ -169,6 +170,7 @@ export default function App() {
         {supabase && IS_ADMIN && <a className="btn" href="#/review">Review{pending ? ` (${pending})` : ""}</a>}
         <AdminLogin signedIn={signedIn} show={route === ADMIN_ROUTE} onClose={() => { if (route === ADMIN_ROUTE) location.hash = "#/places"; }} />
       </header>
+      <PwaBar />
       <main>
         {error && <div className="error">Couldn't load data: {error}</div>}
         {page === "places" && state && (

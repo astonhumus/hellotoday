@@ -111,7 +111,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
       })}
 
       <h3>People who can contribute</h3>
-      <table>
+      <div className="review-scroll"><table>
         <thead><tr><th>Email</th><th>Role</th><th>Auto-approve</th><th /></tr></thead>
         <tbody>
           {members.map(m => (
@@ -133,7 +133,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
       <form className="ck-add" onSubmit={addMember}>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Contributor's email (create their login in Supabase first)" required />
         <label className="check"><input type="checkbox" checked={auto} onChange={e => setAuto(e.target.checked)} /> Trusted: auto-approve</label>

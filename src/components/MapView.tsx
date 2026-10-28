@@ -76,7 +76,11 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
       pinLayer.current?.bringToFront();
     }).catch(() => {});
 
-    return () => { cancelled = true; map.remove(); mapRef.current = null; pins.current.clear(); };
+    // The map may be hidden (mobile List view) and shown later, or resized by rotating the phone.
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(host.current);
+
+    return () => { cancelled = true; ro.disconnect(); map.remove(); mapRef.current = null; pins.current.clear(); };
   }, [state]);
 
   // Pins
