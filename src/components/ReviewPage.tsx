@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Category } from "../types";
 import { supabase } from "../lib/supabase";
 import { confirmAsk, notify, promptAsk, explainError } from "../lib/ui";
+import { usePageMeta } from "../lib/pageMeta";
 
 type Row = Record<string, any>;
 interface Member { user_id: string; email: string; role: "admin" | "contributor"; auto_approve: boolean }
@@ -11,6 +12,7 @@ const SONG_FIELDS = ["title", "artist", "language", "lyrics", "credit"];
 
 // Admin only: approve or reject what contributors submitted, and manage who may contribute.
 export function ReviewPage({ categories }: { categories: Category[] }) {
+  usePageMeta("Review submissions", "Approve or reject places and songs submitted by contributors, and manage who can contribute.");
   const [places, setPlaces] = useState<Row[]>([]);
   const [songs, setSongs] = useState<Row[]>([]);
   const [revs, setRevs] = useState<Row[]>([]);
@@ -85,10 +87,10 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
 
   return (
     <div className="page review">
-      <h2>Review</h2>
+      <h1>Review</h1>
       {nothing && <div className="empty">Nothing waiting for approval. 🎉</div>}
 
-      {places.length > 0 && <h3>New places ({places.length})</h3>}
+      {places.length > 0 && <h2>New places ({places.length})</h2>}
       {places.map(p => (
         <div className="card" key={p.id}>
           <strong>{p.name}</strong>
@@ -98,7 +100,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
         </div>
       ))}
 
-      {songs.length > 0 && <h3>New songs ({songs.length})</h3>}
+      {songs.length > 0 && <h2>New songs ({songs.length})</h2>}
       {songs.map(s => (
         <div className="card" key={s.id}>
           <strong>{s.title}</strong>
@@ -108,7 +110,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
         </div>
       ))}
 
-      {revs.length > 0 && <h3>Proposed changes ({revs.length})</h3>}
+      {revs.length > 0 && <h2>Proposed changes ({revs.length})</h2>}
       {revs.map(r => {
         const current = targets[`${r.kind}:${r.target_id}`];
         const fields = r.kind === "place" ? PLACE_FIELDS : SONG_FIELDS;
@@ -129,11 +131,11 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
         );
       })}
 
-      <h3>Backup</h3>
+      <h2>Backup</h2>
       <p className="meta">Downloads every place, song, checklist edit, proposal and member as one file.</p>
       <div className="tools"><button className="btn" onClick={backup} disabled={busy}>Download full backup</button></div>
 
-      <h3>People who can contribute</h3>
+      <h2>People who can contribute</h2>
       <div className="review-scroll"><table>
         <thead><tr><th>Email</th><th>Role</th><th>Auto-approve</th><th /></tr></thead>
         <tbody>

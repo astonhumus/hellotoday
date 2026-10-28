@@ -8,9 +8,9 @@ const KEY = "filter-multi";
  * tapping it again goes back to "all". Switching on "Select several" lets people combine chips.
  * The choice is remembered on the device and shared by every filter in the app.
  */
-export function useChipFilter() {
+export function useChipFilter(initial: string[] = []) {
   const [multi, setMultiState] = useState(() => store.get(KEY) === "1");
-  const [picked, setPicked] = useState<Set<string>>(new Set()); // empty = everything
+  const [picked, setPicked] = useState<Set<string>>(() => new Set(initial)); // empty = everything
 
   const setMulti = useCallback((on: boolean) => {
     setMultiState(on);

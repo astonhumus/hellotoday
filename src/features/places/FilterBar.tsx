@@ -18,6 +18,8 @@ interface Props {
   visitedOnly: boolean;
   onVisitedOnly: () => void;
   visitedCount: number;
+  near: boolean;
+  onNear: () => void;
 }
 
 /** Search box plus one scrolling row of filters. On phones it floats over the map; on larger screens it heads the side panel. */
@@ -32,6 +34,7 @@ export function FilterBar(p: Props) {
       <div className="fb-chips" role="group" aria-label="Filters">
         <Chip pressed={p.picked.size === 0 && !p.visitedOnly} onClick={() => { p.onAllCategories(); if (p.visitedOnly) p.onVisitedOnly(); }}>All</Chip>
         <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} onClick={p.onVisitedOnly}>✓ My visited</Chip>
+        <Chip pressed={p.near} onClick={p.onNear} title="Sort by distance from where you are">📍 Near me</Chip>
         {p.categories.map(c => (
           <Chip key={c.id} pressed={p.picked.has(c.id)} dotColor={c.color} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}

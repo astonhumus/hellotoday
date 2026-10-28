@@ -1,19 +1,22 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import type { Category, Place, Song, StateInfo } from "./types";
 import { loadJson, store } from "./lib/data";
-import { PlacesPage } from "./features/places/PlacesPage";
 import { MusicPage } from "./components/MusicPage";
 import { ChecklistPage, type Catalog } from "./components/ChecklistPage";
 import { useOverlay } from "./lib/overlay";
 import { useRows } from "./lib/rows";
 import { supabase } from "./lib/supabase";
 import { AdminLogin } from "./components/AdminLogin";
-import { ReviewPage } from "./components/ReviewPage";
 import { PwaBar } from "./components/PwaBar";
+import { HomePage } from "./features/home/HomePage";
 import { DialogHost } from "./components/DialogHost";
 import { AboutPage } from "./components/AboutPage";
 import { notify } from "./lib/ui";
 import { LIMITS } from "./lib/limits";
+
+// Heavy screens load only when opened, so the home page stays fast. (The map library lives in the Places chunk.)
+const PlacesPage = lazy(() => import("./features/places/PlacesPage").then(m => ({ default: m.PlacesPage })));
+const ReviewPage = lazy(() => import("./components/ReviewPage").then(m => ({ default: m.ReviewPage })));
 
 interface Member { role: "admin" | "contributor"; auto_approve: boolean }
 
@@ -63,8 +66,17 @@ export default function App() {
   const signedIn = !!member;
   const ADMIN = supabase ? signedIn : LOCAL_ADMIN;                    // can add / edit
   const IS_ADMIN = supabase ? member?.role === "admin" : LOCAL_ADMIN; // can delete, review, manage the catalog
-  const [route, arg] = hash.split("/");
-  const page = route === "music" ? "music" : route === "checklist" ? "checklist" : route === "review" && IS_ADMIN && supabase ? "review" : route === "about" ? "about" : "places";
+  // Addresses look like #/places?cat=picnic&q=garden: path first, then optional filters
+  const [path, query = ""] = hash.split("?");
+  const [route, arg] = path.split("/");
+  const params = new URLSearchParams(query);
+  const page = route === "places" ? "places" : route === "music" ? "music" : route === "checklist" ? "checklist"
+    : route === "review" && IS_ADMIN && supabase ? "review" : route === "about" ? "about" : "home";
+
+  useEffect(() => {
+    const t = window.setTimeout(() => { void import("./features/places/PlacesPage"); }, 2500);
+    return () => window.clearTimeout(t);
+  }, []);
 
   const [states, setStates] = useState<StateInfo[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -167,13 +179,14 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Explore India</h1>
+        <p className="site-name"><a href="#/" className="brand">Explore India</a></p>
         {states.length > 1 ? (
           <select value={state?.id} onChange={e => setStateId(e.target.value)} aria-label="State">
             {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         ) : state && <span className="state-name">{state.name}</span>}
         <nav className="tabs" aria-label="Main menu">
+          <a href="#/" aria-current={page === "home" ? "page" : undefined}><span aria-hidden>🏠</span> Home</a>
           <a href="#/places" aria-current={page === "places" ? "page" : undefined}><span aria-hidden>🗺️</span> Places</a>
           <a href="#/music" aria-current={page === "music" ? "page" : undefined}><span aria-hidden>🎵</span> Music</a>
           <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><span aria-hidden>🎒</span> Checklist</a>
@@ -183,17 +196,20 @@ export default function App() {
       </header>
       <PwaBar />
       <main>
+        <Suspense fallback={<div className="page"><p className="empty" role="status">Loading…</p></div>}>
         {error && <div className="error">Couldn't load data: {error}</div>}
         {page === "places" && state && (
-          <PlacesPage key={state.id} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} loading={supabase ? dbPlaces.loading : false}
+          <PlacesPage key={state.id + "?" + query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1" }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} loading={supabase ? dbPlaces.loading : false}
             onSavePlace={placeStore.save} onDeletePlace={placeStore.remove} exportCount={exportRows.length} onExport={exportPlaces} onImport={importPlaces} />
         )}
+        {page === "home" && <HomePage state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
         {page === "checklist" && <ChecklistPage catalog={checklist} admin={IS_ADMIN} />}
         {page === "review" && <ReviewPage categories={categories} />}
         {page === "about" && <AboutPage />}
         {page === "music" && (
           <MusicPage songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ?? null} open={id => { location.hash = id ? `#/music/${id}` : "#/music"; }} />
         )}
+        </Suspense>
       </main>
       <DialogHost />
     </div>

@@ -1,11 +1,29 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
+// The public address used in canonical links, share previews and structured data. Set VITE_SITE_URL when it changes.
+const DEFAULT_SITE_URL = "https://hellotoday.astonhumus.workers.dev"; // keep in sync with scripts/build-seo.mjs
+
+const seoHtml = (siteUrl: string, searchConsoleToken: string): Plugin => ({
+  name: "seo-html",
+  transformIndexHtml: {
+    order: "pre",
+    handler: html => html
+      .replaceAll("__SITE_URL__", siteUrl)
+      // Google Search Console "HTML tag" verification: set VITE_GSC_VERIFICATION to the code it gives you
+      .replace("<!--GSC-->", searchConsoleToken ? `<meta name="google-site-verification" content="${searchConsoleToken}">` : "")
+  }
+});
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, ".", "VITE_");
+  const siteUrl = (env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
+  return {
   base: "./",
   plugins: [
     react(),
+    seoHtml(siteUrl, env.VITE_GSC_VERIFICATION ?? ""),
     VitePWA({
       registerType: "prompt",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
@@ -33,7 +51,7 @@ export default defineConfig({
         short_name: "Explore",
         description: "Tourist places, food, stays and services by state, a song lyrics library and a trip checklist. Works offline.",
         lang: "en",
-        start_url: "./#/places",
+        start_url: "./",
         scope: "./",
         display: "standalone",
         orientation: "any",
@@ -47,6 +65,7 @@ export default defineConfig({
           { src: "icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }
         ],
         shortcuts: [
+          { name: "Home", url: "./", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
           { name: "Places", url: "./#/places", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
           { name: "Music", url: "./#/music", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
           { name: "Checklist", url: "./#/checklist", icons: [{ src: "icon-192.png", sizes: "192x192" }] }
@@ -54,4 +73,5 @@ export default defineConfig({
       }
     })
   ]
+};
 });

@@ -18,5 +18,5 @@
 .sheet-head { position: relative; display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 64px; padding: 16px 6px 4px 14px; touch-action: none; cursor: grab; }
 .sheet-grip { position: absolute; top: 7px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 99px; background: var(--border); }
 .sheet-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
-.sheet-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-lg); }
+.sheet-title strong, .sheet-title .pl-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-lg); }
 .sheet-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }

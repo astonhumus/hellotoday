@@ -17,9 +17,28 @@ interface Props {
   categories: Record<string, Category>;
   selectedId: string | null;
   visitedIds: Set<string>;
+  me?: { lat: number; lng: number } | null; // the visitor's own position while "Near me" is on
   insets: { top: number; bottom: number }; // screen covered by the search bar and the bottom sheet (phones)
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
+}
+
+// Leaflet's canvas layer can try to redraw after its map was removed (quick page changes), which throws.
+// Skip the redraw in that case.
+const canvasProto = L.Canvas.prototype as unknown as { _redraw: () => void; _clear: () => void; _ctx?: unknown; _redrawRequest?: unknown };
+if (!(canvasProto as { _guarded?: boolean })._guarded) {
+  const redraw = canvasProto._redraw, clear = canvasProto._clear;
+  canvasProto._redraw = function (this: typeof canvasProto) { if (!this._ctx) { this._redrawRequest = undefined; return; } redraw.call(this); };
+  canvasProto._clear = function (this: typeof canvasProto) { if (!this._ctx) return; clear.call(this); };
+  (canvasProto as { _guarded?: boolean })._guarded = true;
+}
+
+// The same goes for a zoom animation that finishes after its map was removed.
+const mapProto = L.Map.prototype as unknown as { _onZoomTransitionEnd: () => void; _mapPane?: unknown; _zoomGuarded?: boolean };
+if (!mapProto._zoomGuarded) {
+  const done = mapProto._onZoomTransitionEnd;
+  mapProto._onZoomTransitionEnd = function (this: typeof mapProto) { if (!this._mapPane) return; done.call(this); };
+  mapProto._zoomGuarded = true;
 }
 
 const FALLBACK: Category = { id: "", label: "Place", color: "#64748b", icon: "📍" };
@@ -30,7 +49,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
-export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, insets, onSelect }: Props) {
+export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, me, insets, onSelect }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.CircleMarker>());
@@ -87,7 +106,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     const ro = new ResizeObserver(() => map.invalidateSize());
     ro.observe(host.current);
 
-    return () => { cancelled = true; ro.disconnect(); map.remove(); mapRef.current = null; pins.current.clear(); };
+    return () => { cancelled = true; ro.disconnect(); map.stop(); map.remove(); mapRef.current = null; pins.current.clear(); };
   }, [state]);
 
   // District boundaries (public/data/<state>/districts.json), drawn over the tiles with the district name in the middle.
@@ -175,6 +194,18 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     });
   };
   useEffect(paint, [selectedId, visitedIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // "You are here": a blue dot, and the map moves there
+  const meMarker = useRef<L.CircleMarker | null>(null);
+  useEffect(() => {
+    const map = mapRef.current;
+    meMarker.current?.remove();
+    meMarker.current = null;
+    if (!map || !me) return;
+    meMarker.current = L.circleMarker([me.lat, me.lng], { radius: 9, weight: 3, color: "#fff", fillColor: "#2563eb", fillOpacity: 1, interactive: false }).addTo(map);
+    const zoom = 11, { top, bottom } = insetsRef.current;
+    map.flyTo(map.unproject(map.project([me.lat, me.lng], zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 0.6 });
+  }, [me, ready]);
 
   // Selecting a place flies to it, placing the pin in the part of the map the panels don't cover
   useEffect(() => {

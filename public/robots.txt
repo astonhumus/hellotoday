@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hellotoday.astonhumus.workers.dev/sitemap.xml

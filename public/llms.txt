@@ -1,0 +1,15 @@
+# Explore India
+
+> A free, offline-capable guide to places to visit, eat and stay in Manipur, India. It also has a song lyrics library and a trip packing checklist.
+
+## What is here
+- Places: tourist sites, picnic spots, snack spots, hotels and resorts, shown on a map with district boundaries, directions and distance from you.
+- Songs: lyrics, filterable by language and artist (including Manipuri).
+- Trip checklist: items to pack for a picnic, camping, trek, road trip or day trip.
+
+## Notes for readers and tools
+- Home page: https://hellotoday.astonhumus.workers.dev/
+- The app is a single-page web app; its sections are reached from the home page.
+- Map data is from OpenStreetMap contributors. District outlines are from geoBoundaries (simplified, not for legal or survey use).
+- Details about places can be out of date. Check before you travel.
+- Song lyrics are shared only with the rights holder's permission or when public domain. Takedown requests are listed on the About page.

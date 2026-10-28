@@ -3,6 +3,7 @@ import { store } from "../lib/data";
 import { useOverlay } from "../lib/overlay";
 import { confirmAsk, notify } from "../lib/ui";
 import { FooterLinks } from "./AboutPage";
+import { usePageMeta } from "../lib/pageMeta";
 
 export interface Catalog {
   trips: { id: string; label: string; icon: string }[];
@@ -22,6 +23,7 @@ function load(): Saved {
 }
 
 export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; admin: boolean }) {
+  usePageMeta("Trip packing checklist for picnics, camping and treks", "Tick what to bring for a picnic, camping, trek, road trip or day trip: food, utensils, tents, clothing, health and more. Share or print your list.");
   const [saved, setSaved] = useState<Saved>(load);
   const [mode, setMode] = useState<"choose" | "list">(() => (load().sel.length ? "list" : "choose"));
   const [q, setQ] = useState("");
@@ -95,7 +97,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
 
   return (
     <div className="page checklist">
-      <h2>Trip checklist</h2>
+      <h1>Trip checklist</h1>
       <div className="seg" role="group" aria-label="Checklist steps">
         <button className="chip" aria-pressed={mode === "choose"} onClick={() => setMode("choose")}>1. Choose items</button>
         <button className="chip" aria-pressed={mode === "list"} onClick={() => setMode("list")}>2. My list ({chosen.length})</button>
@@ -174,7 +176,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
                 if (!rows.length) return null;
                 return (
                   <section key={c.id} className="ck-group">
-                    <h3>{c.icon} {c.label} <span className="chip-n">{rows.filter(i => packed.has(i.id)).length}/{rows.length}</span></h3>
+                    <h2>{c.icon} {c.label} <span className="chip-n">{rows.filter(i => packed.has(i.id)).length}/{rows.length}</span></h2>
                     <ul className="ck-items">
                       {rows.map(i => (
                         <li key={i.id} className={packed.has(i.id) ? "done" : ""}>
