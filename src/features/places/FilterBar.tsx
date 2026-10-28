@@ -10,6 +10,8 @@ interface Props {
   picked: Set<string>;                    // empty = all
   onToggleCategory: (id: string) => void;
   onAllCategories: () => void;
+  multi: boolean;                         // "Select several" is on
+  onMulti: (on: boolean) => void;
   districts: string[];
   district: string;
   onDistrict: (d: string) => void;
@@ -33,6 +35,7 @@ export function FilterBar(p: Props) {
         {p.categories.map(c => (
           <Chip key={c.id} pressed={p.picked.has(c.id)} dotColor={c.color} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}
+        <Chip className="multi" pressed={p.multi} onClick={() => p.onMulti(!p.multi)} title="Pick more than one category at a time">☑ Select several</Chip>
         <select className="fb-district" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>
           <option value="all">All districts</option>
           {p.districts.map(d => <option key={d} value={d}>{d}</option>)}

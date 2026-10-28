@@ -6,6 +6,7 @@ import { FooterLinks } from "../../components/AboutPage";
 import { Button, IconButton } from "../../ui/Button";
 import { Sheet, type Snap } from "../../ui/Sheet";
 import { useMedia } from "../../ui/useMedia";
+import { useChipFilter } from "../../ui/useChipFilter";
 import { MapView } from "./MapView";
 import { AddPlaceDialog } from "./AddPlaceDialog";
 import { FilterBar } from "./FilterBar";
@@ -32,7 +33,7 @@ const FILTER_BAR_HEIGHT = 124; // px the floating search and filters take at the
 
 export function PlacesPage({ state, categories, places, admin, canDelete, loading, onSavePlace, onDeletePlace, exportCount, onExport, onImport }: Props) {
   const phone = useMedia("(max-width: 760px)");
-  const [picked, setPicked] = useState<Set<string>>(new Set()); // empty = all categories
+  const { picked, toggle: toggleCategory, clear: clearCategories, multi, setMulti } = useChipFilter(); // single-select unless "Select several" is on
   const [district, setDistrict] = useState("all");
   const [q, setQ] = useState("");
   const [visitedOnly, setVisitedOnly] = useState(false);
@@ -64,12 +65,6 @@ export function PlacesPage({ state, categories, places, admin, canDelete, loadin
   }, [places, picked, district, q, visitedOnly, visitedIds]);
 
   const selected = selectedId ? places.find(p => p.id === selectedId) ?? null : null;
-
-  const toggleCategory = (id: string) => setPicked(prev => {
-    const next = new Set(prev);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
 
   // On phones the list sits low over the map; searching or filtering brings it up so results are visible.
   useEffect(() => { if (phone && q && snap === "peek" && !selected) setSnap("half"); }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -118,7 +113,7 @@ export function PlacesPage({ state, categories, places, admin, canDelete, loadin
 
   const filterBar = (
     <FilterBar q={q} onQuery={setQ} categories={visibleCats} counts={counts} picked={picked} onToggleCategory={toggleCategory}
-      onAllCategories={() => setPicked(new Set())} districts={districts} district={district} onDistrict={setDistrict}
+      onAllCategories={clearCategories} multi={multi} onMulti={setMulti} districts={districts} district={district} onDistrict={setDistrict}
       visitedOnly={visitedOnly} onVisitedOnly={() => setVisitedOnly(v => !v)} visitedCount={mine.count} />
   );
 

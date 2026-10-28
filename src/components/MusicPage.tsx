@@ -3,6 +3,7 @@ import type { Song } from "../types";
 import { store } from "../lib/data";
 import { confirmAsk } from "../lib/ui";
 import { LIMITS } from "../lib/limits";
+import { useChipFilter } from "../ui/useChipFilter";
 import { FooterLinks, reportLink } from "./AboutPage";
 
 interface Props {
@@ -46,7 +47,7 @@ interface ListProps {
 
 function SongList({ songs, localIds, admin, canDelete, open, onAdd, onEdit, onDelete }: ListProps) {
   const [q, setQ] = useState("");
-  const [language, setLanguage] = useState("all");
+  const { picked, toggle, clear, multi, setMulti } = useChipFilter(); // languages: single-select unless "Select several" is on
   const [artist, setArtist] = useState("all");
   const langs = useMemo(() => uniq(songs.map(s => s.language)), [songs]);
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
@@ -54,21 +55,22 @@ function SongList({ songs, localIds, admin, canDelete, open, onAdd, onEdit, onDe
   const shown = useMemo(() => {
     const n = q.trim().toLowerCase();
     return songs
-      .filter(s => (language === "all" || s.language === language) && (artist === "all" || s.artist === artist) &&
+      .filter(s => (!picked.size || (!!s.language && picked.has(s.language))) && (artist === "all" || s.artist === artist) &&
         (!n || [s.title, s.artist, s.language].join(" ").toLowerCase().includes(n)))
       .sort((a, b) => a.title.localeCompare(b.title));
-  }, [songs, q, language, artist]);
+  }, [songs, q, picked, artist]);
   return (
     <div className="page">
       <h2>Songs</h2>
       <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search songs…" aria-label="Search songs" />
       <div className="chips" role="group" aria-label="Filter by language">
-        <button className="chip" aria-pressed={language === "all"} onClick={() => setLanguage("all")}>All languages</button>
+        <button className="chip" aria-pressed={picked.size === 0} onClick={clear}>All languages</button>
         {langs.map(l => (
-          <button key={l} className="chip" aria-pressed={language === l} onClick={() => setLanguage(language === l ? "all" : l)}>
+          <button key={l} className="chip" aria-pressed={picked.has(l)} onClick={() => toggle(l)}>
             {l} <span className="chip-n">{count("language", l)}</span>
           </button>
         ))}
+        {langs.length > 2 && <button className="chip multi" aria-pressed={multi} onClick={() => setMulti(!multi)} title="Pick more than one language at a time">☑ Select several</button>}
       </div>
       <div className="tools">
         <select value={artist} onChange={e => setArtist(e.target.value)} aria-label="Filter by artist">
