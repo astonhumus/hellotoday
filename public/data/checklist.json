@@ -1,0 +1,84 @@
+{
+  "trips": [
+    { "id": "picnic", "label": "Picnic", "icon": "🧺" },
+    { "id": "camping", "label": "Camping", "icon": "⛺" },
+    { "id": "trek", "label": "Trek / hike", "icon": "🥾" },
+    { "id": "road", "label": "Road trip", "icon": "🚗" },
+    { "id": "day", "label": "Day trip", "icon": "🌄" }
+  ],
+  "categories": [
+    { "id": "veg", "label": "Vegetables", "icon": "🥬", "items": [
+      "Onion | picnic camping", "Garlic | picnic camping", "Ginger | picnic camping", "Green chilli | picnic camping",
+      "Coriander leaves | picnic camping", "Potato | picnic camping", "Tomato | picnic camping", "Cabbage | picnic camping",
+      "Carrot | picnic camping", "Cucumber | picnic day", "Spring onion | picnic camping", "Lemon | picnic camping trek day",
+      "Peas | picnic camping", "Beans | picnic camping", "Mushroom | picnic camping", "Cauliflower | picnic camping",
+      "Brinjal | picnic camping", "Pumpkin | camping", "Raw banana | picnic", "Curry leaves | picnic camping",
+      "Mint leaves | picnic camping", "Fermented bamboo shoot | picnic camping", "Chutney ingredients | picnic" ] },
+    { "id": "meat", "label": "Meat, fish & eggs", "icon": "🍗", "items": [
+      "Chicken | picnic camping", "Pork | picnic camping", "Beef | picnic camping", "Mutton / goat | picnic camping",
+      "Fish (fresh) | picnic camping", "Dried / smoked fish | picnic camping trek", "Ngari (fermented fish) | picnic camping", "Prawns / shrimp | picnic camping",
+      "Duck | picnic camping", "Sausages | picnic camping", "Bacon / ham | picnic camping", "Eggs | picnic camping",
+      "Marinade (ready mixed) | picnic camping", "Meat masala | picnic camping", "Skewers for kebabs | picnic camping", "Meat thermometer | camping" ] },
+    { "id": "fruit", "label": "Fruits & snacks", "icon": "🍎", "items": [
+      "Banana | picnic camping trek road day", "Apple | picnic trek road day", "Orange | picnic trek road day", "Pineapple | picnic",
+      "Watermelon | picnic", "Grapes | picnic road day", "Papaya | picnic", "Biscuits | picnic camping trek road day",
+      "Chips | picnic road day", "Nuts & dry fruits | trek camping road day", "Energy bars | trek camping", "Chocolate | trek camping road day",
+      "Puffed rice (muri) | picnic road day", "Roasted peanuts | picnic trek road day", "Sandwiches | picnic day trek", "Boiled eggs | picnic trek road day" ] },
+    { "id": "pantry", "label": "Groceries & spices", "icon": "🧂", "items": [
+      "Rice | picnic camping", "Dal | picnic camping", "Flour / atta | camping", "Cooking oil | picnic camping",
+      "Mustard oil | picnic camping", "Salt | picnic camping trek", "Sugar | picnic camping", "Turmeric powder | picnic camping",
+      "Chilli powder | picnic camping", "Cumin powder | picnic camping", "Garam masala | picnic camping", "Pepper | picnic camping",
+      "Tea leaves | picnic camping trek", "Coffee | camping trek", "Milk / milk powder | picnic camping", "Noodles | picnic camping trek",
+      "Paneer / tofu | picnic camping", "Bread | picnic camping road",
+      "Butter / jam | picnic camping", "Ketchup / sauce | picnic camping", "Pickle | picnic camping", "Spice box | picnic camping" ] },
+    { "id": "drinks", "label": "Water & drinks", "icon": "💧", "items": [
+      "Drinking water | picnic camping trek road day", "Extra water cans | picnic camping", "Water bottle | trek road day picnic camping", "Electrolyte / ORS | trek camping road",
+      "Soft drinks / juice | picnic road day", "Flask with hot tea | picnic camping trek", "Ice box / cooler | picnic road camping", "Ice packs | picnic road camping" ] },
+    { "id": "cook", "label": "Cooking gear", "icon": "🍳", "items": [
+      "Gas stove | picnic camping", "Gas cylinder / fuel | picnic camping", "Firewood / charcoal | picnic camping", "Matchbox / lighter | picnic camping trek",
+      "Cooking pot | picnic camping", "Pressure cooker | picnic camping", "Frying pan / kadai | picnic camping", "Kettle | camping",
+      "Ladle & spatula | picnic camping", "Knife | picnic camping", "Chopping board | picnic camping", "Grater / peeler | picnic camping",
+      "Tongs | picnic camping", "Barbecue grill & skewers | picnic camping", "Tin opener / bottle opener | picnic camping road",
+      "Mixing bowls | picnic" ] },
+    { "id": "serve", "label": "Plates & serving", "icon": "🍽️", "items": [
+      "Plates | picnic camping", "Bowls | picnic camping", "Cups / glasses | picnic camping trek", "Spoons | picnic camping trek",
+      "Forks | picnic camping", "Disposable plates | picnic", "Banana leaves | picnic", "Serving spoons | picnic camping",
+      "Tiffin / lunch boxes | picnic trek day road", "Food storage containers | picnic camping", "Aluminium foil | picnic camping", "Cling wrap | picnic",
+      "Tissue / paper napkins | picnic camping trek road day", "Kitchen towel | picnic camping" ] },
+    { "id": "shelter", "label": "Shelter & sleeping", "icon": "⛺", "items": [
+      "Tent | camping", "Tent pegs & rope | camping", "Groundsheet / tarpaulin | camping picnic", "Sleeping bag | camping",
+      "Sleeping mat | camping", "Blanket | camping picnic", "Pillow / inflatable pillow | camping road", "Picnic mat / bedsheet | picnic",
+      "Foldable chairs | picnic camping", "Folding table | picnic camping", "Umbrella shade / canopy | picnic camping", "Mosquito net | camping" ] },
+    { "id": "light", "label": "Lights & power", "icon": "🔦", "items": [
+      "Torch / flashlight | camping trek", "Headlamp | camping trek", "Lantern | camping", "Extra batteries | camping trek",
+      "Power bank | trek camping road day picnic", "Phone charger & cable | road trek camping day", "Car charger | road", "Portable speaker | picnic camping road",
+      "Solar charger | trek camping" ] },
+    { "id": "clothes", "label": "Clothing", "icon": "🧥", "items": [
+      "Extra clothes | picnic camping trek road day", "Jacket / sweater | camping trek road day", "Raincoat / poncho | picnic camping trek road day", "Cap / hat | picnic trek day",
+      "Sunglasses | picnic trek road day", "Comfortable shoes | picnic trek day road", "Trekking shoes | trek camping", "Sandals / slippers | picnic camping road",
+      "Socks | camping trek", "Gloves | trek camping", "Warm cap / muffler | camping trek", "Swimwear & towel | picnic day",
+      "Quick-dry towel | camping trek picnic" ] },
+    { "id": "health", "label": "Health & hygiene", "icon": "🩹", "items": [
+      "First-aid kit | picnic camping trek road day", "Personal medicines | picnic camping trek road day", "Pain relief / fever tablets | camping trek road", "Antiseptic cream | camping trek picnic",
+      "Insect repellent | picnic camping trek", "Sunscreen | picnic trek day", "Hand sanitizer | picnic camping trek road day", "Wet wipes | picnic camping trek road day",
+      "Toilet paper | camping trek road", "Soap & toothbrush | camping", "Sanitary products | camping trek road day", "Face masks | road day",
+      "Motion-sickness tablets | road trek" ] },
+    { "id": "cleanup", "label": "Cleaning & waste", "icon": "🗑️", "items": [
+      "Garbage bags | picnic camping trek road day", "Dishwashing soap & scrubber | picnic camping", "Plastic bags / zip bags | picnic camping trek road", "Cleaning cloth | picnic camping",
+      "Bucket / water container | camping picnic", "Bag for wet waste | picnic camping" ] },
+    { "id": "fun", "label": "Fun & comfort", "icon": "🎲", "items": [
+      "Playing cards | picnic camping", "Football / frisbee | picnic day", "Badminton set | picnic", "Board games | picnic camping",
+      "Guitar / musical instrument | picnic camping", "Camera | picnic trek road day camping", "Binoculars | trek camping", "Fishing rod | picnic camping",
+      "Book / magazine | picnic camping road", "Hammock | camping picnic", "Bluetooth speaker | picnic camping" ] },
+    { "id": "tools", "label": "Tools & safety", "icon": "🧰", "items": [
+      "Multi-tool / Swiss knife | camping trek", "Rope | camping trek", "Duct tape | camping trek road", "Whistle | trek camping",
+      "Compass / offline map | trek camping road", "Rain cover for bag | trek camping", "Extra plastic sheet | picnic camping", "Walking stick | trek",
+      "Axe / machete | camping", "Sewing kit & safety pins | camping trek" ] },
+    { "id": "docs", "label": "Documents & money", "icon": "🪪", "items": [
+      "ID card | picnic camping trek road day", "Cash | picnic camping trek road day", "Permits / inner line permit | trek camping road", "Booking confirmations | camping road day",
+      "Vehicle papers & driving licence | road", "Emergency contacts list | trek camping road", "Medical insurance card | trek road" ] },
+    { "id": "vehicle", "label": "Vehicle", "icon": "🚙", "items": [
+      "Spare tyre & jack | road", "Fuel check | road", "Tool kit | road", "Jumper cables | road",
+      "Car first-aid & triangle | road", "Tyre pressure check | road", "Paper map / GPS | road" ] }
+  ]
+}

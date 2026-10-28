@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore Manipur</title>
+<meta name="description" content="Tourist sites and picnic spots of Manipur, listed and mapped.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --panel: #ffffff;
+    --text: #1d2420;
+    --muted: #5d6a63;
+    --border: #e2e0d8;
+    --accent: #1f7a5a;
+    --site: #c2410c;
+    --picnic: #1f7a5a;
+    --hotel: #7c3aed;
+    --resort: #0369a1;
+    --snacks: #be185d;
+    --hover: #f0efe9;
+    --active: #e6f2ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141816;
+      --panel: #1c211e;
+      --text: #e8ece9;
+      --muted: #9aa69f;
+      --border: #2d3430;
+      --accent: #4fbf92;
+      --site: #f08a4b;
+      --picnic: #4fbf92;
+      --hotel: #a78bfa;
+      --resort: #38bdf8;
+      --snacks: #f472b6;
+      --hover: #242a26;
+      --active: #1f3229;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  main { flex: 1; display: flex; min-height: 0; }
+  aside {
+    width: 380px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    min-height: 0;
+  }
+  .controls { padding: 14px 16px; border-bottom: 1px solid var(--border); display: grid; gap: 10px; }
+  input, select {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    flex: 1 1 auto;
+    padding: 7px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .count { font-size: 13px; color: var(--muted); }
+  ul { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+  li {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    gap: 4px 10px;
+  }
+  li:hover { background: var(--hover); }
+  li.active { background: var(--active); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; }
+  .dot.site { background: var(--site); }
+  .dot.picnic { background: var(--picnic); }
+  .dot.hotel { background: var(--hotel); }
+  .dot.resort { background: var(--resort); }
+  .dot.snacks { background: var(--snacks); }
+  .name { font-weight: 600; }
+  .meta { grid-column: 2; font-size: 13px; color: var(--muted); }
+  .desc { grid-column: 2; font-size: 13.5px; }
+  .empty { padding: 24px 16px; color: var(--muted); text-align: center; }
+  .map-wrap { flex: 1; min-height: 0; position: relative; display: flex; }
+  #map { flex: 1; min-height: 0; }
+  #map.picking { cursor: crosshair; }
+  .banner {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000;
+    background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 6px 6px 16px; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15); font-size: 14px; white-space: nowrap;
+  }
+  .banner[hidden] { display: none; }
+
+  .tools { display: flex; gap: 6px; }
+  .tools .primary { flex: 1; }
+  .btn {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel); color: var(--text); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .mine { color: var(--accent); font-weight: 600; }
+  .row-actions { grid-column: 2; display: flex; gap: 14px; margin-top: 2px; }
+  .link { background: none; border: none; padding: 0; color: var(--accent); font: inherit; font-size: 13px; cursor: pointer; }
+  .link:hover { text-decoration: underline; }
+  .link.danger { color: #c0392b; }
+
+  dialog {
+    width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+    border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    background: var(--panel); color: var(--text);
+  }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
+  dialog h2 { margin: 0 0 14px; font-size: 18px; }
+  dialog form { display: grid; gap: 12px; }
+  dialog label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  dialog .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); font: inherit; resize: vertical;
+  }
+  .hint { margin: -4px 0 0; font-size: 12.5px; color: var(--muted); }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .legend {
+    background: var(--panel);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .legend span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .leaflet-popup-content { margin: 12px 14px; font: 14px/1.4 system-ui, sans-serif; }
+  .leaflet-popup-content b { font-size: 15px; }
+  .leaflet-popup-content a { color: #1f7a5a; }
+  footer { padding: 8px 20px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); background: var(--panel); }
+
+  @media (max-width: 760px) {
+    header { padding: 12px 16px; }
+    main { flex-direction: column; }
+    .map-wrap { flex: none; height: 45vh; order: -1; }
+    dialog .row { grid-template-columns: 1fr; }
+    aside { width: 100%; border-right: none; flex: 1; }
+    .controls { padding: 12px 16px; }
+    li { padding: 12px 16px; }
+    footer { padding: 8px 16px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Explore Manipur</h1>
+  <p>Tourist sites, picnic spots, snack spots, hotels &amp; resorts across the state</p>
+</header>
+
+<main>
+  <aside>
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search places…" aria-label="Search places">
+      <div class="chips" role="group" aria-label="Filter by type">
+        <button class="chip" data-type="all" aria-pressed="true">All</button>
+        <button class="chip" data-type="site" aria-pressed="false">Tourist sites</button>
+        <button class="chip" data-type="picnic" aria-pressed="false">Picnic spots</button>
+        <button class="chip" data-type="hotel" aria-pressed="false">Hotels</button>
+        <button class="chip" data-type="resort" aria-pressed="false">Resorts</button>
+        <button class="chip" data-type="snacks" aria-pressed="false">Snack spots</button>
+      </div>
+      <select id="district" aria-label="Filter by district"></select>
+      <div class="tools">
+        <button type="button" id="addBtn" class="btn primary">+ Add place</button>
+        <button type="button" id="exportBtn" class="btn">Export</button>
+        <button type="button" id="importBtn" class="btn">Import</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+    <ul id="list"></ul>
+  </aside>
+  <div class="map-wrap">
+    <div id="map" role="region" aria-label="Map of places"></div>
+    <div id="pickBanner" class="banner" hidden>
+      Click on the map to set the location
+      <button type="button" id="pickCancel" class="btn">Cancel</button>
+    </div>
+  </div>
+</main>
+
+<dialog id="placeDialog" aria-labelledby="formTitle">
+  <form id="placeForm">
+    <h2 id="formTitle">Add a place</h2>
+    <label>Name *<input name="name" required maxlength="120" autocomplete="off"></label>
+    <div class="row">
+      <label>Type *
+        <select name="type" required>
+          <option value="site">Tourist site</option>
+          <option value="picnic">Picnic spot</option>
+          <option value="hotel">Hotel</option>
+          <option value="resort">Resort</option>
+          <option value="snacks">Snack spot</option>
+        </select>
+      </label>
+      <label>District<input name="district" list="districtList" maxlength="60" autocomplete="off"></label>
+    </div>
+    <label>Description<textarea name="desc" rows="3" maxlength="500"></textarea></label>
+    <div class="row">
+      <label>Phone<input name="phone" type="tel" maxlength="40"></label>
+      <label>Website<input name="website" type="url" placeholder="https://" maxlength="300"></label>
+    </div>
+    <div class="row">
+      <label>Latitude *<input name="lat" type="number" step="any" min="-90" max="90" required></label>
+      <label>Longitude *<input name="lng" type="number" step="any" min="-180" max="180" required></label>
+    </div>
+    <button type="button" id="pickBtn" class="btn">📍 Pick location on map</button>
+    <p class="hint">Tip: you can also right-click (or long-press) anywhere on the map to add a place there.</p>
+    <div class="actions">
+      <button type="button" id="cancelBtn" class="btn">Cancel</button>
+      <button type="submit" class="btn primary">Save place</button>
+    </div>
+  </form>
+</dialog>
+<datalist id="districtList"></datalist>
+
+<footer>Sight, picnic and snack-spot coordinates are approximate; many snack spots are informal roadside stalls whose presence and hours change. Places come from OpenStreetMap, Wikidata, Manipur Tourism, MyGov suggestions and travel listings; markers flagged approximate show the nearest village or area. Listings are not complete. Check local conditions and permits (e.g. ILP for visitors) before you travel.</footer>
+
+<script>
+// type: "site" = tourist site, "picnic" = picnic spot
+const PLACES = [
+  // Imphal West / Imphal East
+  { name: "Kangla Fort", type: "site", district: "Imphal West", lat: 24.8089, lng: 93.9426,
+    desc: "Historic seat of Manipur's kings, with the restored Kangla Sha dragons, ancient temples and moats." },
+  { name: "Shree Govindajee Temple", type: "site", district: "Imphal East", lat: 24.8033, lng: 93.9468,
+    desc: "Revered Vaishnavite temple beside the old royal palace, with twin gold-plated domes." },
+  { name: "Ima Keithel (Mothers' Market)", type: "site", district: "Imphal West", lat: 24.8086, lng: 93.9374,
+    desc: "One of Asia's largest markets run entirely by women. Good for handlooms and local food." },
+  { name: "Manipur State Museum", type: "site", district: "Imphal West", lat: 24.8049, lng: 93.9370,
+    desc: "Displays on Manipur's history, tribal cultures and royal artefacts, including the royal boat Hiyang Hiren." },
+  { name: "Imphal War Cemetery", type: "site", district: "Imphal East", lat: 24.8127, lng: 93.9531,
+    desc: "Commonwealth war cemetery for soldiers who died in the 1944 Battle of Imphal." },
+  { name: "Marjing Polo Statue", type: "site", district: "Imphal East", lat: 24.8793, lng: 93.9540,
+    desc: "A 122-ft statue of a polo player on a Meitei pony, honouring Manipur as the birthplace of modern polo." },
+  { name: "Sekta Archaeological Living Museum", type: "site", district: "Imphal East", lat: 24.8250, lng: 94.0050,
+    desc: "Ancient burial mounds and archaeological site east of Imphal." },
+  { name: "Andro Village", type: "site", district: "Imphal East", lat: 24.7590, lng: 94.0590,
+    desc: "Heritage village known for traditional pottery, a sacred eternal flame and a cultural complex." },
+  { name: "Hiyangthang Lairembi Temple", type: "site", district: "Imphal West", lat: 24.7450, lng: 93.9050,
+    desc: "Hilltop shrine to the goddess Lairembi, busy during Durga Puja." },
+  { name: "Langthabal Konung", type: "picnic", district: "Imphal West", lat: 24.7650, lng: 93.9270,
+    desc: "Ruins of an old royal palace on a hillock near Canchipur. Shady, quiet grounds for a picnic." },
+  { name: "Kangchup Hills", type: "picnic", district: "Imphal West", lat: 24.8800, lng: 93.8200,
+    desc: "Pine-covered hills west of Imphal. A popular winter picnic spot." },
+  { name: "Singda Dam", type: "picnic", district: "Imphal West", lat: 24.8817, lng: 93.8052,
+    desc: "Reservoir in the hills with views over the Imphal valley. Very popular for picnics." },
+  { name: "Lamphelpat", type: "picnic", district: "Imphal West", lat: 24.8170, lng: 93.9100,
+    desc: "Wetland and park area inside Imphal, good for an easy family outing." },
+  { name: "Khonghampat Orchidarium", type: "site", district: "Imphal West", lat: 24.9050, lng: 93.9080,
+    desc: "Orchid centre with hundreds of species, including rare ones. Peak blooming is April–May." },
+
+  // Bishnupur
+  { name: "Loktak Lake", type: "site", district: "Bishnupur", lat: 24.5592, lng: 93.8123,
+    desc: "Largest freshwater lake in Northeast India, famous for its floating phumdis (biomass islands)." },
+  { name: "Keibul Lamjao National Park", type: "site", district: "Bishnupur", lat: 24.4846, lng: 93.8464,
+    desc: "The world's only floating national park and home of the endangered Sangai (brow-antlered deer)." },
+  { name: "Sendra Island", type: "picnic", district: "Bishnupur", lat: 24.5330, lng: 93.8000,
+    desc: "Hillock island in Loktak with sweeping lake views. A classic picnic and sunset spot." },
+  { name: "Takmu Water Sports Complex", type: "picnic", district: "Bishnupur", lat: 24.5620, lng: 93.7950,
+    desc: "Boating and water sports on Loktak Lake." },
+  { name: "Phubala Lake Resort", type: "resort", district: "Bishnupur", lat: 24.5550, lng: 93.7700,
+    desc: "Island-like resort on the western edge of Loktak Lake." },
+  { name: "Sendra Park & Resort", type: "resort", district: "Bishnupur", lat: 24.5340, lng: 93.8010,
+    desc: "Resort on Sendra Island with views across Loktak Lake." },
+  { name: "INA Memorial, Moirang", type: "site", district: "Bishnupur", lat: 24.5023, lng: 93.7769,
+    desc: "Where the Indian National Army first hoisted the tricolour on Indian soil, in 1944. Includes a museum." },
+  { name: "Thangjing Hill", type: "site", district: "Bishnupur", lat: 24.4682, lng: 93.6624,
+    desc: "Sacred hill of the deity Ebudhou Thangjing, linked to the Moirang Lai Haraoba festival." },
+  { name: "Bishnupur Vishnu Temple", type: "site", district: "Bishnupur", lat: 24.6200, lng: 93.7597,
+    desc: "15th-century brick temple with a distinctive Chinese-influenced roof." },
+  { name: "Leimaram Waterfall", type: "picnic", district: "Bishnupur", lat: 24.7128, lng: 93.7726,
+    desc: "Waterfall in the western hills. A favourite spot for picnics and short hikes." },
+  { name: "Red Hill (Lokpaching)", type: "site", district: "Bishnupur", lat: 24.7046, lng: 93.8158,
+    desc: "WWII battlefield with an India Peace Memorial built by Japan." },
+
+  // Thoubal / Kakching
+  { name: "Waithou Lake", type: "picnic", district: "Thoubal", lat: 24.6700, lng: 93.9400,
+    desc: "Calm lake beside the Imphal–Moreh road, with a hillock lookout." },
+  { name: "Ikop Lake", type: "picnic", district: "Thoubal", lat: 24.6200, lng: 93.9300,
+    desc: "Open wetland with migratory birds in winter." },
+  { name: "Khongjom War Memorial", type: "site", district: "Thoubal", lat: 24.5680, lng: 94.0333,
+    desc: "Memorial to the 1891 Anglo-Manipur War, where Paona Brajabashi made his last stand." },
+  { name: "Kaina", type: "site", district: "Thoubal", lat: 24.6400, lng: 93.9800,
+    desc: "Hindu pilgrimage hill linked to Shri Govindaji, with temples and greenery." },
+  { name: "Kakching Garden", type: "picnic", district: "Kakching", lat: 24.4950, lng: 93.9850,
+    desc: "Terraced hillside garden with wide views of the valley." },
+  { name: "Pumlen Pat", type: "picnic", district: "Kakching", lat: 24.5800, lng: 93.9500,
+    desc: "Large lake with phumdis and birdlife, a quieter alternative to Loktak." },
+
+  // Hills
+  { name: "Shirui Kashung Hills", type: "site", district: "Ukhrul", lat: 25.1069, lng: 94.4575,
+    desc: "The only natural home of the Shirui Lily. The Shirui Lily Festival is held here each spring." },
+  { name: "Khangkhui Cave", type: "site", district: "Ukhrul", lat: 25.0280, lng: 94.3330,
+    desc: "Natural limestone cave, used as a shelter during WWII." },
+  { name: "Dzüko Valley", type: "site", district: "Senapati", lat: 25.5600, lng: 94.0700,
+    desc: "High-altitude valley on the Manipur–Nagaland border, known for seasonal flowers and trekking." },
+  { name: "Sadu Chiru Waterfall", type: "picnic", district: "Senapati", lat: 24.7407, lng: 93.7466,
+    desc: "Three-tiered waterfall in the western hills, a short drive from Imphal." },
+  { name: "Tharon Cave", type: "site", district: "Tamenglong", lat: 24.9300, lng: 93.5300,
+    desc: "Long limestone cave system with old engravings, about 30 km from Tamenglong town." },
+  { name: "Zeilad Lake", type: "site", district: "Tamenglong", lat: 24.9043, lng: 93.3771,
+    desc: "Group of sacred lakes tied to Zeliangrong legends. Visited by migratory birds." },
+  { name: "Barak Waterfall", type: "picnic", district: "Tamenglong", lat: 24.8859, lng: 93.3928,
+    desc: "Cascades on the Barak river surrounded by thick forest." },
+  { name: "Khuga Dam", type: "picnic", district: "Churachandpur", lat: 24.2817, lng: 93.6821,
+    desc: "Scenic reservoir in the hills near Churachandpur town." },
+  { name: "Tribal Museum, Churachandpur", type: "site", district: "Churachandpur", lat: 24.3330, lng: 93.6800,
+    desc: "Collections of tribal costumes, crafts and artefacts from the southern hills." },
+  { name: "Moreh", type: "site", district: "Tengnoupal", lat: 24.2500, lng: 94.3000,
+    desc: "Border town on the India–Myanmar border and a busy trade hub." },
+
+  // More sights (from OpenStreetMap / Wikidata)
+  { name: "Kangla Museum", type: "site", district: "Imphal West", lat: 24.8035, lng: 93.9415,
+    desc: "Museum inside the Kangla complex on the history of the fort and Manipur's royalty." },
+  { name: "Archaeological Museum, Imphal", type: "site", district: "Imphal West", lat: 24.8116, lng: 93.9423,
+    desc: "Finds from archaeological sites across Manipur." },
+  { name: "Manipur Science Centre", type: "site", district: "Imphal West", lat: 24.8034, lng: 93.9071,
+    desc: "Hands-on science exhibits. Good for families with children." },
+  { name: "RKCS Art Gallery and Museum", type: "site", district: "Imphal West", lat: 24.7960, lng: 93.9358,
+    desc: "Gallery of paintings and artefacts by Manipuri artists." },
+  { name: "Three Mothers Art Gallery", type: "site", district: "Imphal East", lat: 24.7939, lng: 93.9504,
+    desc: "Art gallery showcasing Manipuri painting and crafts." },
+  { name: "Mapal Kangjeibung (Polo Ground)", type: "site", district: "Imphal West", lat: 24.8065, lng: 93.9357,
+    desc: "Considered the oldest polo ground in the world, still used for matches." },
+  { name: "Pakhangba Temple", type: "site", district: "Imphal West", lat: 24.8080, lng: 93.9410,
+    desc: "Temple to Pakhangba, the dragon deity of Meitei tradition, inside Kangla." },
+  { name: "Sanamahi Kiyong", type: "site", district: "Imphal East", lat: 24.8050, lng: 94.0354,
+    desc: "Sanamahi temple complex on the eastern edge of the valley." },
+  { name: "Ebudhou Thangjing Temple, Moirang", type: "site", district: "Bishnupur", lat: 24.4975, lng: 93.7791,
+    desc: "Temple of the deity Thangjing and the centre of the Moirang Lai Haraoba festival." },
+  { name: "Gopinath Temple, Ningthoukhong", type: "site", district: "Bishnupur", lat: 24.5725, lng: 93.7671,
+    desc: "Vaishnavite temple in Ningthoukhong, near Loktak Lake." },
+  { name: "St. Joseph's Cathedral", type: "site", district: "Imphal West", lat: 24.8508, lng: 93.9325,
+    desc: "Catholic cathedral of the Archdiocese of Imphal." },
+  { name: "Bihu Loukon", type: "site", district: "Imphal West", lat: 24.8052, lng: 93.8195,
+    desc: "Historic fort site west of Imphal." },
+  { name: "Manipur Zoological Garden", type: "site", district: "Imphal West", lat: 24.8180, lng: 93.9040,
+    desc: "Zoo at Iroisemba with Sangai deer and other native wildlife." },
+  { name: "Koubru Peak", type: "site", district: "Kangpokpi", lat: 25.0631, lng: 93.8717,
+    desc: "Sacred mountain (2,562 m) north of the Imphal valley, a popular pilgrimage trek." },
+  { name: "Mount Iso (Tenipu)", type: "site", district: "Senapati", lat: 25.5320, lng: 94.0850,
+    desc: "Highest peak in Manipur (about 2,994 m), near Dzüko Valley." },
+  { name: "Nongmaiching Hill", type: "site", district: "Imphal East", lat: 24.7800, lng: 94.0210,
+    desc: "Sacred hill east of Imphal with walking trails and views over the valley." },
+  { name: "Ithai Barrage", type: "site", district: "Bishnupur", lat: 24.4229, lng: 93.8401,
+    desc: "Barrage at the outflow of Loktak Lake, with wide wetland views." },
+  { name: "Jiri-Makru Wildlife Sanctuary", type: "site", district: "Noney", lat: 25.2032, lng: 93.4155,
+    desc: "Forest sanctuary in the western hills of Manipur." },
+  { name: "Bunning Wildlife Sanctuary", type: "site", district: "Tamenglong", lat: 25.1391, lng: 93.5927,
+    desc: "Hill forest sanctuary in Tamenglong district." },
+  { name: "Kailam Wildlife Sanctuary", type: "site", district: "Churachandpur", lat: 24.2990, lng: 93.4130,
+    desc: "Sanctuary around Mount Kailam, home to hoolock gibbons and hornbills." },
+  { name: "Yangoupokpi-Lokchao Wildlife Sanctuary", type: "site", district: "Tengnoupal", lat: 24.3348, lng: 94.3069,
+    desc: "Forest sanctuary on the India–Myanmar border near Moreh." },
+
+  // More picnic spots (from OpenStreetMap / Wikidata)
+  { name: "Langol Hills", type: "picnic", district: "Imphal West", lat: 24.8454, lng: 93.8990,
+    desc: "Wooded hills on the edge of Imphal with walking trails and city views." },
+  { name: "Bir Tikendrajit Park", type: "picnic", district: "Imphal West", lat: 24.8064, lng: 93.9369,
+    desc: "Central Imphal park, handy for a short break in the city." },
+  { name: "Olympian Park", type: "picnic", district: "Imphal West", lat: 24.8206, lng: 93.7873,
+    desc: "Park near Sangaithel, west of Imphal." },
+  { name: "Thangapat", type: "picnic", district: "Imphal East", lat: 24.7936, lng: 93.9488,
+    desc: "Historic moat in Imphal, known for traditional boat races (Hiyang Tannaba)." },
+  { name: "Dolaithabi Barrage", type: "picnic", district: "Imphal East", lat: 25.0080, lng: 94.0264,
+    desc: "Reservoir in the northern foothills. Popular for winter picnics." },
+  { name: "Maphou Dam", type: "picnic", district: "Kangpokpi", lat: 24.8234, lng: 94.1420,
+    desc: "Large reservoir east of Imphal in the hills." },
+  { name: "Kanto Dam", type: "picnic", district: "Kangpokpi", lat: 24.9358, lng: 93.8546,
+    desc: "Small reservoir in the hills north-west of Imphal." },
+  { name: "Ireng Waterfall", type: "picnic", district: "Kangpokpi", lat: 24.8996, lng: 93.7869,
+    desc: "Waterfall in the western hills near Imphal." },
+  { name: "Konsakhul Waterfall", type: "picnic", district: "Kangpokpi", lat: 24.9269, lng: 93.8004,
+    desc: "Forest waterfall and brook in the hills north-west of Imphal." },
+  { name: "Waroi Garden", type: "picnic", district: "Bishnupur", lat: 24.7275, lng: 93.7730,
+    desc: "Garden near Nambol, close to Leimaram." },
+  { name: "Agape Garden", type: "picnic", district: "Bishnupur", lat: 24.7382, lng: 93.7474,
+    desc: "Garden in the hills near Nambol." },
+  { name: "Menjor Unity Park", type: "picnic", district: "Thoubal", lat: 24.6190, lng: 94.0179,
+    desc: "Park and multipurpose centre in Thoubal district." },
+  { name: "Khoupum Waterfall", type: "picnic", district: "Noney", lat: 24.6585, lng: 93.4932,
+    desc: "Waterfall in the Khoupum valley." },
+  { name: "Khoupum Dam", type: "picnic", district: "Noney", lat: 24.6621, lng: 93.5300,
+    desc: "Reservoir in the scenic Khoupum valley." },
+  { name: "Leishabithol Waterfalls", type: "picnic", district: "Jiribam", lat: 24.7273, lng: 93.1646,
+    desc: "Waterfalls near Jiribam." },
+  { name: "Tiluelue (Khayang) Waterfall", type: "picnic", district: "Ukhrul", lat: 25.1169, lng: 94.6868,
+    desc: "The highest waterfall in Manipur (about 230 m), near Khayang. The last stretch is a two-hour trek." },
+
+  // From web sources (Manipur Tourism, MyGov picnic suggestions, travel listings)
+  { name: "Shaheed Minar", type: "site", district: "Imphal West", lat: 24.8064, lng: 93.9369, approx: true,
+    desc: "Memorial to the heroes of the 1891 Anglo-Manipur War, in Bir Tikendrajit Park." },
+  { name: "Nupi Lal Memorial Complex", type: "site", district: "Imphal West", lat: 24.8075, lng: 93.9372, approx: true,
+    desc: "Memorial to the women's uprisings (Nupi Lan) of 1904 and 1939." },
+  { name: "Mutua Museum", type: "site", district: "Imphal East", lat: 24.7555, lng: 94.0467, approx: true,
+    desc: "Private museum in Andro with tribal and Meitei artefacts." },
+  { name: "Hapta Kangjeibung", type: "site", district: "Imphal East", lat: 24.7991, lng: 93.9500, approx: true,
+    desc: "Historic polo and festival ground in Imphal East." },
+  { name: "Shri Radha Raman Temple, Kanchipur", type: "site", district: "Imphal West", lat: 24.7546, lng: 93.9279, approx: true,
+    desc: "Vaishnavite temple at Kanchipur, near Manipur University." },
+  { name: "Samban-Lei Sekpil", type: "site", district: "Bishnupur", lat: 24.6784, lng: 93.8492, approx: true,
+    desc: "Giant topiary hedge in the shape of a tiered umbrella, once listed as the world's tallest." },
+  { name: "Maram Khullen", type: "site", district: "Senapati", lat: 25.4142, lng: 94.0953, approx: true,
+    desc: "Old Maram Naga village, known for Maramfest." },
+  { name: "Tonglon Cave", type: "site", district: "Churachandpur", lat: 24.2407, lng: 93.5621, approx: true,
+    desc: "Limestone cave in the Churachandpur hills." },
+  { name: "Sirarakhong", type: "site", district: "Ukhrul", lat: 25.0784, lng: 94.2355,
+    desc: "Hill village famous for the Hathei chilli and its annual chilli festival." },
+  { name: "Nillai Tea Estate", type: "site", district: "Ukhrul", lat: 25.1910, lng: 94.3252, approx: true,
+    desc: "Tea estate on the way to Tolloi, with rolling hillside gardens." },
+  { name: "Kachouphung Lake", type: "site", district: "Ukhrul", lat: 25.1008, lng: 94.6397, approx: true,
+    desc: "Sacred hill lake in the Achuwa Magi hills near Khayang." },
+  { name: "Santhei Natural Park", type: "picnic", district: "Imphal East", lat: 24.7541, lng: 94.0467, approx: true,
+    desc: "Park with a lake and forest walk at Andro. A well-known picnic spot." },
+  { name: "Sekmai Picnic Park (Sekmai Turel)", type: "picnic", district: "Imphal West", lat: 24.9545, lng: 93.8887, approx: true,
+    desc: "Riverside picnic spot along the Sekmai stream." },
+  { name: "Kanglatongbi Dam", type: "picnic", district: "Imphal West", lat: 24.9767, lng: 93.8884, approx: true,
+    desc: "Reservoir near Kanglatongbi, north of Imphal." },
+  { name: "Omba Nurathel Park", type: "picnic", district: "Bishnupur", lat: 24.5013, lng: 93.7767, approx: true,
+    desc: "Park at Moirang, near Loktak Lake." },
+  { name: "Loukoipat Eco Park", type: "picnic", district: "Bishnupur", lat: 24.6267, lng: 93.7600, approx: true,
+    desc: "Lakeside eco park at Bishnupur with boating and bird watching." },
+  { name: "Thanga Island", type: "picnic", district: "Bishnupur", lat: 24.5344, lng: 93.8350,
+    desc: "Island village on Loktak Lake with lake views and homestays." },
+  { name: "Ngaloi Waterfall", type: "picnic", district: "Churachandpur", lat: 24.3610, lng: 93.7015, approx: true,
+    desc: "Forest waterfall about 9 km from Churachandpur town. Best in the monsoon." },
+  { name: "Halang Park", type: "picnic", district: "Ukhrul", lat: 25.1791, lng: 94.3733, approx: true,
+    desc: "Picnic park at Halang." },
+  { name: "Eco Park, Jessami", type: "picnic", district: "Ukhrul", lat: 25.3839, lng: 94.3992,
+    desc: "Eco park at Jessami, near the Nagaland border." },
+  { name: "Ramrei Eco Tourism Park", type: "picnic", district: "Kamjong", lat: 24.8851, lng: 94.1345, approx: true,
+    desc: "Eco park near the Imphal–Ukhrul road with boating, trekking and picnics." },
+  { name: "Liabi Waterfall", type: "picnic", district: "Kamjong", lat: 24.9578, lng: 94.6198, approx: true,
+    desc: "Forest waterfall near Chatric / Siyang village." },
+  { name: "Taphou Waterfalls", type: "picnic", district: "Kangpokpi", lat: 25.2534, lng: 94.0130, approx: true,
+    desc: "Series of three waterfalls, at their best in the rainy season." },
+  { name: "Panam Eco Park", type: "picnic", district: "Kangpokpi", lat: 25.0356, lng: 93.9992, approx: true,
+    desc: "Eco park at Thangal Surung, about 33 km from Imphal." },
+
+  // Snack spots: local hangouts with food stalls
+  { name: "Ngariyan", type: "snacks", district: "Imphal East", lat: 24.7153, lng: 94.0275, approx: true,
+    desc: "Hill hangout at Ngariyan, on the way to Andro. Popular for snacks and evening outings." },
+  { name: "Sandangsenba", type: "snacks", district: "Imphal East", lat: 24.7366, lng: 94.0193, approx: true,
+    desc: "Local hangout near Sandang Senba Maring, close to Andro. Popular for snacks with a view." },
+  { name: "Sawombung", type: "snacks", district: "Imphal East", lat: 24.8705, lng: 94.0112, approx: true,
+    desc: "Local hangout at Sawombung, north-east of Imphal. Popular for snacks." },
+  { name: "Paona Bazar Street Stalls", type: "snacks", district: "Imphal West", lat: 24.8090, lng: 93.9385, approx: true,
+    desc: "Evening street stalls and tea corners on the main shopping street. Informal." },
+  { name: "Paona Bazar Momo & Chowmein Stalls", type: "snacks", district: "Imphal West", lat: 24.8084, lng: 93.9388, approx: true,
+    desc: "Pavement stalls selling momos, chowmein and soup after dark. Informal." },
+  { name: "Thangal Bazar Pakora Corner", type: "snacks", district: "Imphal West", lat: 24.8076, lng: 93.9391, approx: true,
+    desc: "Roadside stalls frying pakora, bora and samosa. Informal." },
+  { name: "Thangal Bazar Tea Stalls", type: "snacks", district: "Imphal West", lat: 24.8072, lng: 93.9388, approx: true,
+    desc: "Morning and evening tea stalls with fried snacks. Informal." },
+  { name: "Ima Keithel Food Lane", type: "snacks", district: "Imphal West", lat: 24.8085, lng: 93.9372, approx: true,
+    desc: "Snacks, singju, fermented fish and local sweets sold by the market's women vendors." },
+  { name: "Ima Keithel Singju Stalls", type: "snacks", district: "Imphal West", lat: 24.8088, lng: 93.9376, approx: true,
+    desc: "Fresh singju (spicy herb-and-vegetable salad) made to order. Informal." },
+  { name: "Khwairamband Bazar Eromba Corner", type: "snacks", district: "Imphal West", lat: 24.8080, lng: 93.9378, approx: true,
+    desc: "Small eateries serving eromba and boiled-vegetable snacks." },
+  { name: "Kangla West Gate Snack Stalls", type: "snacks", district: "Imphal West", lat: 24.8085, lng: 93.9410, approx: true,
+    desc: "Boiled peas, roasted corn and chat sold outside the fort gate. Informal." },
+  { name: "Kangla Evening Chat Stalls", type: "snacks", district: "Imphal West", lat: 24.8070, lng: 93.9425, approx: true,
+    desc: "Evening chat and fuchka stalls along the Kangla moat. Informal." },
+  { name: "Polo Ground Evening Stalls", type: "snacks", district: "Imphal West", lat: 24.8092, lng: 93.9400, approx: true,
+    desc: "Snack carts around the polo ground in the evening. Informal." },
+  { name: "Singjamei Chat Corner", type: "snacks", district: "Imphal West", lat: 24.7955, lng: 93.9340, approx: true,
+    desc: "Street chat, kachori and tea stalls at Singjamei. Informal." },
+  { name: "Singjamei Chingamathak Snack Stalls", type: "snacks", district: "Imphal West", lat: 24.7985, lng: 93.9350, approx: true,
+    desc: "Evening fried snack stalls. Informal." },
+  { name: "Khuyathong Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8000, lng: 93.9300, approx: true,
+    desc: "Pakora, boiled egg and tea stalls. Informal." },
+  { name: "Lamphel Snack Stalls", type: "snacks", district: "Imphal West", lat: 24.8090, lng: 93.9150, approx: true,
+    desc: "Roadside stalls near the Lamphel market. Informal." },
+  { name: "Lamphelpat Tea & Pakora Stalls", type: "snacks", district: "Imphal West", lat: 24.8040, lng: 93.9120, approx: true,
+    desc: "Tea and pakora stalls beside the wetland. Informal." },
+  { name: "Sagolband Snack Lane", type: "snacks", district: "Imphal West", lat: 24.8130, lng: 93.9330, approx: true,
+    desc: "Mix of small eateries and evening snack carts." },
+  { name: "Keishampat Junction Stalls", type: "snacks", district: "Imphal West", lat: 24.8150, lng: 93.9333, approx: true,
+    desc: "Morning tea and fried snack stalls. Informal." },
+  { name: "Thangmeiband Chat Stalls", type: "snacks", district: "Imphal West", lat: 24.8130, lng: 93.9345, approx: true,
+    desc: "Evening chat and tea stalls. Informal." },
+  { name: "Uripok Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8260, lng: 93.9260, approx: true,
+    desc: "Pakora, tea and boiled egg stalls at Uripok. Informal." },
+  { name: "Uripok Momo Corner", type: "snacks", district: "Imphal West", lat: 24.8250, lng: 93.9250, approx: true,
+    desc: "Street momo and noodle stalls. Informal." },
+  { name: "Lamlong Snack Stalls", type: "snacks", district: "Imphal West", lat: 24.8040, lng: 93.9320, approx: true,
+    desc: "Small tea and snack shops. Informal." },
+  { name: "Langjing Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8230, lng: 93.9060, approx: true,
+    desc: "Tea stalls with fried snacks on the Langjing road. Informal." },
+  { name: "Patsoi Snack Stalls", type: "snacks", district: "Imphal West", lat: 24.8380, lng: 93.9210, approx: true,
+    desc: "Roadside snacks and tea. Informal." },
+  { name: "Naoremthong Tea Stalls", type: "snacks", district: "Imphal West", lat: 24.8370, lng: 93.9260, approx: true,
+    desc: "Tea and pakora stalls. Informal." },
+  { name: "Canchipur Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8270, lng: 93.8850, approx: true,
+    desc: "Tea, pakora and boiled egg stalls. Informal." },
+  { name: "Sangaithel Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8089, lng: 93.7900, approx: true,
+    desc: "Stalls along the road towards Sangaithel. Informal." },
+  { name: "Moirangkhom Chat Stalls", type: "snacks", district: "Imphal East", lat: 24.8050, lng: 93.9440, approx: true,
+    desc: "Evening chat and tea stalls. Informal." },
+  { name: "Wangkhei Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.8100, lng: 93.9550, approx: true,
+    desc: "Tea shops and fried snack stalls at Wangkhei. Informal." },
+  { name: "Wangkhei Ningthem Pukhri Stalls", type: "snacks", district: "Imphal East", lat: 24.8120, lng: 93.9500, approx: true,
+    desc: "Evening snacks near the pond. Informal." },
+  { name: "Kakwa Roadside Stalls", type: "snacks", district: "Imphal East", lat: 24.8200, lng: 93.9500, approx: true,
+    desc: "Tea and pakora stalls on the Kakwa road. Informal." },
+  { name: "Khurai Lamlong Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.8270, lng: 93.9560, approx: true,
+    desc: "Local tea and fried snack stalls. Informal." },
+  { name: "Khurai Bazar Pakora Stalls", type: "snacks", district: "Imphal East", lat: 24.8190, lng: 93.9530, approx: true,
+    desc: "Pakora and singju stalls near the market. Informal." },
+  { name: "Porompat Roadside Stalls", type: "snacks", district: "Imphal East", lat: 24.8250, lng: 93.9790, approx: true,
+    desc: "Roadside stalls with tea and snacks. Informal." },
+  { name: "Heingang Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.8330, lng: 93.9520, approx: true,
+    desc: "Tea and snack stalls on the Heingang road. Informal." },
+  { name: "Heingang Hill Viewpoint Stalls", type: "snacks", district: "Imphal East", lat: 24.8400, lng: 93.9600, approx: true,
+    desc: "Occasional snack sellers at the viewpoint. Informal." },
+  { name: "Sanjenthong Tea Stalls", type: "snacks", district: "Imphal East", lat: 24.8250, lng: 93.9480, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Chingmeirong Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.8272, lng: 93.9450, approx: true,
+    desc: "Stalls near the Chingmeirong hotels. Informal." },
+  { name: "Mantripukhri Roadside Stalls", type: "snacks", district: "Imphal East", lat: 24.8500, lng: 93.9350, approx: true,
+    desc: "Roadside snacks on the Imphal–Dimapur road. Informal." },
+  { name: "Lamsang Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.9000, lng: 93.8800, approx: true,
+    desc: "Tea and boiled snack stalls on the highway. Informal." },
+  { name: "Sekmai Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8920, lng: 93.8800, approx: true,
+    desc: "Highway stalls selling snacks and tea. Informal." },
+  { name: "Marjing Polo Statue Stalls", type: "snacks", district: "Imphal East", lat: 24.8790, lng: 93.9545, approx: true,
+    desc: "Snack sellers near the Marjing Polo statue. Informal." },
+  { name: "Sekta Roadside Stalls", type: "snacks", district: "Imphal East", lat: 24.8250, lng: 94.0050, approx: true,
+    desc: "Tea and snack stalls on the road to Sekta. Informal." },
+  { name: "Andro Village Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.7590, lng: 94.0580, approx: true,
+    desc: "Small stalls near the cultural complex. Informal." },
+  { name: "Yairipok Bazar Snack Stalls", type: "snacks", district: "Thoubal", lat: 24.7000, lng: 94.0000, approx: true,
+    desc: "Tea, pakora and fish-fry stalls at Yairipok. Informal." },
+  { name: "Ithai Barrage Stalls", type: "snacks", district: "Bishnupur", lat: 24.5200, lng: 93.8000, approx: true,
+    desc: "Snack sellers around the Ithai barrage. Informal." },
+  { name: "Sendra Island Snack Stalls", type: "snacks", district: "Bishnupur", lat: 24.5340, lng: 93.8010, approx: true,
+    desc: "Stalls selling snacks near the Loktak viewpoint. Informal." },
+  { name: "Loktak Karang Boat Landing Stalls", type: "snacks", district: "Bishnupur", lat: 24.5200, lng: 93.8200, approx: true,
+    desc: "Snack and tea sellers near the boat landing. Informal." },
+  { name: "Thanga Lakeside Tea Stalls", type: "snacks", district: "Bishnupur", lat: 24.5290, lng: 93.8370, approx: true,
+    desc: "Tea and fried fish snacks by the lake. Informal." },
+  { name: "Moirang Bazar Snack Stalls", type: "snacks", district: "Bishnupur", lat: 24.4960, lng: 93.7710, approx: true,
+    desc: "Tea, pakora and sweets near the market. Informal." },
+  { name: "Moirang INA Memorial Stalls", type: "snacks", district: "Bishnupur", lat: 24.4990, lng: 93.7700, approx: true,
+    desc: "Snack sellers near the INA memorial. Informal." },
+  { name: "Nambol Bazar Snack Stalls", type: "snacks", district: "Bishnupur", lat: 24.7100, lng: 93.8000, approx: true,
+    desc: "Pakora, chat and tea stalls. Informal." },
+  { name: "Bishnupur Bazar Snack Stalls", type: "snacks", district: "Bishnupur", lat: 24.6280, lng: 93.7690, approx: true,
+    desc: "Tea shops and fried snack stalls. Informal." },
+  { name: "Bishnupur Vishnu Temple Stalls", type: "snacks", district: "Bishnupur", lat: 24.6290, lng: 93.7700, approx: true,
+    desc: "Sweets and snack sellers near the temple. Informal." },
+  { name: "Ningthoukhong Roadside Stalls", type: "snacks", district: "Bishnupur", lat: 24.5700, lng: 93.7900, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Thoubal Bazar Snack Lane", type: "snacks", district: "Thoubal", lat: 24.6400, lng: 94.0050, approx: true,
+    desc: "Tea, pakora and sweets near the main market. Informal." },
+  { name: "Thoubal Ningthem Stalls", type: "snacks", district: "Thoubal", lat: 24.6350, lng: 94.0100, approx: true,
+    desc: "Evening snack stalls. Informal." },
+  { name: "Lilong Roadside Stalls", type: "snacks", district: "Thoubal", lat: 24.7000, lng: 94.0100, approx: true,
+    desc: "Tea and fried snack stalls. Informal." },
+  { name: "Kakching Bazar Snack Stalls", type: "snacks", district: "Kakching", lat: 24.4980, lng: 93.9840, approx: true,
+    desc: "Tea and snack stalls near the market. Informal." },
+  { name: "Kakching Garden Roadside Stalls", type: "snacks", district: "Kakching", lat: 24.4970, lng: 93.9800, approx: true,
+    desc: "Snack sellers around the Kakching garden. Informal." },
+  { name: "Wabagai Roadside Stalls", type: "snacks", district: "Kakching", lat: 24.4700, lng: 93.9800, approx: true,
+    desc: "Tea stalls with local snacks. Informal." },
+  { name: "Churachandpur Main Bazar Snack Stalls", type: "snacks", district: "Churachandpur", lat: 24.3330, lng: 93.6800, approx: true,
+    desc: "Tea shops and street snack stalls in Lamka. Informal." },
+  { name: "Churachandpur Tuibong Momo Stalls", type: "snacks", district: "Churachandpur", lat: 24.3500, lng: 93.6750, approx: true,
+    desc: "Momo and noodle stalls in the evening. Informal." },
+  { name: "Lamka Roadside Tea Stalls", type: "snacks", district: "Churachandpur", lat: 24.3300, lng: 93.6830, approx: true,
+    desc: "Tea and fried snack stalls. Informal." },
+  { name: "Churachandpur Zoute Snack Stalls", type: "snacks", district: "Churachandpur", lat: 24.3400, lng: 93.6900, approx: true,
+    desc: "Tea and snacks. Informal." },
+  { name: "Ukhrul Bazar Snack Stalls", type: "snacks", district: "Ukhrul", lat: 25.1000, lng: 94.3600, approx: true,
+    desc: "Tea shops, momo and snack stalls in the market. Informal." },
+  { name: "Ukhrul Hill Viewpoint Stalls", type: "snacks", district: "Ukhrul", lat: 25.1050, lng: 94.3650, approx: true,
+    desc: "Tea and snack sellers at the lookout. Informal." },
+  { name: "Shirui Road Snack Stalls", type: "snacks", district: "Ukhrul", lat: 25.1200, lng: 94.4200, approx: true,
+    desc: "Roadside tea and food stalls on the way to Shirui. Informal." },
+  { name: "Senapati Bazar Snack Stalls", type: "snacks", district: "Senapati", lat: 25.2680, lng: 94.0200, approx: true,
+    desc: "Tea and street snack stalls. Informal." },
+  { name: "Mao Gate Market Stalls", type: "snacks", district: "Senapati", lat: 25.5130, lng: 94.1200, approx: true,
+    desc: "Market stalls selling snacks near the Nagaland border. Informal." },
+  { name: "Mao Roadside Tea Stalls", type: "snacks", district: "Senapati", lat: 25.5200, lng: 94.1100, approx: true,
+    desc: "Tea and snacks on the highway. Informal." },
+  { name: "Maram Roadside Stalls", type: "snacks", district: "Senapati", lat: 25.4000, lng: 94.1000, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Kangpokpi Bazar Snack Stalls", type: "snacks", district: "Kangpokpi", lat: 25.1400, lng: 93.9700, approx: true,
+    desc: "Tea, pakora and snack stalls. Informal." },
+  { name: "Kangpokpi Highway Pit-stop Stalls", type: "snacks", district: "Kangpokpi", lat: 25.1300, lng: 93.9700, approx: true,
+    desc: "Roadside stalls serving travellers. Informal." },
+  { name: "Saikul Roadside Stalls", type: "snacks", district: "Kangpokpi", lat: 25.0600, lng: 94.0280, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Tamenglong Bazar Snack Stalls", type: "snacks", district: "Tamenglong", lat: 24.9900, lng: 93.5000, approx: true,
+    desc: "Small tea and snack shops. Informal." },
+  { name: "Noney Highway Stalls", type: "snacks", district: "Noney", lat: 24.8600, lng: 93.6200, approx: true,
+    desc: "Stalls along the Imphal–Jiribam highway. Informal." },
+  { name: "Khongsang Roadside Stalls", type: "snacks", district: "Noney", lat: 24.8200, lng: 93.5900, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Jiribam Bazar Snack Stalls", type: "snacks", district: "Jiribam", lat: 24.8070, lng: 93.1130, approx: true,
+    desc: "Tea, pakora and sweets near the market. Informal." },
+  { name: "Jiribam Railway Station Stalls", type: "snacks", district: "Jiribam", lat: 24.8000, lng: 93.1150, approx: true,
+    desc: "Snack sellers at the station. Informal." },
+  { name: "Moreh Border Market Snack Stalls", type: "snacks", district: "Tengnoupal", lat: 24.2500, lng: 94.3010, approx: true,
+    desc: "Snack and tea stalls near the Indo-Myanmar border market. Informal." },
+  { name: "Moreh Bazar Tea Stalls", type: "snacks", district: "Tengnoupal", lat: 24.2490, lng: 94.2990, approx: true,
+    desc: "Tea and fried snack shops. Informal." },
+  { name: "Tengnoupal Roadside Stalls", type: "snacks", district: "Tengnoupal", lat: 24.3000, lng: 94.1500, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Chandel Bazar Snack Stalls", type: "snacks", district: "Chandel", lat: 24.3200, lng: 94.0000, approx: true,
+    desc: "Tea and street snack stalls. Informal." },
+  { name: "Chakpikarong Roadside Stalls", type: "snacks", district: "Chandel", lat: 24.2700, lng: 93.9500, approx: true,
+    desc: "Roadside tea and snacks. Informal." },
+  { name: "Kamjong Roadside Stalls", type: "snacks", district: "Kamjong", lat: 24.8870, lng: 94.1300, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Pherzawl Bazar Stalls", type: "snacks", district: "Pherzawl", lat: 24.1500, lng: 93.2700, approx: true,
+    desc: "Small tea and snack shops. Informal." },
+  { name: "Imphal Airport Road Stalls", type: "snacks", district: "Imphal West", lat: 24.7600, lng: 93.8970, approx: true,
+    desc: "Tea and snack stalls on the airport road. Informal." },
+  { name: "Khuman Lampak Sports Complex Stalls", type: "snacks", district: "Imphal East", lat: 24.8100, lng: 93.9600, approx: true,
+    desc: "Snack sellers outside the sports complex during events. Informal." },
+  { name: "RIMS Road Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.8130, lng: 93.9640, approx: true,
+    desc: "Tea and snack stalls near the hospital. Informal." },
+  { name: "Manipur University Gate Stalls", type: "snacks", district: "Imphal West", lat: 24.9000, lng: 93.9100, approx: true,
+    desc: "Student tea and snack stalls. Informal." },
+  { name: "Sangai Festival Food Stalls", type: "snacks", district: "Imphal West", lat: 24.8080, lng: 93.9450, approx: true,
+    desc: "Temporary food stalls during the festival in November. Seasonal." },
+  { name: "Dolaithabi Roadside Stalls", type: "snacks", district: "Imphal East", lat: 24.7300, lng: 93.9600, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Koirengei Snack Stalls", type: "snacks", district: "Imphal East", lat: 24.8350, lng: 93.9650, approx: true,
+    desc: "Tea and fried snack stalls. Informal." },
+  { name: "Takyelpat Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.8150, lng: 93.9100, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Pangei Roadside Stalls", type: "snacks", district: "Imphal West", lat: 24.7900, lng: 93.9200, approx: true,
+    desc: "Tea and snack stalls. Informal." },
+  { name: "Kwakeithel Chat Stalls", type: "snacks", district: "Imphal West", lat: 24.7960, lng: 93.9390, approx: true,
+    desc: "Evening chat and fried snack stalls. Informal." },
+  { name: "Thangal Bazar Sweet & Jalebi Stalls", type: "snacks", district: "Imphal West", lat: 24.8078, lng: 93.9393, approx: true,
+    desc: "Sweets and jalebi sold fresh. Informal." },
+  { name: "Khoyathong Evening Stalls", type: "snacks", district: "Imphal West", lat: 24.8070, lng: 93.9380, approx: true,
+    desc: "Evening snack carts. Informal." },
+
+  // Hotels & resorts (from OpenStreetMap)
+  { name: "Classic Grande", type: "hotel", district: "Imphal East", lat: 24.8272, lng: 93.9468,
+    desc: "Hotel in Chingmeirong, Imphal.", phone: "0385 242 2139", website: "https://www.classicgrande.com/" },
+  { name: "Hotel Nightingale", type: "hotel", district: "Imphal East", lat: 24.8274, lng: 93.9477, desc: "Hotel in Imphal." },
+  { name: "Phou-Oi-Bee Hotel", type: "hotel", district: "Imphal East", lat: 24.8149, lng: 93.9454, desc: "Hotel in central Imphal." },
+  { name: "Hotel Imphal", type: "hotel", district: "Imphal West", lat: 24.8160, lng: 93.9430, desc: "Hotel in central Imphal." },
+  { name: "The Classic Hotel", type: "hotel", district: "Imphal West", lat: 24.8154, lng: 93.9428, desc: "Hotel in central Imphal." },
+  { name: "North East Hotel", type: "hotel", district: "Imphal West", lat: 24.8160, lng: 93.9430, desc: "Hotel in central Imphal." },
+  { name: "Sangai Continental", type: "hotel", district: "Imphal West", lat: 24.8108, lng: 93.9358, desc: "Hotel in Imphal." },
+  { name: "Nirmala Hotel", type: "hotel", district: "Imphal West", lat: 24.8105, lng: 93.9364, desc: "Hotel in Imphal." },
+  { name: "Avenue Hotel", type: "hotel", district: "Imphal West", lat: 24.8109, lng: 93.9384, desc: "Hotel in Imphal." },
+  { name: "Manipur House", type: "hotel", district: "Imphal West", lat: 24.8041, lng: 93.9181, desc: "Hotel in Imphal West." },
+  { name: "Saikul Hotel", type: "hotel", district: "Kangpokpi", lat: 25.0598, lng: 94.0278, desc: "Hotel in Saikul.", phone: "70855 10084" },
+  { name: "Lemlei Hotel Loktak", type: "hotel", district: "Bishnupur", lat: 24.5295, lng: 93.8374,
+    desc: "Hotel at Thanga, on Loktak Lake.", phone: "81189 44534" },
+  { name: "Sanajaoba Home Stay", type: "hotel", district: "Bishnupur", lat: 24.5294, lng: 93.8372,
+    desc: "Homestay at Thanga, on Loktak Lake.", phone: "81189 44535" },
+  { name: "Lac View Hotel", type: "hotel", district: "Bishnupur", lat: 24.4979, lng: 93.7643, desc: "Hotel in Moirang, near Loktak Lake." },
+  { name: "Hotel Elegance Resort", type: "resort", district: "Bishnupur", lat: 24.4868, lng: 93.7573,
+    desc: "Hotel and resort in Moirang.", phone: "+91 89747 92955" },
+  { name: "The Cascade Retreat", type: "resort", district: "Bishnupur", lat: 24.7317, lng: 93.7649, desc: "Retreat in the hills near Nambol." },
+  { name: "Woods and Earth Retreat", type: "resort", district: "Bishnupur", lat: 24.7311, lng: 93.7697, desc: "Retreat in the hills near Nambol." },
+  { name: "Geljang Resort", type: "resort", district: "Churachandpur", lat: 24.2597, lng: 93.6705, desc: "Resort near Lamka (Churachandpur)." },
+  { name: "Green Hills", type: "resort", district: "Churachandpur", lat: 24.2676, lng: 93.6657, desc: "Resort near Lamka (Churachandpur)." },
+  { name: "Lhaang-Kim Hotel & Euntteps Resort", type: "resort", district: "Tengnoupal", lat: 24.2540, lng: 94.2966, desc: "Hotel and resort in Moreh." },
+  { name: "De Khunai Resort", type: "resort", district: "Tengnoupal", lat: 24.2491, lng: 94.3031, desc: "Resort in Moreh." },
+  { name: "Neelraj Hotel", type: "hotel", district: "Tengnoupal", lat: 24.2491, lng: 94.3032, desc: "Hotel in Moreh, with parking." },
+  { name: "Kakching Hotel", type: "hotel", district: "Tengnoupal", lat: 24.2490, lng: 94.3031, desc: "Hotel in Moreh." },
+  { name: "Elora Hotel", type: "hotel", district: "Tengnoupal", lat: 24.2508, lng: 94.2994, desc: "Hotel in Moreh." },
+  { name: "Hotel Malem", type: "hotel", district: "Jiribam", lat: 24.8060, lng: 93.1139, desc: "Hotel in Jiribam.", phone: "+91 96124 86579" },
+  { name: "Hotel Star", type: "hotel", district: "Jiribam", lat: 24.8055, lng: 93.1139, desc: "Hotel in Jiribam." },
+  { name: "Hotel Helena", type: "hotel", district: "Jiribam", lat: 24.8058, lng: 93.1140, desc: "Hotel in Jiribam." },
+  { name: "Hotel Joyram", type: "hotel", district: "Jiribam", lat: 24.8088, lng: 93.1120, desc: "Hotel in Jiribam." },
+  { name: "Hotel Leibaklei", type: "hotel", district: "Jiribam", lat: 24.7884, lng: 93.1477, desc: "Hotel near Jiribam.", phone: "76249 91537" },
+  { name: "Fancy Lodging", type: "hotel", district: "Noney", lat: 24.8598, lng: 93.6240, desc: "Lodge on the Imphal–Jiribam road." },
+  { name: "Apollo Inn", type: "hotel", district: "Tamenglong", lat: 24.9938, lng: 93.5000, desc: "Hotel in Tamenglong." },
+  { name: "Sangaithel Park & Resort", type: "resort", district: "Imphal West", lat: 24.8089, lng: 93.7878,
+    desc: "Park and resort at Sangaithel, west of Imphal." },
+  { name: "Youth Hostel, Imphal", type: "hotel", district: "Imphal East", lat: 24.8157, lng: 93.9508,
+    desc: "Budget hostel in Imphal.", phone: "0385 242 1618" },
+  { name: "Sanajaoba Home Stay 1", type: "hotel", district: "Imphal West", lat: 24.8389, lng: 93.9116,
+    desc: "Homestay in Imphal.", phone: "79794 78748" },
+  { name: "Sandy Shores", type: "hotel", district: "Imphal West", lat: 24.9545, lng: 93.8887,
+    desc: "Hostel north of Imphal." },
+  { name: "Maipakchao Homestay", type: "hotel", district: "Bishnupur", lat: 24.5209, lng: 93.8115,
+    desc: "Family homestay near Loktak Lake." },
+  { name: "Loktak Homestay (Budha House)", type: "hotel", district: "Bishnupur", lat: 24.5154, lng: 93.7944,
+    desc: "Homestay at Sendra, on Loktak Lake." },
+  { name: "Sangai Lodge", type: "hotel", district: "Tengnoupal", lat: 24.2497, lng: 94.3016,
+    desc: "Lodge in Moreh." },
+
+  // Hotels from web listings
+  { name: "Aurora Boutique Hotel", type: "hotel", district: "Imphal West", lat: 24.8087, lng: 93.9385, approx: true,
+    desc: "Boutique hotel on Polo Ground Road, Paona Bazar." },
+  { name: "The Padma", type: "hotel", district: "Imphal West", lat: 24.8085, lng: 93.9390, approx: true,
+    desc: "Hotel on Dharamsala Road, Thangal Bazar." },
+  { name: "Hotel Millennium", type: "hotel", district: "Imphal West", lat: 24.8080, lng: 93.9392, approx: true,
+    desc: "Hotel opposite Dharamshala, Thangal Bazar." },
+  { name: "Hotel Yaiphaba", type: "hotel", district: "Imphal West", lat: 24.8075, lng: 93.9390, approx: true,
+    desc: "Hotel on MG Avenue, Thangal Bazar." },
+  { name: "Hotel O The Thangal", type: "hotel", district: "Imphal West", lat: 24.8073, lng: 93.9385, approx: true,
+    desc: "Hotel on Dharamshala Road, MG Avenue." },
+  { name: "Hotel Anand Continental", type: "hotel", district: "Imphal West", lat: 24.8075, lng: 93.9380, approx: true,
+    desc: "Hotel on Khoyathong Road, Majorkhul, Thangal Bazar." },
+  { name: "Hotel Prince", type: "hotel", district: "Imphal West", lat: 24.8080, lng: 93.9378, approx: true,
+    desc: "Hotel in Thangal Bazar." },
+  { name: "Hotel Kristina", type: "hotel", district: "Imphal West", lat: 24.8085, lng: 93.9380, approx: true,
+    desc: "Hotel on Polo Ground Road, Paona Bazar." },
+  { name: "Hotel Bheigo", type: "hotel", district: "Imphal West", lat: 24.7991, lng: 93.9364, approx: true,
+    desc: "Hotel at Keisampat Thokchom Leikai." },
+  { name: "The Pi Hotel", type: "hotel", district: "Imphal East", lat: 24.8142, lng: 93.9473, approx: true,
+    desc: "Hotel near North AOC, opposite Kekrupat." },
+  { name: "Shalom Farmhouse by the Hillside", type: "hotel", district: "Imphal East", lat: 24.8503, lng: 93.9357, approx: true,
+    desc: "Farmhouse stay at Raphei colony, Mantripukhri." },
+  { name: "Sendra Tourist Home", type: "hotel", district: "Bishnupur", lat: 24.5335, lng: 93.8005, approx: true,
+    desc: "Government tourist home on Sendra Island, overlooking Loktak Lake." },
+  { name: "Moirang Tourist Lodge", type: "hotel", district: "Bishnupur", lat: 24.4999, lng: 93.7767, approx: true,
+    desc: "Government tourist lodge at Moirang, near Loktak Lake." }
+];
+
+const typeLabel = { site: "Tourist site", picnic: "Picnic spot", hotel: "Hotel", resort: "Resort", snacks: "Snack spot" };
+const colors = () => {
+  const s = getComputedStyle(document.documentElement);
+  return Object.fromEntries(Object.keys(typeLabel).map(t => [t, s.getPropertyValue("--" + t).trim()]));
+};
+
+// Map
+const map = L.map("map", { zoomControl: true }).setView([24.75, 93.9], 9);
+// Esri tiles: OpenStreetMap blocks pages opened from file://, and CARTO now needs an API key
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 19,
+  attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, USGS, OpenStreetMap contributors'
+}).addTo(map);
+
+const legend = L.control({ position: "bottomright" });
+legend.onAdd = () => {
+  const c = colors();
+  const div = L.DomUtil.create("div", "legend");
+  div.innerHTML = Object.entries(typeLabel)
+    .map(([t, label]) => `<div><span style="background:${c[t]}"></span>${label}</div>`).join("");
+  return div;
+};
+legend.addTo(map);
+
+const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "";
+
+// Places you add are kept in this browser's localStorage; Export/Import moves them elsewhere
+const STORE_KEY = "manipur-explorer-places";
+const strip = ({ marker, ...rest }) => rest;
+let custom = (() => {
+  try {
+    const v = JSON.parse(localStorage.getItem(STORE_KEY));
+    return Array.isArray(v) ? v : [];
+  } catch { return []; }
+})();
+function saveCustom() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(custom.map(strip))); }
+  catch { alert("Your browser blocked saving. Use Export to keep a copy of your places."); }
+}
+
+PLACES.forEach((p, i) => { p.id = "b" + i; });
+const allPlaces = () => PLACES.concat(custom);
+const byId = id => allPlaces().find(p => p.id === id);
+
+function popupHtml(p) {
+  const web = safeUrl(p.website);
+  return `
+    <b>${escapeHtml(p.name)}</b><br>
+    <small>${typeLabel[p.type]} · ${escapeHtml(p.district || "No district")}${p.custom ? " · Added by you" : ""}</small>
+    ${p.approx ? `<div><small>📍 Approximate location (nearest village or area)</small></div>` : ""}
+    ${p.desc ? `<p style="margin:6px 0">${escapeHtml(p.desc)}</p>` : `<div style="height:6px"></div>`}
+    ${p.phone ? `<div>☎ <a href="tel:${escapeHtml(p.phone.replace(/\s/g, ""))}">${escapeHtml(p.phone)}</a></div>` : ""}
+    ${web ? `<div><a href="${escapeHtml(web)}" target="_blank" rel="noopener">Website ↗</a></div>` : ""}
+    <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}" target="_blank" rel="noopener">Get directions ↗</a>`;
+}
+
+function attachMarker(p) {
+  p.marker = L.circleMarker([p.lat, p.lng], {
+    radius: 8, weight: 2, color: p.custom ? "#111" : "#fff", fillColor: colors()[p.type], fillOpacity: 0.95
+  }).bindPopup(popupHtml(p));
+  p.marker.on("click", () => highlight(p.id, false));
+}
+allPlaces().forEach(attachMarker);
+
+// Filters
+const state = { type: "all", district: "all", q: "" };
+const districtSel = document.getElementById("district");
+const districtList = document.getElementById("districtList");
+
+function buildDistricts() {
+  const districts = [...new Set(allPlaces().map(p => p.district).filter(Boolean))].sort();
+  if (state.district !== "all" && !districts.includes(state.district)) state.district = "all";
+  districtSel.innerHTML = `<option value="all">All districts</option>` +
+    districts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join("");
+  districtSel.value = state.district;
+  districtList.innerHTML = districts.map(d => `<option value="${escapeHtml(d)}">`).join("");
+}
+
+const listEl = document.getElementById("list");
+const countEl = document.getElementById("count");
+const layer = L.featureGroup().addTo(map);
+
+function filtered() {
+  const q = state.q.toLowerCase();
+  return allPlaces().filter(p =>
+    (state.type === "all" || p.type === state.type) &&
+    (state.district === "all" || p.district === state.district) &&
+    (!q || [p.name, p.desc, p.district].join(" ").toLowerCase().includes(q))
+  ).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function render(fit = true) {
+  buildDistricts();
+  const items = filtered();
+  layer.clearLayers();
+  items.forEach(p => layer.addLayer(p.marker));
+
+  countEl.textContent = `${items.length} place${items.length === 1 ? "" : "s"}` +
+    (custom.length ? ` · ${custom.length} added by you` : "");
+  listEl.innerHTML = items.length ? items.map(p => `
+    <li data-id="${p.id}">
+      <span class="dot ${p.type}"></span>
+      <span class="name">${escapeHtml(p.name)}</span>
+      <span class="meta">${typeLabel[p.type]} · ${escapeHtml(p.district || "No district")}${p.custom ? ` · <span class="mine">Added by you</span>` : ""}</span>
+      ${p.desc ? `<span class="desc">${escapeHtml(p.desc)}</span>` : ""}
+      ${p.custom ? `<span class="row-actions">
+        <button type="button" class="link" data-action="edit">Edit</button>
+        <button type="button" class="link danger" data-action="delete">Delete</button>
+      </span>` : ""}
+    </li>`).join("") : `<div class="empty">No places match your filters.</div>`;
+
+  if (fit && items.length) map.fitBounds(layer.getBounds(), { padding: [30, 30], maxZoom: 13 });
+}
+
+function highlight(id, fly = true) {
+  const p = byId(id);
+  if (!p) return;
+  listEl.querySelectorAll("li").forEach(li => li.classList.toggle("active", li.dataset.id === id));
+  const li = listEl.querySelector(`li[data-id="${id}"]`);
+  if (li) li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  if (fly) {
+    map.flyTo([p.lat, p.lng], 13, { duration: 0.8 });
+    p.marker.openPopup();
+  }
+}
+
+// Add / edit form
+const dialog = document.getElementById("placeDialog");
+const form = document.getElementById("placeForm");
+const banner = document.getElementById("pickBanner");
+let editingId = null;
+let picking = false;
+let pickMarker = null;
+
+function clearPickMarker() {
+  if (pickMarker) { map.removeLayer(pickMarker); pickMarker = null; }
+}
+
+function setLatLng(latlng) {
+  form.elements.lat.value = latlng.lat.toFixed(5);
+  form.elements.lng.value = latlng.lng.toFixed(5);
+  clearPickMarker();
+  pickMarker = L.marker(latlng).addTo(map);
+}
+
+function openForm(place = null, latlng = null) {
+  editingId = place ? place.id : null;
+  form.reset();
+  document.getElementById("formTitle").textContent = place ? "Edit place" : "Add a place";
+  const v = place || { type: "site", district: state.district === "all" ? "" : state.district };
+  ["name", "type", "district", "desc", "phone", "website", "lat", "lng"].forEach(k => {
+    if (v[k] != null) form.elements[k].value = v[k];
+  });
+  if (latlng) setLatLng(latlng);
+  dialog.showModal();
+}
+
+function stopPicking() {
+  picking = false;
+  banner.hidden = true;
+  map.getContainer().classList.remove("picking");
+}
+
+document.getElementById("pickBtn").addEventListener("click", () => {
+  picking = true;
+  dialog.close();
+  banner.hidden = false;
+  map.getContainer().classList.add("picking");
+});
+document.getElementById("pickCancel").addEventListener("click", () => { stopPicking(); dialog.showModal(); });
+map.on("click", e => {
+  if (!picking) return;
+  stopPicking();
+  setLatLng(e.latlng);
+  dialog.showModal();
+});
+// Right-click (or long-press on touch) on the map: add a place right there
+map.on("contextmenu", e => { if (!picking) openForm(null, e.latlng); });
+
+document.getElementById("cancelBtn").addEventListener("click", () => dialog.close());
+dialog.addEventListener("close", () => { if (!picking) clearPickMarker(); });
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const f = form.elements;
+  const lat = parseFloat(f.lat.value), lng = parseFloat(f.lng.value);
+  const data = {
+    name: f.name.value.trim(),
+    type: f.type.value,
+    district: f.district.value.trim(),
+    desc: f.desc.value.trim(),
+    phone: f.phone.value.trim(),
+    website: f.website.value.trim(),
+    lat, lng,
+    custom: true
+  };
+  if (!data.name || !isFinite(lat) || !isFinite(lng)) return;
+
+  let place;
+  if (editingId) {
+    place = custom.find(p => p.id === editingId);
+    map.removeLayer(place.marker);
+    layer.removeLayer(place.marker);
+    Object.assign(place, data);
+  } else {
+    place = { id: "c" + Date.now().toString(36), ...data };
+    custom.push(place);
+  }
+  attachMarker(place);
+  saveCustom();
+  dialog.close();
+  render(false);
+  highlight(place.id);
+});
+
+listEl.addEventListener("click", e => {
+  const li = e.target.closest("li");
+  if (!li) return;
+  const action = e.target.closest("[data-action]")?.dataset.action;
+  const p = byId(li.dataset.id);
+  if (action === "edit") return openForm(p);
+  if (action === "delete") {
+    if (!confirm(`Delete "${p.name}"?`)) return;
+    map.removeLayer(p.marker);
+    custom = custom.filter(x => x.id !== p.id);
+    saveCustom();
+    return render(false);
+  }
+  highlight(li.dataset.id);
+});
+
+// Export / import the places you added
+document.getElementById("addBtn").addEventListener("click", () => openForm());
+document.getElementById("exportBtn").addEventListener("click", () => {
+  if (!custom.length) return alert("You haven't added any places yet.");
+  const rows = custom.map(({ marker, id, custom, ...p }) => p);
+  const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "manipur-places.json" });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+const importFile = document.getElementById("importFile");
+document.getElementById("importBtn").addEventListener("click", () => importFile.click());
+importFile.addEventListener("change", async () => {
+  const file = importFile.files[0];
+  importFile.value = "";
+  if (!file) return;
+  let rows;
+  try { rows = JSON.parse(await file.text()); } catch { return alert("That file isn't valid JSON."); }
+  if (!Array.isArray(rows)) return alert("Expected a list of places.");
+  const keyOf = (name, lat, lng) => `${name.toLowerCase()}|${(+lat).toFixed(4)}|${(+lng).toFixed(4)}`;
+  const seen = new Set(allPlaces().map(p => keyOf(p.name, p.lat, p.lng)));
+  let added = 0, skipped = 0;
+  rows.forEach((r, i) => {
+    const lat = parseFloat(r?.lat), lng = parseFloat(r?.lng);
+    const name = String(r?.name ?? "").trim();
+    if (!name || !typeLabel[r.type] || !isFinite(lat) || !isFinite(lng) || seen.has(keyOf(name, lat, lng))) { skipped++; return; }
+    seen.add(keyOf(name, lat, lng));
+    const place = {
+      id: "c" + Date.now().toString(36) + i, name, type: r.type, lat, lng, custom: true,
+      district: String(r.district ?? "").trim(), desc: String(r.desc ?? "").trim(),
+      phone: String(r.phone ?? "").trim(), website: safeUrl(String(r.website ?? "").trim())
+    };
+    attachMarker(place);
+    custom.push(place);
+    added++;
+  });
+  saveCustom();
+  render();
+  alert(`Imported ${added} place${added === 1 ? "" : "s"}` + (skipped ? `, skipped ${skipped} (duplicates or missing details).` : "."));
+});
+
+document.querySelectorAll(".chip").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b === btn));
+  state.type = btn.dataset.type;
+  render();
+}));
+districtSel.addEventListener("change", () => { state.district = districtSel.value; render(); });
+document.getElementById("search").addEventListener("input", e => { state.q = e.target.value.trim(); render(); });
+
+render();
+</script>
+</body>
+</html>

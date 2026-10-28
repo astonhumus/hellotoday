@@ -1,0 +1,2433 @@
+[
+  {
+    "id": "kangla-fort",
+    "name": "Kangla Fort",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8089,
+    "lng": 93.9426,
+    "desc": "Historic seat of Manipur's kings, with the restored Kangla Sha dragons, ancient temples and moats."
+  },
+  {
+    "id": "shree-govindajee-temple",
+    "name": "Shree Govindajee Temple",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.8033,
+    "lng": 93.9468,
+    "desc": "Revered Vaishnavite temple beside the old royal palace, with twin gold-plated domes."
+  },
+  {
+    "id": "ima-keithel-mothers-market",
+    "name": "Ima Keithel (Mothers' Market)",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8086,
+    "lng": 93.9374,
+    "desc": "One of Asia's largest markets run entirely by women. Good for handlooms and local food."
+  },
+  {
+    "id": "manipur-state-museum",
+    "name": "Manipur State Museum",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8049,
+    "lng": 93.937,
+    "desc": "Displays on Manipur's history, tribal cultures and royal artefacts, including the royal boat Hiyang Hiren."
+  },
+  {
+    "id": "imphal-war-cemetery",
+    "name": "Imphal War Cemetery",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.8127,
+    "lng": 93.9531,
+    "desc": "Commonwealth war cemetery for soldiers who died in the 1944 Battle of Imphal."
+  },
+  {
+    "id": "marjing-polo-statue",
+    "name": "Marjing Polo Statue",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.8793,
+    "lng": 93.954,
+    "desc": "A 122-ft statue of a polo player on a Meitei pony, honouring Manipur as the birthplace of modern polo."
+  },
+  {
+    "id": "sekta-archaeological-living-museum",
+    "name": "Sekta Archaeological Living Museum",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.825,
+    "lng": 94.005,
+    "desc": "Ancient burial mounds and archaeological site east of Imphal."
+  },
+  {
+    "id": "andro-village",
+    "name": "Andro Village",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.759,
+    "lng": 94.059,
+    "desc": "Heritage village known for traditional pottery, a sacred eternal flame and a cultural complex."
+  },
+  {
+    "id": "hiyangthang-lairembi-temple",
+    "name": "Hiyangthang Lairembi Temple",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.745,
+    "lng": 93.905,
+    "desc": "Hilltop shrine to the goddess Lairembi, busy during Durga Puja."
+  },
+  {
+    "id": "langthabal-konung",
+    "name": "Langthabal Konung",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.765,
+    "lng": 93.927,
+    "desc": "Ruins of an old royal palace on a hillock near Canchipur. Shady, quiet grounds for a picnic."
+  },
+  {
+    "id": "kangchup-hills",
+    "name": "Kangchup Hills",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.88,
+    "lng": 93.82,
+    "desc": "Pine-covered hills west of Imphal. A popular winter picnic spot."
+  },
+  {
+    "id": "singda-dam",
+    "name": "Singda Dam",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.8817,
+    "lng": 93.8052,
+    "desc": "Reservoir in the hills with views over the Imphal valley. Very popular for picnics."
+  },
+  {
+    "id": "lamphelpat",
+    "name": "Lamphelpat",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.817,
+    "lng": 93.91,
+    "desc": "Wetland and park area inside Imphal, good for an easy family outing."
+  },
+  {
+    "id": "khonghampat-orchidarium",
+    "name": "Khonghampat Orchidarium",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.905,
+    "lng": 93.908,
+    "desc": "Orchid centre with hundreds of species, including rare ones. Peak blooming is April–May."
+  },
+  {
+    "id": "loktak-lake",
+    "name": "Loktak Lake",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.5592,
+    "lng": 93.8123,
+    "desc": "Largest freshwater lake in Northeast India, famous for its floating phumdis (biomass islands)."
+  },
+  {
+    "id": "keibul-lamjao-national-park",
+    "name": "Keibul Lamjao National Park",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.4846,
+    "lng": 93.8464,
+    "desc": "The world's only floating national park and home of the endangered Sangai (brow-antlered deer)."
+  },
+  {
+    "id": "sendra-island",
+    "name": "Sendra Island",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.533,
+    "lng": 93.8,
+    "desc": "Hillock island in Loktak with sweeping lake views. A classic picnic and sunset spot."
+  },
+  {
+    "id": "takmu-water-sports-complex",
+    "name": "Takmu Water Sports Complex",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.562,
+    "lng": 93.795,
+    "desc": "Boating and water sports on Loktak Lake."
+  },
+  {
+    "id": "phubala-lake-resort",
+    "name": "Phubala Lake Resort",
+    "category": "resort",
+    "district": "Bishnupur",
+    "lat": 24.555,
+    "lng": 93.77,
+    "desc": "Island-like resort on the western edge of Loktak Lake."
+  },
+  {
+    "id": "sendra-park-resort",
+    "name": "Sendra Park & Resort",
+    "category": "resort",
+    "district": "Bishnupur",
+    "lat": 24.534,
+    "lng": 93.801,
+    "desc": "Resort on Sendra Island with views across Loktak Lake."
+  },
+  {
+    "id": "ina-memorial-moirang",
+    "name": "INA Memorial, Moirang",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.5023,
+    "lng": 93.7769,
+    "desc": "Where the Indian National Army first hoisted the tricolour on Indian soil, in 1944. Includes a museum."
+  },
+  {
+    "id": "thangjing-hill",
+    "name": "Thangjing Hill",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.4682,
+    "lng": 93.6624,
+    "desc": "Sacred hill of the deity Ebudhou Thangjing, linked to the Moirang Lai Haraoba festival."
+  },
+  {
+    "id": "bishnupur-vishnu-temple",
+    "name": "Bishnupur Vishnu Temple",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.62,
+    "lng": 93.7597,
+    "desc": "15th-century brick temple with a distinctive Chinese-influenced roof."
+  },
+  {
+    "id": "leimaram-waterfall",
+    "name": "Leimaram Waterfall",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.7128,
+    "lng": 93.7726,
+    "desc": "Waterfall in the western hills. A favourite spot for picnics and short hikes."
+  },
+  {
+    "id": "red-hill-lokpaching",
+    "name": "Red Hill (Lokpaching)",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.7046,
+    "lng": 93.8158,
+    "desc": "WWII battlefield with an India Peace Memorial built by Japan."
+  },
+  {
+    "id": "waithou-lake",
+    "name": "Waithou Lake",
+    "category": "picnic",
+    "district": "Thoubal",
+    "lat": 24.67,
+    "lng": 93.94,
+    "desc": "Calm lake beside the Imphal–Moreh road, with a hillock lookout."
+  },
+  {
+    "id": "ikop-lake",
+    "name": "Ikop Lake",
+    "category": "picnic",
+    "district": "Thoubal",
+    "lat": 24.62,
+    "lng": 93.93,
+    "desc": "Open wetland with migratory birds in winter."
+  },
+  {
+    "id": "khongjom-war-memorial",
+    "name": "Khongjom War Memorial",
+    "category": "tourist-site",
+    "district": "Thoubal",
+    "lat": 24.568,
+    "lng": 94.0333,
+    "desc": "Memorial to the 1891 Anglo-Manipur War, where Paona Brajabashi made his last stand."
+  },
+  {
+    "id": "kaina",
+    "name": "Kaina",
+    "category": "tourist-site",
+    "district": "Thoubal",
+    "lat": 24.64,
+    "lng": 93.98,
+    "desc": "Hindu pilgrimage hill linked to Shri Govindaji, with temples and greenery."
+  },
+  {
+    "id": "kakching-garden",
+    "name": "Kakching Garden",
+    "category": "picnic",
+    "district": "Kakching",
+    "lat": 24.495,
+    "lng": 93.985,
+    "desc": "Terraced hillside garden with wide views of the valley."
+  },
+  {
+    "id": "pumlen-pat",
+    "name": "Pumlen Pat",
+    "category": "picnic",
+    "district": "Kakching",
+    "lat": 24.58,
+    "lng": 93.95,
+    "desc": "Large lake with phumdis and birdlife, a quieter alternative to Loktak."
+  },
+  {
+    "id": "shirui-kashung-hills",
+    "name": "Shirui Kashung Hills",
+    "category": "tourist-site",
+    "district": "Ukhrul",
+    "lat": 25.1069,
+    "lng": 94.4575,
+    "desc": "The only natural home of the Shirui Lily. The Shirui Lily Festival is held here each spring."
+  },
+  {
+    "id": "khangkhui-cave",
+    "name": "Khangkhui Cave",
+    "category": "tourist-site",
+    "district": "Ukhrul",
+    "lat": 25.028,
+    "lng": 94.333,
+    "desc": "Natural limestone cave, used as a shelter during WWII."
+  },
+  {
+    "id": "dz-ko-valley",
+    "name": "Dzüko Valley",
+    "category": "tourist-site",
+    "district": "Senapati",
+    "lat": 25.56,
+    "lng": 94.07,
+    "desc": "High-altitude valley on the Manipur–Nagaland border, known for seasonal flowers and trekking."
+  },
+  {
+    "id": "sadu-chiru-waterfall",
+    "name": "Sadu Chiru Waterfall",
+    "category": "picnic",
+    "district": "Senapati",
+    "lat": 24.7407,
+    "lng": 93.7466,
+    "desc": "Three-tiered waterfall in the western hills, a short drive from Imphal."
+  },
+  {
+    "id": "tharon-cave",
+    "name": "Tharon Cave",
+    "category": "tourist-site",
+    "district": "Tamenglong",
+    "lat": 24.93,
+    "lng": 93.53,
+    "desc": "Long limestone cave system with old engravings, about 30 km from Tamenglong town."
+  },
+  {
+    "id": "zeilad-lake",
+    "name": "Zeilad Lake",
+    "category": "tourist-site",
+    "district": "Tamenglong",
+    "lat": 24.9043,
+    "lng": 93.3771,
+    "desc": "Group of sacred lakes tied to Zeliangrong legends. Visited by migratory birds."
+  },
+  {
+    "id": "barak-waterfall",
+    "name": "Barak Waterfall",
+    "category": "picnic",
+    "district": "Tamenglong",
+    "lat": 24.8859,
+    "lng": 93.3928,
+    "desc": "Cascades on the Barak river surrounded by thick forest."
+  },
+  {
+    "id": "khuga-dam",
+    "name": "Khuga Dam",
+    "category": "picnic",
+    "district": "Churachandpur",
+    "lat": 24.2817,
+    "lng": 93.6821,
+    "desc": "Scenic reservoir in the hills near Churachandpur town."
+  },
+  {
+    "id": "tribal-museum-churachandpur",
+    "name": "Tribal Museum, Churachandpur",
+    "category": "tourist-site",
+    "district": "Churachandpur",
+    "lat": 24.333,
+    "lng": 93.68,
+    "desc": "Collections of tribal costumes, crafts and artefacts from the southern hills."
+  },
+  {
+    "id": "moreh",
+    "name": "Moreh",
+    "category": "tourist-site",
+    "district": "Tengnoupal",
+    "lat": 24.25,
+    "lng": 94.3,
+    "desc": "Border town on the India–Myanmar border and a busy trade hub."
+  },
+  {
+    "id": "kangla-museum",
+    "name": "Kangla Museum",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8035,
+    "lng": 93.9415,
+    "desc": "Museum inside the Kangla complex on the history of the fort and Manipur's royalty."
+  },
+  {
+    "id": "archaeological-museum-imphal",
+    "name": "Archaeological Museum, Imphal",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8116,
+    "lng": 93.9423,
+    "desc": "Finds from archaeological sites across Manipur."
+  },
+  {
+    "id": "manipur-science-centre",
+    "name": "Manipur Science Centre",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8034,
+    "lng": 93.9071,
+    "desc": "Hands-on science exhibits. Good for families with children."
+  },
+  {
+    "id": "rkcs-art-gallery-and-museum",
+    "name": "RKCS Art Gallery and Museum",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.796,
+    "lng": 93.9358,
+    "desc": "Gallery of paintings and artefacts by Manipuri artists."
+  },
+  {
+    "id": "three-mothers-art-gallery",
+    "name": "Three Mothers Art Gallery",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.7939,
+    "lng": 93.9504,
+    "desc": "Art gallery showcasing Manipuri painting and crafts."
+  },
+  {
+    "id": "mapal-kangjeibung-polo-ground",
+    "name": "Mapal Kangjeibung (Polo Ground)",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8065,
+    "lng": 93.9357,
+    "desc": "Considered the oldest polo ground in the world, still used for matches."
+  },
+  {
+    "id": "pakhangba-temple",
+    "name": "Pakhangba Temple",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.808,
+    "lng": 93.941,
+    "desc": "Temple to Pakhangba, the dragon deity of Meitei tradition, inside Kangla."
+  },
+  {
+    "id": "sanamahi-kiyong",
+    "name": "Sanamahi Kiyong",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.805,
+    "lng": 94.0354,
+    "desc": "Sanamahi temple complex on the eastern edge of the valley."
+  },
+  {
+    "id": "ebudhou-thangjing-temple-moirang",
+    "name": "Ebudhou Thangjing Temple, Moirang",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.4975,
+    "lng": 93.7791,
+    "desc": "Temple of the deity Thangjing and the centre of the Moirang Lai Haraoba festival."
+  },
+  {
+    "id": "gopinath-temple-ningthoukhong",
+    "name": "Gopinath Temple, Ningthoukhong",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.5725,
+    "lng": 93.7671,
+    "desc": "Vaishnavite temple in Ningthoukhong, near Loktak Lake."
+  },
+  {
+    "id": "st-joseph-s-cathedral",
+    "name": "St. Joseph's Cathedral",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8508,
+    "lng": 93.9325,
+    "desc": "Catholic cathedral of the Archdiocese of Imphal."
+  },
+  {
+    "id": "bihu-loukon",
+    "name": "Bihu Loukon",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8052,
+    "lng": 93.8195,
+    "desc": "Historic fort site west of Imphal."
+  },
+  {
+    "id": "manipur-zoological-garden",
+    "name": "Manipur Zoological Garden",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.818,
+    "lng": 93.904,
+    "desc": "Zoo at Iroisemba with Sangai deer and other native wildlife."
+  },
+  {
+    "id": "koubru-peak",
+    "name": "Koubru Peak",
+    "category": "tourist-site",
+    "district": "Kangpokpi",
+    "lat": 25.0631,
+    "lng": 93.8717,
+    "desc": "Sacred mountain (2,562 m) north of the Imphal valley, a popular pilgrimage trek."
+  },
+  {
+    "id": "mount-iso-tenipu",
+    "name": "Mount Iso (Tenipu)",
+    "category": "tourist-site",
+    "district": "Senapati",
+    "lat": 25.532,
+    "lng": 94.085,
+    "desc": "Highest peak in Manipur (about 2,994 m), near Dzüko Valley."
+  },
+  {
+    "id": "nongmaiching-hill",
+    "name": "Nongmaiching Hill",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.78,
+    "lng": 94.021,
+    "desc": "Sacred hill east of Imphal with walking trails and views over the valley."
+  },
+  {
+    "id": "ithai-barrage",
+    "name": "Ithai Barrage",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.4229,
+    "lng": 93.8401,
+    "desc": "Barrage at the outflow of Loktak Lake, with wide wetland views."
+  },
+  {
+    "id": "jiri-makru-wildlife-sanctuary",
+    "name": "Jiri-Makru Wildlife Sanctuary",
+    "category": "tourist-site",
+    "district": "Noney",
+    "lat": 25.2032,
+    "lng": 93.4155,
+    "desc": "Forest sanctuary in the western hills of Manipur."
+  },
+  {
+    "id": "bunning-wildlife-sanctuary",
+    "name": "Bunning Wildlife Sanctuary",
+    "category": "tourist-site",
+    "district": "Tamenglong",
+    "lat": 25.1391,
+    "lng": 93.5927,
+    "desc": "Hill forest sanctuary in Tamenglong district."
+  },
+  {
+    "id": "kailam-wildlife-sanctuary",
+    "name": "Kailam Wildlife Sanctuary",
+    "category": "tourist-site",
+    "district": "Churachandpur",
+    "lat": 24.299,
+    "lng": 93.413,
+    "desc": "Sanctuary around Mount Kailam, home to hoolock gibbons and hornbills."
+  },
+  {
+    "id": "yangoupokpi-lokchao-wildlife-sanctuary",
+    "name": "Yangoupokpi-Lokchao Wildlife Sanctuary",
+    "category": "tourist-site",
+    "district": "Tengnoupal",
+    "lat": 24.3348,
+    "lng": 94.3069,
+    "desc": "Forest sanctuary on the India–Myanmar border near Moreh."
+  },
+  {
+    "id": "langol-hills",
+    "name": "Langol Hills",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.8454,
+    "lng": 93.899,
+    "desc": "Wooded hills on the edge of Imphal with walking trails and city views."
+  },
+  {
+    "id": "bir-tikendrajit-park",
+    "name": "Bir Tikendrajit Park",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.8064,
+    "lng": 93.9369,
+    "desc": "Central Imphal park, handy for a short break in the city."
+  },
+  {
+    "id": "olympian-park",
+    "name": "Olympian Park",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.8206,
+    "lng": 93.7873,
+    "desc": "Park near Sangaithel, west of Imphal."
+  },
+  {
+    "id": "thangapat",
+    "name": "Thangapat",
+    "category": "picnic",
+    "district": "Imphal East",
+    "lat": 24.7936,
+    "lng": 93.9488,
+    "desc": "Historic moat in Imphal, known for traditional boat races (Hiyang Tannaba)."
+  },
+  {
+    "id": "dolaithabi-barrage",
+    "name": "Dolaithabi Barrage",
+    "category": "picnic",
+    "district": "Imphal East",
+    "lat": 25.008,
+    "lng": 94.0264,
+    "desc": "Reservoir in the northern foothills. Popular for winter picnics."
+  },
+  {
+    "id": "maphou-dam",
+    "name": "Maphou Dam",
+    "category": "picnic",
+    "district": "Kangpokpi",
+    "lat": 24.8234,
+    "lng": 94.142,
+    "desc": "Large reservoir east of Imphal in the hills."
+  },
+  {
+    "id": "kanto-dam",
+    "name": "Kanto Dam",
+    "category": "picnic",
+    "district": "Kangpokpi",
+    "lat": 24.9358,
+    "lng": 93.8546,
+    "desc": "Small reservoir in the hills north-west of Imphal."
+  },
+  {
+    "id": "ireng-waterfall",
+    "name": "Ireng Waterfall",
+    "category": "picnic",
+    "district": "Kangpokpi",
+    "lat": 24.8996,
+    "lng": 93.7869,
+    "desc": "Waterfall in the western hills near Imphal."
+  },
+  {
+    "id": "konsakhul-waterfall",
+    "name": "Konsakhul Waterfall",
+    "category": "picnic",
+    "district": "Kangpokpi",
+    "lat": 24.9269,
+    "lng": 93.8004,
+    "desc": "Forest waterfall and brook in the hills north-west of Imphal."
+  },
+  {
+    "id": "waroi-garden",
+    "name": "Waroi Garden",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.7275,
+    "lng": 93.773,
+    "desc": "Garden near Nambol, close to Leimaram."
+  },
+  {
+    "id": "agape-garden",
+    "name": "Agape Garden",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.7382,
+    "lng": 93.7474,
+    "desc": "Garden in the hills near Nambol."
+  },
+  {
+    "id": "menjor-unity-park",
+    "name": "Menjor Unity Park",
+    "category": "picnic",
+    "district": "Thoubal",
+    "lat": 24.619,
+    "lng": 94.0179,
+    "desc": "Park and multipurpose centre in Thoubal district."
+  },
+  {
+    "id": "khoupum-waterfall",
+    "name": "Khoupum Waterfall",
+    "category": "picnic",
+    "district": "Noney",
+    "lat": 24.6585,
+    "lng": 93.4932,
+    "desc": "Waterfall in the Khoupum valley."
+  },
+  {
+    "id": "khoupum-dam",
+    "name": "Khoupum Dam",
+    "category": "picnic",
+    "district": "Noney",
+    "lat": 24.6621,
+    "lng": 93.53,
+    "desc": "Reservoir in the scenic Khoupum valley."
+  },
+  {
+    "id": "leishabithol-waterfalls",
+    "name": "Leishabithol Waterfalls",
+    "category": "picnic",
+    "district": "Jiribam",
+    "lat": 24.7273,
+    "lng": 93.1646,
+    "desc": "Waterfalls near Jiribam."
+  },
+  {
+    "id": "tiluelue-khayang-waterfall",
+    "name": "Tiluelue (Khayang) Waterfall",
+    "category": "picnic",
+    "district": "Ukhrul",
+    "lat": 25.1169,
+    "lng": 94.6868,
+    "desc": "The highest waterfall in Manipur (about 230 m), near Khayang. The last stretch is a two-hour trek."
+  },
+  {
+    "id": "shaheed-minar",
+    "name": "Shaheed Minar",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8064,
+    "lng": 93.9369,
+    "desc": "Memorial to the heroes of the 1891 Anglo-Manipur War, in Bir Tikendrajit Park.",
+    "approx": true
+  },
+  {
+    "id": "nupi-lal-memorial-complex",
+    "name": "Nupi Lal Memorial Complex",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.8075,
+    "lng": 93.9372,
+    "desc": "Memorial to the women's uprisings (Nupi Lan) of 1904 and 1939.",
+    "approx": true
+  },
+  {
+    "id": "mutua-museum",
+    "name": "Mutua Museum",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.7555,
+    "lng": 94.0467,
+    "desc": "Private museum in Andro with tribal and Meitei artefacts.",
+    "approx": true
+  },
+  {
+    "id": "hapta-kangjeibung",
+    "name": "Hapta Kangjeibung",
+    "category": "tourist-site",
+    "district": "Imphal East",
+    "lat": 24.7991,
+    "lng": 93.95,
+    "desc": "Historic polo and festival ground in Imphal East.",
+    "approx": true
+  },
+  {
+    "id": "shri-radha-raman-temple-kanchipur",
+    "name": "Shri Radha Raman Temple, Kanchipur",
+    "category": "tourist-site",
+    "district": "Imphal West",
+    "lat": 24.7546,
+    "lng": 93.9279,
+    "desc": "Vaishnavite temple at Kanchipur, near Manipur University.",
+    "approx": true
+  },
+  {
+    "id": "samban-lei-sekpil",
+    "name": "Samban-Lei Sekpil",
+    "category": "tourist-site",
+    "district": "Bishnupur",
+    "lat": 24.6784,
+    "lng": 93.8492,
+    "desc": "Giant topiary hedge in the shape of a tiered umbrella, once listed as the world's tallest.",
+    "approx": true
+  },
+  {
+    "id": "maram-khullen",
+    "name": "Maram Khullen",
+    "category": "tourist-site",
+    "district": "Senapati",
+    "lat": 25.4142,
+    "lng": 94.0953,
+    "desc": "Old Maram Naga village, known for Maramfest.",
+    "approx": true
+  },
+  {
+    "id": "tonglon-cave",
+    "name": "Tonglon Cave",
+    "category": "tourist-site",
+    "district": "Churachandpur",
+    "lat": 24.2407,
+    "lng": 93.5621,
+    "desc": "Limestone cave in the Churachandpur hills.",
+    "approx": true
+  },
+  {
+    "id": "sirarakhong",
+    "name": "Sirarakhong",
+    "category": "tourist-site",
+    "district": "Ukhrul",
+    "lat": 25.0784,
+    "lng": 94.2355,
+    "desc": "Hill village famous for the Hathei chilli and its annual chilli festival."
+  },
+  {
+    "id": "nillai-tea-estate",
+    "name": "Nillai Tea Estate",
+    "category": "tourist-site",
+    "district": "Ukhrul",
+    "lat": 25.191,
+    "lng": 94.3252,
+    "desc": "Tea estate on the way to Tolloi, with rolling hillside gardens.",
+    "approx": true
+  },
+  {
+    "id": "kachouphung-lake",
+    "name": "Kachouphung Lake",
+    "category": "tourist-site",
+    "district": "Ukhrul",
+    "lat": 25.1008,
+    "lng": 94.6397,
+    "desc": "Sacred hill lake in the Achuwa Magi hills near Khayang.",
+    "approx": true
+  },
+  {
+    "id": "santhei-natural-park",
+    "name": "Santhei Natural Park",
+    "category": "picnic",
+    "district": "Imphal East",
+    "lat": 24.7541,
+    "lng": 94.0467,
+    "desc": "Park with a lake and forest walk at Andro. A well-known picnic spot.",
+    "approx": true
+  },
+  {
+    "id": "sekmai-picnic-park-sekmai-turel",
+    "name": "Sekmai Picnic Park (Sekmai Turel)",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.9545,
+    "lng": 93.8887,
+    "desc": "Riverside picnic spot along the Sekmai stream.",
+    "approx": true
+  },
+  {
+    "id": "kanglatongbi-dam",
+    "name": "Kanglatongbi Dam",
+    "category": "picnic",
+    "district": "Imphal West",
+    "lat": 24.9767,
+    "lng": 93.8884,
+    "desc": "Reservoir near Kanglatongbi, north of Imphal.",
+    "approx": true
+  },
+  {
+    "id": "omba-nurathel-park",
+    "name": "Omba Nurathel Park",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.5013,
+    "lng": 93.7767,
+    "desc": "Park at Moirang, near Loktak Lake.",
+    "approx": true
+  },
+  {
+    "id": "loukoipat-eco-park",
+    "name": "Loukoipat Eco Park",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.6267,
+    "lng": 93.76,
+    "desc": "Lakeside eco park at Bishnupur with boating and bird watching.",
+    "approx": true
+  },
+  {
+    "id": "thanga-island",
+    "name": "Thanga Island",
+    "category": "picnic",
+    "district": "Bishnupur",
+    "lat": 24.5344,
+    "lng": 93.835,
+    "desc": "Island village on Loktak Lake with lake views and homestays."
+  },
+  {
+    "id": "ngaloi-waterfall",
+    "name": "Ngaloi Waterfall",
+    "category": "picnic",
+    "district": "Churachandpur",
+    "lat": 24.361,
+    "lng": 93.7015,
+    "desc": "Forest waterfall about 9 km from Churachandpur town. Best in the monsoon.",
+    "approx": true
+  },
+  {
+    "id": "halang-park",
+    "name": "Halang Park",
+    "category": "picnic",
+    "district": "Ukhrul",
+    "lat": 25.1791,
+    "lng": 94.3733,
+    "desc": "Picnic park at Halang.",
+    "approx": true
+  },
+  {
+    "id": "eco-park-jessami",
+    "name": "Eco Park, Jessami",
+    "category": "picnic",
+    "district": "Ukhrul",
+    "lat": 25.3839,
+    "lng": 94.3992,
+    "desc": "Eco park at Jessami, near the Nagaland border."
+  },
+  {
+    "id": "ramrei-eco-tourism-park",
+    "name": "Ramrei Eco Tourism Park",
+    "category": "picnic",
+    "district": "Kamjong",
+    "lat": 24.8851,
+    "lng": 94.1345,
+    "desc": "Eco park near the Imphal–Ukhrul road with boating, trekking and picnics.",
+    "approx": true
+  },
+  {
+    "id": "liabi-waterfall",
+    "name": "Liabi Waterfall",
+    "category": "picnic",
+    "district": "Kamjong",
+    "lat": 24.9578,
+    "lng": 94.6198,
+    "desc": "Forest waterfall near Chatric / Siyang village.",
+    "approx": true
+  },
+  {
+    "id": "taphou-waterfalls",
+    "name": "Taphou Waterfalls",
+    "category": "picnic",
+    "district": "Kangpokpi",
+    "lat": 25.2534,
+    "lng": 94.013,
+    "desc": "Series of three waterfalls, at their best in the rainy season.",
+    "approx": true
+  },
+  {
+    "id": "panam-eco-park",
+    "name": "Panam Eco Park",
+    "category": "picnic",
+    "district": "Kangpokpi",
+    "lat": 25.0356,
+    "lng": 93.9992,
+    "desc": "Eco park at Thangal Surung, about 33 km from Imphal.",
+    "approx": true
+  },
+  {
+    "id": "ngariyan",
+    "name": "Ngariyan",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.7153,
+    "lng": 94.0275,
+    "desc": "Hill hangout at Ngariyan, on the way to Andro. Popular for snacks and evening outings.",
+    "approx": true
+  },
+  {
+    "id": "sandangsenba",
+    "name": "Sandangsenba",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.7366,
+    "lng": 94.0193,
+    "desc": "Local hangout near Sandang Senba Maring, close to Andro. Popular for snacks with a view.",
+    "approx": true
+  },
+  {
+    "id": "sawombung",
+    "name": "Sawombung",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.8705,
+    "lng": 94.0112,
+    "desc": "Local hangout at Sawombung, north-east of Imphal. Popular for snacks.",
+    "approx": true
+  },
+  {
+    "id": "paona-bazar-street-stalls",
+    "name": "Paona Bazar Street Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.809,
+    "lng": 93.9385,
+    "desc": "Evening street stalls and tea corners on the main shopping street. Informal.",
+    "approx": true
+  },
+  {
+    "id": "paona-bazar-momo-chowmein-stalls",
+    "name": "Paona Bazar Momo & Chowmein Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8084,
+    "lng": 93.9388,
+    "desc": "Pavement stalls selling momos, chowmein and soup after dark. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thangal-bazar-pakora-corner",
+    "name": "Thangal Bazar Pakora Corner",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8076,
+    "lng": 93.9391,
+    "desc": "Roadside stalls frying pakora, bora and samosa. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thangal-bazar-tea-stalls",
+    "name": "Thangal Bazar Tea Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8072,
+    "lng": 93.9388,
+    "desc": "Morning and evening tea stalls with fried snacks. Informal.",
+    "approx": true
+  },
+  {
+    "id": "ima-keithel-food-lane",
+    "name": "Ima Keithel Food Lane",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8085,
+    "lng": 93.9372,
+    "desc": "Snacks, singju, fermented fish and local sweets sold by the market's women vendors.",
+    "approx": true
+  },
+  {
+    "id": "ima-keithel-singju-stalls",
+    "name": "Ima Keithel Singju Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8088,
+    "lng": 93.9376,
+    "desc": "Fresh singju (spicy herb-and-vegetable salad) made to order. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khwairamband-bazar-eromba-corner",
+    "name": "Khwairamband Bazar Eromba Corner",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.808,
+    "lng": 93.9378,
+    "desc": "Small eateries serving eromba and boiled-vegetable snacks.",
+    "approx": true
+  },
+  {
+    "id": "kangla-west-gate-snack-stalls",
+    "name": "Kangla West Gate Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8085,
+    "lng": 93.941,
+    "desc": "Boiled peas, roasted corn and chat sold outside the fort gate. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kangla-evening-chat-stalls",
+    "name": "Kangla Evening Chat Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.807,
+    "lng": 93.9425,
+    "desc": "Evening chat and fuchka stalls along the Kangla moat. Informal.",
+    "approx": true
+  },
+  {
+    "id": "polo-ground-evening-stalls",
+    "name": "Polo Ground Evening Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8092,
+    "lng": 93.94,
+    "desc": "Snack carts around the polo ground in the evening. Informal.",
+    "approx": true
+  },
+  {
+    "id": "singjamei-chat-corner",
+    "name": "Singjamei Chat Corner",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.7955,
+    "lng": 93.934,
+    "desc": "Street chat, kachori and tea stalls at Singjamei. Informal.",
+    "approx": true
+  },
+  {
+    "id": "singjamei-chingamathak-snack-stalls",
+    "name": "Singjamei Chingamathak Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.7985,
+    "lng": 93.935,
+    "desc": "Evening fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khuyathong-roadside-stalls",
+    "name": "Khuyathong Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8,
+    "lng": 93.93,
+    "desc": "Pakora, boiled egg and tea stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "lamphel-snack-stalls",
+    "name": "Lamphel Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.809,
+    "lng": 93.915,
+    "desc": "Roadside stalls near the Lamphel market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "lamphelpat-tea-pakora-stalls",
+    "name": "Lamphelpat Tea & Pakora Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.804,
+    "lng": 93.912,
+    "desc": "Tea and pakora stalls beside the wetland. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sagolband-snack-lane",
+    "name": "Sagolband Snack Lane",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.813,
+    "lng": 93.933,
+    "desc": "Mix of small eateries and evening snack carts.",
+    "approx": true
+  },
+  {
+    "id": "keishampat-junction-stalls",
+    "name": "Keishampat Junction Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.815,
+    "lng": 93.9333,
+    "desc": "Morning tea and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thangmeiband-chat-stalls",
+    "name": "Thangmeiband Chat Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.813,
+    "lng": 93.9345,
+    "desc": "Evening chat and tea stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "uripok-roadside-stalls",
+    "name": "Uripok Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.826,
+    "lng": 93.926,
+    "desc": "Pakora, tea and boiled egg stalls at Uripok. Informal.",
+    "approx": true
+  },
+  {
+    "id": "uripok-momo-corner",
+    "name": "Uripok Momo Corner",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.825,
+    "lng": 93.925,
+    "desc": "Street momo and noodle stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "lamlong-snack-stalls",
+    "name": "Lamlong Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.804,
+    "lng": 93.932,
+    "desc": "Small tea and snack shops. Informal.",
+    "approx": true
+  },
+  {
+    "id": "langjing-roadside-stalls",
+    "name": "Langjing Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.823,
+    "lng": 93.906,
+    "desc": "Tea stalls with fried snacks on the Langjing road. Informal.",
+    "approx": true
+  },
+  {
+    "id": "patsoi-snack-stalls",
+    "name": "Patsoi Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.838,
+    "lng": 93.921,
+    "desc": "Roadside snacks and tea. Informal.",
+    "approx": true
+  },
+  {
+    "id": "naoremthong-tea-stalls",
+    "name": "Naoremthong Tea Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.837,
+    "lng": 93.926,
+    "desc": "Tea and pakora stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "canchipur-roadside-stalls",
+    "name": "Canchipur Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.827,
+    "lng": 93.885,
+    "desc": "Tea, pakora and boiled egg stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sangaithel-roadside-stalls",
+    "name": "Sangaithel Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8089,
+    "lng": 93.79,
+    "desc": "Stalls along the road towards Sangaithel. Informal.",
+    "approx": true
+  },
+  {
+    "id": "moirangkhom-chat-stalls",
+    "name": "Moirangkhom Chat Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.805,
+    "lng": 93.944,
+    "desc": "Evening chat and tea stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "wangkhei-snack-stalls",
+    "name": "Wangkhei Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.81,
+    "lng": 93.955,
+    "desc": "Tea shops and fried snack stalls at Wangkhei. Informal.",
+    "approx": true
+  },
+  {
+    "id": "wangkhei-ningthem-pukhri-stalls",
+    "name": "Wangkhei Ningthem Pukhri Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.812,
+    "lng": 93.95,
+    "desc": "Evening snacks near the pond. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kakwa-roadside-stalls",
+    "name": "Kakwa Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.82,
+    "lng": 93.95,
+    "desc": "Tea and pakora stalls on the Kakwa road. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khurai-lamlong-snack-stalls",
+    "name": "Khurai Lamlong Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.827,
+    "lng": 93.956,
+    "desc": "Local tea and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khurai-bazar-pakora-stalls",
+    "name": "Khurai Bazar Pakora Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.819,
+    "lng": 93.953,
+    "desc": "Pakora and singju stalls near the market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "porompat-roadside-stalls",
+    "name": "Porompat Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.825,
+    "lng": 93.979,
+    "desc": "Roadside stalls with tea and snacks. Informal.",
+    "approx": true
+  },
+  {
+    "id": "heingang-snack-stalls",
+    "name": "Heingang Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.833,
+    "lng": 93.952,
+    "desc": "Tea and snack stalls on the Heingang road. Informal.",
+    "approx": true
+  },
+  {
+    "id": "heingang-hill-viewpoint-stalls",
+    "name": "Heingang Hill Viewpoint Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.84,
+    "lng": 93.96,
+    "desc": "Occasional snack sellers at the viewpoint. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sanjenthong-tea-stalls",
+    "name": "Sanjenthong Tea Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.825,
+    "lng": 93.948,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "chingmeirong-snack-stalls",
+    "name": "Chingmeirong Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.8272,
+    "lng": 93.945,
+    "desc": "Stalls near the Chingmeirong hotels. Informal.",
+    "approx": true
+  },
+  {
+    "id": "mantripukhri-roadside-stalls",
+    "name": "Mantripukhri Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.85,
+    "lng": 93.935,
+    "desc": "Roadside snacks on the Imphal–Dimapur road. Informal.",
+    "approx": true
+  },
+  {
+    "id": "lamsang-roadside-stalls",
+    "name": "Lamsang Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.9,
+    "lng": 93.88,
+    "desc": "Tea and boiled snack stalls on the highway. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sekmai-roadside-stalls",
+    "name": "Sekmai Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.892,
+    "lng": 93.88,
+    "desc": "Highway stalls selling snacks and tea. Informal.",
+    "approx": true
+  },
+  {
+    "id": "marjing-polo-statue-stalls",
+    "name": "Marjing Polo Statue Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.879,
+    "lng": 93.9545,
+    "desc": "Snack sellers near the Marjing Polo statue. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sekta-roadside-stalls",
+    "name": "Sekta Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.825,
+    "lng": 94.005,
+    "desc": "Tea and snack stalls on the road to Sekta. Informal.",
+    "approx": true
+  },
+  {
+    "id": "andro-village-snack-stalls",
+    "name": "Andro Village Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.759,
+    "lng": 94.058,
+    "desc": "Small stalls near the cultural complex. Informal.",
+    "approx": true
+  },
+  {
+    "id": "yairipok-bazar-snack-stalls",
+    "name": "Yairipok Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Thoubal",
+    "lat": 24.7,
+    "lng": 94,
+    "desc": "Tea, pakora and fish-fry stalls at Yairipok. Informal.",
+    "approx": true
+  },
+  {
+    "id": "ithai-barrage-stalls",
+    "name": "Ithai Barrage Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.52,
+    "lng": 93.8,
+    "desc": "Snack sellers around the Ithai barrage. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sendra-island-snack-stalls",
+    "name": "Sendra Island Snack Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.534,
+    "lng": 93.801,
+    "desc": "Stalls selling snacks near the Loktak viewpoint. Informal.",
+    "approx": true
+  },
+  {
+    "id": "loktak-karang-boat-landing-stalls",
+    "name": "Loktak Karang Boat Landing Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.52,
+    "lng": 93.82,
+    "desc": "Snack and tea sellers near the boat landing. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thanga-lakeside-tea-stalls",
+    "name": "Thanga Lakeside Tea Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.529,
+    "lng": 93.837,
+    "desc": "Tea and fried fish snacks by the lake. Informal.",
+    "approx": true
+  },
+  {
+    "id": "moirang-bazar-snack-stalls",
+    "name": "Moirang Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.496,
+    "lng": 93.771,
+    "desc": "Tea, pakora and sweets near the market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "moirang-ina-memorial-stalls",
+    "name": "Moirang INA Memorial Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.499,
+    "lng": 93.77,
+    "desc": "Snack sellers near the INA memorial. Informal.",
+    "approx": true
+  },
+  {
+    "id": "nambol-bazar-snack-stalls",
+    "name": "Nambol Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.71,
+    "lng": 93.8,
+    "desc": "Pakora, chat and tea stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "bishnupur-bazar-snack-stalls",
+    "name": "Bishnupur Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.628,
+    "lng": 93.769,
+    "desc": "Tea shops and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "bishnupur-vishnu-temple-stalls",
+    "name": "Bishnupur Vishnu Temple Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.629,
+    "lng": 93.77,
+    "desc": "Sweets and snack sellers near the temple. Informal.",
+    "approx": true
+  },
+  {
+    "id": "ningthoukhong-roadside-stalls",
+    "name": "Ningthoukhong Roadside Stalls",
+    "category": "snacks",
+    "district": "Bishnupur",
+    "lat": 24.57,
+    "lng": 93.79,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thoubal-bazar-snack-lane",
+    "name": "Thoubal Bazar Snack Lane",
+    "category": "snacks",
+    "district": "Thoubal",
+    "lat": 24.64,
+    "lng": 94.005,
+    "desc": "Tea, pakora and sweets near the main market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thoubal-ningthem-stalls",
+    "name": "Thoubal Ningthem Stalls",
+    "category": "snacks",
+    "district": "Thoubal",
+    "lat": 24.635,
+    "lng": 94.01,
+    "desc": "Evening snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "lilong-roadside-stalls",
+    "name": "Lilong Roadside Stalls",
+    "category": "snacks",
+    "district": "Thoubal",
+    "lat": 24.7,
+    "lng": 94.01,
+    "desc": "Tea and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kakching-bazar-snack-stalls",
+    "name": "Kakching Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Kakching",
+    "lat": 24.498,
+    "lng": 93.984,
+    "desc": "Tea and snack stalls near the market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kakching-garden-roadside-stalls",
+    "name": "Kakching Garden Roadside Stalls",
+    "category": "snacks",
+    "district": "Kakching",
+    "lat": 24.497,
+    "lng": 93.98,
+    "desc": "Snack sellers around the Kakching garden. Informal.",
+    "approx": true
+  },
+  {
+    "id": "wabagai-roadside-stalls",
+    "name": "Wabagai Roadside Stalls",
+    "category": "snacks",
+    "district": "Kakching",
+    "lat": 24.47,
+    "lng": 93.98,
+    "desc": "Tea stalls with local snacks. Informal.",
+    "approx": true
+  },
+  {
+    "id": "churachandpur-main-bazar-snack-stalls",
+    "name": "Churachandpur Main Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Churachandpur",
+    "lat": 24.333,
+    "lng": 93.68,
+    "desc": "Tea shops and street snack stalls in Lamka. Informal.",
+    "approx": true
+  },
+  {
+    "id": "churachandpur-tuibong-momo-stalls",
+    "name": "Churachandpur Tuibong Momo Stalls",
+    "category": "snacks",
+    "district": "Churachandpur",
+    "lat": 24.35,
+    "lng": 93.675,
+    "desc": "Momo and noodle stalls in the evening. Informal.",
+    "approx": true
+  },
+  {
+    "id": "lamka-roadside-tea-stalls",
+    "name": "Lamka Roadside Tea Stalls",
+    "category": "snacks",
+    "district": "Churachandpur",
+    "lat": 24.33,
+    "lng": 93.683,
+    "desc": "Tea and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "churachandpur-zoute-snack-stalls",
+    "name": "Churachandpur Zoute Snack Stalls",
+    "category": "snacks",
+    "district": "Churachandpur",
+    "lat": 24.34,
+    "lng": 93.69,
+    "desc": "Tea and snacks. Informal.",
+    "approx": true
+  },
+  {
+    "id": "ukhrul-bazar-snack-stalls",
+    "name": "Ukhrul Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Ukhrul",
+    "lat": 25.1,
+    "lng": 94.36,
+    "desc": "Tea shops, momo and snack stalls in the market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "ukhrul-hill-viewpoint-stalls",
+    "name": "Ukhrul Hill Viewpoint Stalls",
+    "category": "snacks",
+    "district": "Ukhrul",
+    "lat": 25.105,
+    "lng": 94.365,
+    "desc": "Tea and snack sellers at the lookout. Informal.",
+    "approx": true
+  },
+  {
+    "id": "shirui-road-snack-stalls",
+    "name": "Shirui Road Snack Stalls",
+    "category": "snacks",
+    "district": "Ukhrul",
+    "lat": 25.12,
+    "lng": 94.42,
+    "desc": "Roadside tea and food stalls on the way to Shirui. Informal.",
+    "approx": true
+  },
+  {
+    "id": "senapati-bazar-snack-stalls",
+    "name": "Senapati Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Senapati",
+    "lat": 25.268,
+    "lng": 94.02,
+    "desc": "Tea and street snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "mao-gate-market-stalls",
+    "name": "Mao Gate Market Stalls",
+    "category": "snacks",
+    "district": "Senapati",
+    "lat": 25.513,
+    "lng": 94.12,
+    "desc": "Market stalls selling snacks near the Nagaland border. Informal.",
+    "approx": true
+  },
+  {
+    "id": "mao-roadside-tea-stalls",
+    "name": "Mao Roadside Tea Stalls",
+    "category": "snacks",
+    "district": "Senapati",
+    "lat": 25.52,
+    "lng": 94.11,
+    "desc": "Tea and snacks on the highway. Informal.",
+    "approx": true
+  },
+  {
+    "id": "maram-roadside-stalls",
+    "name": "Maram Roadside Stalls",
+    "category": "snacks",
+    "district": "Senapati",
+    "lat": 25.4,
+    "lng": 94.1,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kangpokpi-bazar-snack-stalls",
+    "name": "Kangpokpi Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Kangpokpi",
+    "lat": 25.14,
+    "lng": 93.97,
+    "desc": "Tea, pakora and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kangpokpi-highway-pit-stop-stalls",
+    "name": "Kangpokpi Highway Pit-stop Stalls",
+    "category": "snacks",
+    "district": "Kangpokpi",
+    "lat": 25.13,
+    "lng": 93.97,
+    "desc": "Roadside stalls serving travellers. Informal.",
+    "approx": true
+  },
+  {
+    "id": "saikul-roadside-stalls",
+    "name": "Saikul Roadside Stalls",
+    "category": "snacks",
+    "district": "Kangpokpi",
+    "lat": 25.06,
+    "lng": 94.028,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "tamenglong-bazar-snack-stalls",
+    "name": "Tamenglong Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Tamenglong",
+    "lat": 24.99,
+    "lng": 93.5,
+    "desc": "Small tea and snack shops. Informal.",
+    "approx": true
+  },
+  {
+    "id": "noney-highway-stalls",
+    "name": "Noney Highway Stalls",
+    "category": "snacks",
+    "district": "Noney",
+    "lat": 24.86,
+    "lng": 93.62,
+    "desc": "Stalls along the Imphal–Jiribam highway. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khongsang-roadside-stalls",
+    "name": "Khongsang Roadside Stalls",
+    "category": "snacks",
+    "district": "Noney",
+    "lat": 24.82,
+    "lng": 93.59,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "jiribam-bazar-snack-stalls",
+    "name": "Jiribam Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Jiribam",
+    "lat": 24.807,
+    "lng": 93.113,
+    "desc": "Tea, pakora and sweets near the market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "jiribam-railway-station-stalls",
+    "name": "Jiribam Railway Station Stalls",
+    "category": "snacks",
+    "district": "Jiribam",
+    "lat": 24.8,
+    "lng": 93.115,
+    "desc": "Snack sellers at the station. Informal.",
+    "approx": true
+  },
+  {
+    "id": "moreh-border-market-snack-stalls",
+    "name": "Moreh Border Market Snack Stalls",
+    "category": "snacks",
+    "district": "Tengnoupal",
+    "lat": 24.25,
+    "lng": 94.301,
+    "desc": "Snack and tea stalls near the Indo-Myanmar border market. Informal.",
+    "approx": true
+  },
+  {
+    "id": "moreh-bazar-tea-stalls",
+    "name": "Moreh Bazar Tea Stalls",
+    "category": "snacks",
+    "district": "Tengnoupal",
+    "lat": 24.249,
+    "lng": 94.299,
+    "desc": "Tea and fried snack shops. Informal.",
+    "approx": true
+  },
+  {
+    "id": "tengnoupal-roadside-stalls",
+    "name": "Tengnoupal Roadside Stalls",
+    "category": "snacks",
+    "district": "Tengnoupal",
+    "lat": 24.3,
+    "lng": 94.15,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "chandel-bazar-snack-stalls",
+    "name": "Chandel Bazar Snack Stalls",
+    "category": "snacks",
+    "district": "Chandel",
+    "lat": 24.32,
+    "lng": 94,
+    "desc": "Tea and street snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "chakpikarong-roadside-stalls",
+    "name": "Chakpikarong Roadside Stalls",
+    "category": "snacks",
+    "district": "Chandel",
+    "lat": 24.27,
+    "lng": 93.95,
+    "desc": "Roadside tea and snacks. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kamjong-roadside-stalls",
+    "name": "Kamjong Roadside Stalls",
+    "category": "snacks",
+    "district": "Kamjong",
+    "lat": 24.887,
+    "lng": 94.13,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "pherzawl-bazar-stalls",
+    "name": "Pherzawl Bazar Stalls",
+    "category": "snacks",
+    "district": "Pherzawl",
+    "lat": 24.15,
+    "lng": 93.27,
+    "desc": "Small tea and snack shops. Informal.",
+    "approx": true
+  },
+  {
+    "id": "imphal-airport-road-stalls",
+    "name": "Imphal Airport Road Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.76,
+    "lng": 93.897,
+    "desc": "Tea and snack stalls on the airport road. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khuman-lampak-sports-complex-stalls",
+    "name": "Khuman Lampak Sports Complex Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.81,
+    "lng": 93.96,
+    "desc": "Snack sellers outside the sports complex during events. Informal.",
+    "approx": true
+  },
+  {
+    "id": "rims-road-snack-stalls",
+    "name": "RIMS Road Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.813,
+    "lng": 93.964,
+    "desc": "Tea and snack stalls near the hospital. Informal.",
+    "approx": true
+  },
+  {
+    "id": "manipur-university-gate-stalls",
+    "name": "Manipur University Gate Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.9,
+    "lng": 93.91,
+    "desc": "Student tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "sangai-festival-food-stalls",
+    "name": "Sangai Festival Food Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.808,
+    "lng": 93.945,
+    "desc": "Temporary food stalls during the festival in November. Seasonal.",
+    "approx": true
+  },
+  {
+    "id": "dolaithabi-roadside-stalls",
+    "name": "Dolaithabi Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.73,
+    "lng": 93.96,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "koirengei-snack-stalls",
+    "name": "Koirengei Snack Stalls",
+    "category": "snacks",
+    "district": "Imphal East",
+    "lat": 24.835,
+    "lng": 93.965,
+    "desc": "Tea and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "takyelpat-roadside-stalls",
+    "name": "Takyelpat Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.815,
+    "lng": 93.91,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "pangei-roadside-stalls",
+    "name": "Pangei Roadside Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.79,
+    "lng": 93.92,
+    "desc": "Tea and snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "kwakeithel-chat-stalls",
+    "name": "Kwakeithel Chat Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.796,
+    "lng": 93.939,
+    "desc": "Evening chat and fried snack stalls. Informal.",
+    "approx": true
+  },
+  {
+    "id": "thangal-bazar-sweet-jalebi-stalls",
+    "name": "Thangal Bazar Sweet & Jalebi Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.8078,
+    "lng": 93.9393,
+    "desc": "Sweets and jalebi sold fresh. Informal.",
+    "approx": true
+  },
+  {
+    "id": "khoyathong-evening-stalls",
+    "name": "Khoyathong Evening Stalls",
+    "category": "snacks",
+    "district": "Imphal West",
+    "lat": 24.807,
+    "lng": 93.938,
+    "desc": "Evening snack carts. Informal.",
+    "approx": true
+  },
+  {
+    "id": "classic-grande",
+    "name": "Classic Grande",
+    "category": "hotel",
+    "district": "Imphal East",
+    "lat": 24.8272,
+    "lng": 93.9468,
+    "desc": "Hotel in Chingmeirong, Imphal.",
+    "phone": "0385 242 2139",
+    "website": "https://www.classicgrande.com/"
+  },
+  {
+    "id": "hotel-nightingale",
+    "name": "Hotel Nightingale",
+    "category": "hotel",
+    "district": "Imphal East",
+    "lat": 24.8274,
+    "lng": 93.9477,
+    "desc": "Hotel in Imphal."
+  },
+  {
+    "id": "phou-oi-bee-hotel",
+    "name": "Phou-Oi-Bee Hotel",
+    "category": "hotel",
+    "district": "Imphal East",
+    "lat": 24.8149,
+    "lng": 93.9454,
+    "desc": "Hotel in central Imphal."
+  },
+  {
+    "id": "hotel-imphal",
+    "name": "Hotel Imphal",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.816,
+    "lng": 93.943,
+    "desc": "Hotel in central Imphal."
+  },
+  {
+    "id": "the-classic-hotel",
+    "name": "The Classic Hotel",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8154,
+    "lng": 93.9428,
+    "desc": "Hotel in central Imphal."
+  },
+  {
+    "id": "north-east-hotel",
+    "name": "North East Hotel",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.816,
+    "lng": 93.943,
+    "desc": "Hotel in central Imphal."
+  },
+  {
+    "id": "sangai-continental",
+    "name": "Sangai Continental",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8108,
+    "lng": 93.9358,
+    "desc": "Hotel in Imphal."
+  },
+  {
+    "id": "nirmala-hotel",
+    "name": "Nirmala Hotel",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8105,
+    "lng": 93.9364,
+    "desc": "Hotel in Imphal."
+  },
+  {
+    "id": "avenue-hotel",
+    "name": "Avenue Hotel",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8109,
+    "lng": 93.9384,
+    "desc": "Hotel in Imphal."
+  },
+  {
+    "id": "manipur-house",
+    "name": "Manipur House",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8041,
+    "lng": 93.9181,
+    "desc": "Hotel in Imphal West."
+  },
+  {
+    "id": "saikul-hotel",
+    "name": "Saikul Hotel",
+    "category": "hotel",
+    "district": "Kangpokpi",
+    "lat": 25.0598,
+    "lng": 94.0278,
+    "desc": "Hotel in Saikul.",
+    "phone": "70855 10084"
+  },
+  {
+    "id": "lemlei-hotel-loktak",
+    "name": "Lemlei Hotel Loktak",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.5295,
+    "lng": 93.8374,
+    "desc": "Hotel at Thanga, on Loktak Lake.",
+    "phone": "81189 44534"
+  },
+  {
+    "id": "sanajaoba-home-stay",
+    "name": "Sanajaoba Home Stay",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.5294,
+    "lng": 93.8372,
+    "desc": "Homestay at Thanga, on Loktak Lake.",
+    "phone": "81189 44535"
+  },
+  {
+    "id": "lac-view-hotel",
+    "name": "Lac View Hotel",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.4979,
+    "lng": 93.7643,
+    "desc": "Hotel in Moirang, near Loktak Lake."
+  },
+  {
+    "id": "hotel-elegance-resort",
+    "name": "Hotel Elegance Resort",
+    "category": "resort",
+    "district": "Bishnupur",
+    "lat": 24.4868,
+    "lng": 93.7573,
+    "desc": "Hotel and resort in Moirang.",
+    "phone": "+91 89747 92955"
+  },
+  {
+    "id": "the-cascade-retreat",
+    "name": "The Cascade Retreat",
+    "category": "resort",
+    "district": "Bishnupur",
+    "lat": 24.7317,
+    "lng": 93.7649,
+    "desc": "Retreat in the hills near Nambol."
+  },
+  {
+    "id": "woods-and-earth-retreat",
+    "name": "Woods and Earth Retreat",
+    "category": "resort",
+    "district": "Bishnupur",
+    "lat": 24.7311,
+    "lng": 93.7697,
+    "desc": "Retreat in the hills near Nambol."
+  },
+  {
+    "id": "geljang-resort",
+    "name": "Geljang Resort",
+    "category": "resort",
+    "district": "Churachandpur",
+    "lat": 24.2597,
+    "lng": 93.6705,
+    "desc": "Resort near Lamka (Churachandpur)."
+  },
+  {
+    "id": "green-hills",
+    "name": "Green Hills",
+    "category": "resort",
+    "district": "Churachandpur",
+    "lat": 24.2676,
+    "lng": 93.6657,
+    "desc": "Resort near Lamka (Churachandpur)."
+  },
+  {
+    "id": "lhaang-kim-hotel-euntteps-resort",
+    "name": "Lhaang-Kim Hotel & Euntteps Resort",
+    "category": "resort",
+    "district": "Tengnoupal",
+    "lat": 24.254,
+    "lng": 94.2966,
+    "desc": "Hotel and resort in Moreh."
+  },
+  {
+    "id": "de-khunai-resort",
+    "name": "De Khunai Resort",
+    "category": "resort",
+    "district": "Tengnoupal",
+    "lat": 24.2491,
+    "lng": 94.3031,
+    "desc": "Resort in Moreh."
+  },
+  {
+    "id": "neelraj-hotel",
+    "name": "Neelraj Hotel",
+    "category": "hotel",
+    "district": "Tengnoupal",
+    "lat": 24.2491,
+    "lng": 94.3032,
+    "desc": "Hotel in Moreh, with parking."
+  },
+  {
+    "id": "kakching-hotel",
+    "name": "Kakching Hotel",
+    "category": "hotel",
+    "district": "Tengnoupal",
+    "lat": 24.249,
+    "lng": 94.3031,
+    "desc": "Hotel in Moreh."
+  },
+  {
+    "id": "elora-hotel",
+    "name": "Elora Hotel",
+    "category": "hotel",
+    "district": "Tengnoupal",
+    "lat": 24.2508,
+    "lng": 94.2994,
+    "desc": "Hotel in Moreh."
+  },
+  {
+    "id": "hotel-malem",
+    "name": "Hotel Malem",
+    "category": "hotel",
+    "district": "Jiribam",
+    "lat": 24.806,
+    "lng": 93.1139,
+    "desc": "Hotel in Jiribam.",
+    "phone": "+91 96124 86579"
+  },
+  {
+    "id": "hotel-star",
+    "name": "Hotel Star",
+    "category": "hotel",
+    "district": "Jiribam",
+    "lat": 24.8055,
+    "lng": 93.1139,
+    "desc": "Hotel in Jiribam."
+  },
+  {
+    "id": "hotel-helena",
+    "name": "Hotel Helena",
+    "category": "hotel",
+    "district": "Jiribam",
+    "lat": 24.8058,
+    "lng": 93.114,
+    "desc": "Hotel in Jiribam."
+  },
+  {
+    "id": "hotel-joyram",
+    "name": "Hotel Joyram",
+    "category": "hotel",
+    "district": "Jiribam",
+    "lat": 24.8088,
+    "lng": 93.112,
+    "desc": "Hotel in Jiribam."
+  },
+  {
+    "id": "hotel-leibaklei",
+    "name": "Hotel Leibaklei",
+    "category": "hotel",
+    "district": "Jiribam",
+    "lat": 24.7884,
+    "lng": 93.1477,
+    "desc": "Hotel near Jiribam.",
+    "phone": "76249 91537"
+  },
+  {
+    "id": "fancy-lodging",
+    "name": "Fancy Lodging",
+    "category": "hotel",
+    "district": "Noney",
+    "lat": 24.8598,
+    "lng": 93.624,
+    "desc": "Lodge on the Imphal–Jiribam road."
+  },
+  {
+    "id": "apollo-inn",
+    "name": "Apollo Inn",
+    "category": "hotel",
+    "district": "Tamenglong",
+    "lat": 24.9938,
+    "lng": 93.5,
+    "desc": "Hotel in Tamenglong."
+  },
+  {
+    "id": "sangaithel-park-resort",
+    "name": "Sangaithel Park & Resort",
+    "category": "resort",
+    "district": "Imphal West",
+    "lat": 24.8089,
+    "lng": 93.7878,
+    "desc": "Park and resort at Sangaithel, west of Imphal."
+  },
+  {
+    "id": "youth-hostel-imphal",
+    "name": "Youth Hostel, Imphal",
+    "category": "hotel",
+    "district": "Imphal East",
+    "lat": 24.8157,
+    "lng": 93.9508,
+    "desc": "Budget hostel in Imphal.",
+    "phone": "0385 242 1618"
+  },
+  {
+    "id": "sanajaoba-home-stay-1",
+    "name": "Sanajaoba Home Stay 1",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8389,
+    "lng": 93.9116,
+    "desc": "Homestay in Imphal.",
+    "phone": "79794 78748"
+  },
+  {
+    "id": "sandy-shores",
+    "name": "Sandy Shores",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.9545,
+    "lng": 93.8887,
+    "desc": "Hostel north of Imphal."
+  },
+  {
+    "id": "maipakchao-homestay",
+    "name": "Maipakchao Homestay",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.5209,
+    "lng": 93.8115,
+    "desc": "Family homestay near Loktak Lake."
+  },
+  {
+    "id": "loktak-homestay-budha-house",
+    "name": "Loktak Homestay (Budha House)",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.5154,
+    "lng": 93.7944,
+    "desc": "Homestay at Sendra, on Loktak Lake."
+  },
+  {
+    "id": "sangai-lodge",
+    "name": "Sangai Lodge",
+    "category": "hotel",
+    "district": "Tengnoupal",
+    "lat": 24.2497,
+    "lng": 94.3016,
+    "desc": "Lodge in Moreh."
+  },
+  {
+    "id": "aurora-boutique-hotel",
+    "name": "Aurora Boutique Hotel",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8087,
+    "lng": 93.9385,
+    "desc": "Boutique hotel on Polo Ground Road, Paona Bazar.",
+    "approx": true
+  },
+  {
+    "id": "the-padma",
+    "name": "The Padma",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8085,
+    "lng": 93.939,
+    "desc": "Hotel on Dharamsala Road, Thangal Bazar.",
+    "approx": true
+  },
+  {
+    "id": "hotel-millennium",
+    "name": "Hotel Millennium",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.808,
+    "lng": 93.9392,
+    "desc": "Hotel opposite Dharamshala, Thangal Bazar.",
+    "approx": true
+  },
+  {
+    "id": "hotel-yaiphaba",
+    "name": "Hotel Yaiphaba",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8075,
+    "lng": 93.939,
+    "desc": "Hotel on MG Avenue, Thangal Bazar.",
+    "approx": true
+  },
+  {
+    "id": "hotel-o-the-thangal",
+    "name": "Hotel O The Thangal",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8073,
+    "lng": 93.9385,
+    "desc": "Hotel on Dharamshala Road, MG Avenue.",
+    "approx": true
+  },
+  {
+    "id": "hotel-anand-continental",
+    "name": "Hotel Anand Continental",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8075,
+    "lng": 93.938,
+    "desc": "Hotel on Khoyathong Road, Majorkhul, Thangal Bazar.",
+    "approx": true
+  },
+  {
+    "id": "hotel-prince",
+    "name": "Hotel Prince",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.808,
+    "lng": 93.9378,
+    "desc": "Hotel in Thangal Bazar.",
+    "approx": true
+  },
+  {
+    "id": "hotel-kristina",
+    "name": "Hotel Kristina",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.8085,
+    "lng": 93.938,
+    "desc": "Hotel on Polo Ground Road, Paona Bazar.",
+    "approx": true
+  },
+  {
+    "id": "hotel-bheigo",
+    "name": "Hotel Bheigo",
+    "category": "hotel",
+    "district": "Imphal West",
+    "lat": 24.7991,
+    "lng": 93.9364,
+    "desc": "Hotel at Keisampat Thokchom Leikai.",
+    "approx": true
+  },
+  {
+    "id": "the-pi-hotel",
+    "name": "The Pi Hotel",
+    "category": "hotel",
+    "district": "Imphal East",
+    "lat": 24.8142,
+    "lng": 93.9473,
+    "desc": "Hotel near North AOC, opposite Kekrupat.",
+    "approx": true
+  },
+  {
+    "id": "shalom-farmhouse-by-the-hillside",
+    "name": "Shalom Farmhouse by the Hillside",
+    "category": "hotel",
+    "district": "Imphal East",
+    "lat": 24.8503,
+    "lng": 93.9357,
+    "desc": "Farmhouse stay at Raphei colony, Mantripukhri.",
+    "approx": true
+  },
+  {
+    "id": "sendra-tourist-home",
+    "name": "Sendra Tourist Home",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.5335,
+    "lng": 93.8005,
+    "desc": "Government tourist home on Sendra Island, overlooking Loktak Lake.",
+    "approx": true
+  },
+  {
+    "id": "moirang-tourist-lodge",
+    "name": "Moirang Tourist Lodge",
+    "category": "hotel",
+    "district": "Bishnupur",
+    "lat": 24.4999,
+    "lng": 93.7767,
+    "desc": "Government tourist lodge at Moirang, near Loktak Lake.",
+    "approx": true
+  }
+]

@@ -1,0 +1,7 @@
+[
+  { "id": "tourist-site", "label": "Tourist sites", "color": "#c2410c", "icon": "🏛️" },
+  { "id": "picnic", "label": "Picnic spots", "color": "#1f7a5a", "icon": "🌳" },
+  { "id": "snacks", "label": "Snack spots", "color": "#be185d", "icon": "🍢" },
+  { "id": "hotel", "label": "Hotels", "color": "#7c3aed", "icon": "🏨" },
+  { "id": "resort", "label": "Resorts", "color": "#0369a1", "icon": "🏝️" }
+]
