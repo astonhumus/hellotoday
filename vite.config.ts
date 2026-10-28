@@ -15,7 +15,17 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
-        clientsClaim: true
+        clientsClaim: true,
+        runtimeCaching: [{
+          // Map tiles you have looked at keep working offline. Cache-first, capped so it can't grow without limit.
+          urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
+          handler: "CacheFirst",
+          options: {
+            cacheName: "map-tiles",
+            expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            cacheableResponse: { statuses: [0, 200] }
+          }
+        }]
       },
       manifest: {
         id: "./",
