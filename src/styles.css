@@ -274,3 +274,7 @@ dialog label.check input { width: auto; }
 /* Map style switch (Streets / Simple) */
 .map-style { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
 .map-style .chip { padding: 5px 12px; min-height: 0; }
+.district-label { background: none; border: none; box-shadow: none; padding: 0; color: #374151; font: 600 11px/1.1 system-ui, sans-serif; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; pointer-events: none; }
+.district-label::before { display: none; }
+.hide-district-labels .district-label { display: none; }
+@media (max-width: 760px) { .map-style { top: 8px; right: 8px; gap: 2px; } .map-style .chip { padding: 4px 9px; font-size: 13px; } }

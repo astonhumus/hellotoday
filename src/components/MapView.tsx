@@ -56,6 +56,9 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
 
   const tileLayer = useRef<L.TileLayer | null>(null);
   const [style, setStyle] = useState<MapStyle>(() => (store.get("map-style") === "simple" ? "simple" : "detailed"));
+  const [showDistricts, setShowDistricts] = useState(() => store.get("map-districts") !== "off");
+  const [districtData, setDistrictData] = useState<any>(null);
+  const districtLayer = useRef<L.GeoJSON | null>(null);
   const [ready, setReady] = useState(0); // bumps when the map is rebuilt, so the tiles are re-added
 
   // Border maps below the street tiles: they show through wherever a tile can't be loaded (offline, not cached yet).
@@ -94,6 +97,32 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
 
     return () => { cancelled = true; ro.disconnect(); map.remove(); mapRef.current = null; pins.current.clear(); };
   }, [state]);
+
+  // District boundaries (public/data/<state>/districts.json), drawn over the tiles with the district name in the middle.
+  useEffect(() => {
+    setDistrictData(null);
+    loadJson<any>(`${state.id}/districts.json`).then(setDistrictData).catch(() => {});
+  }, [state.id]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    districtLayer.current?.remove();
+    districtLayer.current = null;
+    if (!map || !showDistricts || !districtData) return;
+    const layer = L.geoJSON(districtData, {
+      pane: "outline", interactive: false,
+      style: { color: "#4b5563", weight: 1.3, opacity: 0.85, dashArray: "6 4", fill: false },
+      onEachFeature: (f, l) => (l as L.Polygon).bindTooltip(f.properties.name, { permanent: true, direction: "center", className: "district-label" })
+    }).addTo(map);
+    districtLayer.current = layer;
+    const hideLabels = () => map.getContainer().classList.toggle("hide-district-labels", map.getZoom() < 8);
+    hideLabels();
+    map.on("zoomend", hideLabels);
+    // Required credit for the open boundary data (ODbL).
+    const credit = 'Districts: <a href="https://www.geoboundaries.org" target="_blank" rel="noopener">geoBoundaries</a>';
+    map.attributionControl.addAttribution(credit);
+    return () => { map.off("zoomend", hideLabels); map.attributionControl.removeAttribution(credit); };
+  }, [showDistricts, districtData, ready]);
 
   // Street tiles on top of the borders, switchable
   useEffect(() => {
@@ -145,6 +174,7 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
       <div className="map-style" role="group" aria-label="Map style">
         <button className="chip" aria-pressed={style === "detailed"} onClick={() => choose("detailed")}>Streets</button>
         <button className="chip" aria-pressed={style === "simple"} onClick={() => choose("simple")}>Simple</button>
+        <button className="chip" aria-pressed={showDistricts} onClick={() => { setShowDistricts(v => !v); store.set("map-districts", showDistricts ? "off" : "on"); }}>Districts</button>
       </div>
     </>
   );
