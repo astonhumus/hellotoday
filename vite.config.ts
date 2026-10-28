@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["icon.svg", "apple-touch-icon.png"],
       workbox: {
         // Everything the app needs (code, map borders, bundled places/songs/checklist) is cached on first visit.

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Category } from "../types";
 import { supabase } from "../lib/supabase";
+import { confirmAsk, notify, promptAsk, explainError } from "../lib/ui";
 
 type Row = Record<string, any>;
 interface Member { user_id: string; email: string; role: "admin" | "contributor"; auto_approve: boolean }
@@ -46,20 +47,38 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
     setBusy(true);
     const { error } = await job();
     setBusy(false);
-    if (error) alert(error.message);
+    if (error) void notify(explainError(error.message), "error");
     void load();
   };
 
-  const review = (table: "places" | "songs" | "revisions", id: string, approve: boolean) => {
+  const review = async (table: "places" | "songs" | "revisions", id: string, approve: boolean) => {
     if (!supabase) return;
     if (table === "revisions" && approve) return run(() => supabase!.rpc("approve_revision", { rev: id }));
-    const note = approve ? null : prompt("Reason (shown to the contributor, optional):") ?? "";
+    const note = approve ? null : await promptAsk("Reason for rejecting (shown to the contributor, optional):");
+    if (note === null && !approve) return; // cancelled
     return run(() => supabase!.from(table).update({ status: approve ? "approved" : "rejected", review_note: note || null }).eq("id", id));
   };
 
   const addMember = (e: React.FormEvent) => {
     e.preventDefault();
     run(() => supabase!.rpc("add_member", { p_email: email, p_role: "contributor", p_auto: auto })).then(() => setEmail(""));
+  };
+
+  // One file with everything the app stores. The free database plan has no restore, so keep copies.
+  const backup = async () => {
+    if (!supabase) return;
+    setBusy(true);
+    const [p, s, i, v, m] = await Promise.all([
+      supabase.from("places").select("*").limit(50000), supabase.from("songs").select("*").limit(50000),
+      supabase.from("items").select("*").limit(50000), supabase.from("revisions").select("*").limit(50000), supabase.rpc("list_members")
+    ]);
+    setBusy(false);
+    const failed = [p, s, i, v, m].find(x => x.error);
+    if (failed?.error) return void notify(`Backup failed: ${explainError(failed.error.message)}`, "error");
+    const file = { exportedAt: new Date().toISOString(), places: p.data, songs: s.data, checklistEdits: i.data, proposals: v.data, members: m.data };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }));
+    Object.assign(document.createElement("a"), { href: url, download: `explore-backup-${new Date().toISOString().slice(0, 10)}.json` }).click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const nothing = !places.length && !songs.length && !revs.length;
@@ -110,6 +129,10 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
         );
       })}
 
+      <h3>Backup</h3>
+      <p className="meta">Downloads every place, song, checklist edit, proposal and member as one file.</p>
+      <div className="tools"><button className="btn" onClick={backup} disabled={busy}>Download full backup</button></div>
+
       <h3>People who can contribute</h3>
       <div className="review-scroll"><table>
         <thead><tr><th>Email</th><th>Role</th><th>Auto-approve</th><th /></tr></thead>
@@ -127,7 +150,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
               <td>
                 {m.role !== "admin" && (
                   <button className="link danger" disabled={busy}
-                    onClick={() => confirm(`Remove ${m.email}?`) && run(() => supabase!.rpc("remove_member", { p_user: m.user_id }))}>Remove</button>
+                    onClick={async () => (await confirmAsk(`Remove ${m.email}?`, { yes: "Remove", danger: true })) && run(() => supabase!.rpc("remove_member", { p_user: m.user_id }))}>Remove</button>
                 )}
               </td>
             </tr>

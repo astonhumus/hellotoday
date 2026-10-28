@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Category, Place, StateInfo } from "../types";
 import { MapView } from "./MapView";
 import { AddPlaceDialog } from "./AddPlaceDialog";
+import { confirmAsk } from "../lib/ui";
 
 interface Props {
   state: StateInfo;
@@ -10,6 +11,7 @@ interface Props {
   localIds: Set<string>;
   admin: boolean;
   canDelete: boolean;
+  loading?: boolean;
   onSavePlace: (p: Omit<Place, "id">, id?: string) => void;
   onDeletePlace: (id: string) => void;
   exportCount: number;
@@ -17,12 +19,13 @@ interface Props {
   onImport: (file: File) => void;
 }
 
-export function PlacesPage({ state, categories, places, localIds, admin, canDelete, onSavePlace, onDeletePlace, exportCount, onExport, onImport }: Props) {
+export function PlacesPage({ state, categories, places, localIds, admin, canDelete, loading, onSavePlace, onDeletePlace, exportCount, onExport, onImport }: Props) {
   const [picked, setPicked] = useState<Set<string>>(new Set()); // empty = all categories
   const [district, setDistrict] = useState("all");
   const [q, setQ] = useState("");
   const [visitedOnly, setVisitedOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [focusTick, setFocusTick] = useState(0);
   const [view, setView] = useState<"list" | "map">("list"); // phones show one at a time
   const [dialog, setDialog] = useState<{ editing: Place | null } | null>(null);
 
@@ -83,7 +86,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
               </label>
             </div>
           )}
-          <div className="count">{filtered.length} place{filtered.length === 1 ? "" : "s"}</div>
+          <div className="count">{filtered.length} place{filtered.length === 1 ? "" : "s"}{loading ? " · updating…" : ""}</div>
         </div>
         <ul>
           {filtered.length === 0 && <div className="empty">No places match your filters.</div>}
@@ -91,7 +94,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
             const c = catById[p.category];
             const local = localIds.has(p.id);
             return (
-              <li key={p.id} className={p.id === selectedId ? "active" : ""} onClick={() => { setSelectedId(p.id); setView("map"); }}>
+              <li key={p.id} className={p.id === selectedId ? "active" : ""} onClick={() => { setSelectedId(p.id); setFocusTick(n => n + 1); setView("map"); }}>
                 <span className="dot" style={{ background: c?.color ?? "#64748b" }} />
                 <span className="name">{p.name}</span>
                 <span className="meta">{c?.label ?? p.category}{p.district ? ` · ${p.district}` : ""}{p.approx ? " · approx." : ""}{local ? " · edited/added" : ""}</span>
@@ -102,7 +105,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
                 {admin && (
                   <span className="row-actions" onClick={e => e.stopPropagation()}>
                     <button className="link" onClick={() => setDialog({ editing: p })}>Edit</button>
-                    {canDelete && <button className="link danger" onClick={() => confirm(`Delete "${p.name}"?`) && onDeletePlace(p.id)}>Delete</button>}
+                    {canDelete && <button className="link danger" onClick={async () => { if (await confirmAsk(`Delete "${p.name}"?`, { yes: "Delete", danger: true })) onDeletePlace(p.id); }}>Delete</button>}
                   </span>
                 )}
               </li>
@@ -111,7 +114,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
         </ul>
       </aside>
       <div className="map-wrap">
-        <MapView state={state} places={filtered} categories={catById} selectedId={selectedId} onSelect={setSelectedId} />
+        <MapView state={state} places={filtered} categories={catById} selectedId={selectedId} focusTick={focusTick} onSelect={setSelectedId} />
       </div>
       {dialog && (
         <AddPlaceDialog categories={categories} districts={districts} editing={dialog.editing}

@@ -1,42 +1,46 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "./supabase";
 import { cacheGet, cacheSet } from "./cache";
+import { explainError, notify } from "./ui";
 
 type Row = Record<string, unknown>;
 
 interface Spec<T> {
   table: string;
   kind: "place" | "song";
-  propose?: boolean;                        // contributor without auto-approve: edits to live items become proposals
+  columns: string;                           // explicit list: the public may not read every column (see supabase/hardening.sql)
+  propose?: boolean;                         // contributor without auto-approve: edits to live items become proposals
   scope?: { column: string; value: string }; // e.g. only the current state's places
   toRow: (item: Omit<T, "id">, id: string) => Row;
   fromRow: (row: Row) => T;
 }
 
-const fail = (msg: string) => alert(`Couldn't save: ${msg.includes("row-level") || msg.includes("permission") ? "sign in as admin first." : msg}`);
+const fail = (msg: string) => notify(`Couldn't save: ${explainError(msg)}`, "error");
 
 /**
  * Items stored as real rows in a Supabase table. `fallback` (the bundled JSON) is shown while loading
  * and when the database can't be reached, e.g. offline. Pass spec = null to stay inert.
  */
-export function useRows<T extends { id: string; status?: string }>(spec: Spec<T> | null, fallback: T[]) {
+export function useRows<T extends { id: string; status?: string; updatedAt?: string }>(spec: Spec<T> | null, fallback: T[]) {
   const [rows, setRows] = useState<T[] | null>(null);
+  const [loading, setLoading] = useState(false);
   const table = spec?.table, scopeCol = spec?.scope?.column, scopeVal = spec?.scope?.value;
+  const cacheKey = `rows:${table}:${scopeVal ?? ""}`;
 
   const load = async () => {
     if (!supabase || !spec) return;
-    let q = supabase.from(spec.table).select("*").limit(5000);
+    setLoading(true);
+    let q = supabase.from(spec.table).select(spec.columns).limit(5000);
     if (spec.scope) q = q.eq(spec.scope.column, spec.scope.value);
     const { data, error } = await q;
+    setLoading(false);
     if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return; } // keep whatever is showing (cached copy)
-    const mapped = (data as Row[]).map(spec.fromRow);
+    const mapped = (data as unknown as Row[]).map(spec.fromRow);
     setRows(mapped);
-    // Offline copy: only the public view, never a signed-in user's pending items.
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) void cacheSet(cacheKey, mapped);
+    // Offline copy = the public view (approved items only), whoever is signed in.
+    void cacheSet(cacheKey, mapped.filter(x => !x.status || x.status === "approved"));
   };
 
-  const cacheKey = `rows:${spec?.table}:${scopeVal ?? ""}`;
   useEffect(() => {
     let live = true;
     setRows(null);
@@ -51,15 +55,19 @@ export function useRows<T extends { id: string; status?: string }>(spec: Spec<T>
 
   const save = async (item: Omit<T, "id">, id?: string) => {
     if (!supabase || !spec) return;
-    if (id && spec.propose && items.find(x => x.id === id)?.status === "approved") {
-      const { error } = await supabase.from("revisions").insert({ kind: spec.kind, target_id: id, data: spec.toRow(item, id) });
-      return error ? fail(error.message) : alert("Thanks! Your change was sent to the admin for approval.");
+    const existing = id ? items.find(x => x.id === id) : undefined;
+    // Editing something already live as a contributor who isn't trusted: send it to the admin instead.
+    if (id && spec.propose && existing?.status === "approved") {
+      const { error } = await supabase.rpc("propose_revision", {
+        p_kind: spec.kind, p_target: id, p_data: spec.toRow(item, id), p_base: existing.updatedAt ?? null
+      });
+      return error ? void fail(error.message) : void notify("Thanks! Your change was sent to the admin for approval.");
     }
     const newId = id ?? "u-" + Date.now().toString(36);
     const next = { ...item, id: newId } as T;
     setRows(cur => { const base = cur ?? fallback; return base.some(x => x.id === newId) ? base.map(x => (x.id === newId ? next : x)) : [...base, next]; });
     const { error } = await supabase.from(spec.table).upsert(scoped(spec.toRow(item, newId)));
-    if (error) fail(error.message);
+    if (error) void fail(error.message);
     void load();
   };
 
@@ -67,15 +75,18 @@ export function useRows<T extends { id: string; status?: string }>(spec: Spec<T>
     if (!supabase || !spec) return;
     setRows(cur => (cur ?? fallback).filter(x => x.id !== id));
     const { error } = await supabase.from(spec.table).delete().eq("id", id);
-    if (error) { fail(error.message); void load(); }
+    if (error) void fail(error.message);
+    void load();
   };
 
+  /** Resolves true when every item was stored. */
   const addMany = async (more: T[]) => {
-    if (!supabase || !spec || !more.length) return;
-    setRows(cur => [...(cur ?? fallback), ...more]);
+    if (!supabase || !spec || !more.length) return true;
     const { error } = await supabase.from(spec.table).upsert(more.map(({ id, ...rest }) => scoped(spec.toRow(rest, id))));
-    if (error) { fail(error.message); void load(); }
+    if (error) void fail(error.message);
+    void load();
+    return !error;
   };
 
-  return { items, reload: load, localIds: useMemo(() => new Set<string>(), []), save, remove, addMany };
+  return { items, loading, reload: load, localIds: useMemo(() => new Set<string>(), []), save, remove, addMany };
 }

@@ -27,6 +27,7 @@ export interface Place {
   notes?: string;   // personal tips, e.g. what to order, who to ask for
   status?: Status;  // moderation state; only 'approved' rows are public
   reviewNote?: string;
+  updatedAt?: string; // lets an edit proposal detect that the item changed meanwhile
 }
 
 export interface Song {
@@ -38,6 +39,7 @@ export interface Song {
   lyrics: string;
   status?: Status;
   reviewNote?: string;
+  updatedAt?: string;
 }
 
 export type Status = "pending" | "approved" | "rejected";

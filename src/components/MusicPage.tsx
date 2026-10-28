@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Song } from "../types";
 import { store } from "../lib/data";
+import { confirmAsk } from "../lib/ui";
+import { LIMITS } from "../lib/limits";
+import { FooterLinks, reportLink } from "./AboutPage";
 
 interface Props {
   songs: Song[];
@@ -22,7 +25,7 @@ export function MusicPage({ songs, localIds, admin, canDelete, songId, open, onS
   const languages = useMemo(() => uniq([...LANGUAGES, ...songs.map(s => s.language)]), [songs]);
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
   const onEdit = (s: Song) => setDialog({ editing: s });
-  const onRemove = (s: Song) => { if (confirm(`Delete "${s.title}"?`)) { onDelete(s.id); open(null); } };
+  const onRemove = async (s: Song) => { if (await confirmAsk(`Delete "${s.title}"?`, { yes: "Delete", danger: true })) { onDelete(s.id); open(null); } };
   return (
     <>
       {song
@@ -90,6 +93,7 @@ function SongList({ songs, localIds, admin, canDelete, open, onAdd, onEdit, onDe
           </li>
         ))}
       </ul>
+      <FooterLinks />
     </div>
   );
 }
@@ -106,11 +110,12 @@ function SongDialog({ editing, languages, artists, onSave, onClose }: DialogProp
   const [language, setLanguage] = useState(editing?.language ?? "");
   const [lyrics, setLyrics] = useState(editing?.lyrics ?? "");
   const [credit, setCredit] = useState(editing?.credit ?? "");
+  const [rights, setRights] = useState(!!editing); // new songs need the tick
   useEffect(() => { dlg.current?.showModal(); }, []);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !lyrics.trim()) return;
+    if (!title.trim() || !lyrics.trim() || !rights) return;
     onSave({
       title: title.trim(), artist: artist.trim() || undefined, language: language.trim() || undefined,
       lyrics, credit: credit.trim() || undefined
@@ -128,11 +133,15 @@ function SongDialog({ editing, languages, artists, onSave, onClose }: DialogProp
         </div>
         <datalist id="artist-list">{artists.map(a => <option key={a} value={a} />)}</datalist>
         <datalist id="language-list">{languages.map(l => <option key={l} value={l} />)}</datalist>
-        <label>Lyrics *<textarea value={lyrics} onChange={e => setLyrics(e.target.value)} rows={10} required /></label>
+        <label>Lyrics *<textarea value={lyrics} onChange={e => setLyrics(e.target.value)} rows={10} required maxLength={LIMITS.lyrics} /></label>
         <label>Credit / source<input value={credit} onChange={e => setCredit(e.target.value)} maxLength={300} placeholder="e.g. Written by me, or public domain" /></label>
+        {!editing && (
+          <label className="check"><input type="checkbox" checked={rights} onChange={e => setRights(e.target.checked)} />
+            I wrote these lyrics, they are public domain, or I have permission to share them.</label>
+        )}
         <div className="actions">
           <button type="button" className="btn" onClick={() => dlg.current?.close()}>Cancel</button>
-          <button type="submit" className="btn primary" disabled={!title.trim() || !lyrics.trim()}>Save song</button>
+          <button type="submit" className="btn primary" disabled={!title.trim() || !lyrics.trim() || !rights}>Save song</button>
         </div>
       </form>
     </dialog>
@@ -142,7 +151,7 @@ function SongDialog({ editing, languages, artists, onSave, onClose }: DialogProp
 interface LyricsProps { song: Song; admin: boolean; canDelete: boolean; onBack: () => void; onEdit: (s: Song) => void; onDelete: (s: Song) => void }
 
 function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProps) {
-  const [size, setSize] = useState(() => +(store.get("lyrics-size") ?? 22));
+  const [size, setSize] = useState(() => { const n = parseInt(store.get("lyrics-size") ?? "", 10); return Number.isFinite(n) ? Math.min(48, Math.max(14, n)) : 22; });
   const [scrolling, setScrolling] = useState(false);
   const [speed, setSpeed] = useState(30); // px per second
   const box = useRef<HTMLDivElement>(null);
@@ -184,6 +193,7 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
         <p className="meta">{[song.artist, song.language].filter(Boolean).join(" · ")}</p>
         <pre>{song.lyrics}</pre>
         {song.credit && <p className="meta credit">{song.credit}</p>}
+        {reportLink("x") && <p className="meta"><a href={reportLink(`Report song: ${song.title}`)}>Report this song</a></p>}
       </div>
     </div>
   );

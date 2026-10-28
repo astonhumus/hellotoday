@@ -7,7 +7,9 @@ import { appleMapsUrl, googleMapsUrl } from "../lib/nav";
 import { loadJson, store } from "../lib/data";
 
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
-const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+// Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
+const TILES = import.meta.env.VITE_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const LABEL_MIN_ZOOM = 9; // district names appear from this zoom, so they don't pile up over Imphal
 type MapStyle = "detailed" | "simple";
 
 interface Props {
@@ -15,6 +17,7 @@ interface Props {
   places: Place[];
   categories: Record<string, Category>;
   selectedId: string | null;
+  focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
 }
 
@@ -46,19 +49,23 @@ function buildPopup(p: Place, cat: Category): HTMLElement {
   );
 }
 
-export function MapView({ state, places, categories, selectedId, onSelect }: Props) {
+export function MapView({ state, places, categories, selectedId, focusTick, onSelect }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.CircleMarker>());
   const pinLayer = useRef<L.FeatureGroup | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const selectedRef = useRef(selectedId);
+  selectedRef.current = selectedId;
 
   const tileLayer = useRef<L.TileLayer | null>(null);
   const [style, setStyle] = useState<MapStyle>(() => (store.get("map-style") === "simple" ? "simple" : "detailed"));
   const [showDistricts, setShowDistricts] = useState(() => store.get("map-districts") !== "off");
   const [districtData, setDistrictData] = useState<any>(null);
   const districtLayer = useRef<L.GeoJSON | null>(null);
+  const stateStroke = useRef<L.GeoJSON | null>(null);
+  const haveDistrictOutline = useRef(false);
   const [ready, setReady] = useState(0); // bumps when the map is rebuilt, so the tiles are re-added
 
   // Border maps below the street tiles: they show through wherever a tile can't be loaded (offline, not cached yet).
@@ -81,7 +88,8 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
       const fc = { type: "FeatureCollection", features: mine } as any;
       L.geoJSON(fc, { pane: "borders", interactive: false, style: { color: "#1f7a5a", weight: 2, fillColor: "#dcefe6", fillOpacity: 1 } }).addTo(map);
       // Green state boundary stays visible on top of the street map.
-      const outline = L.geoJSON(fc, { pane: "outline", interactive: false, style: { color: "#1f7a5a", weight: 2.5, fill: false } }).addTo(map);
+      const outline = L.geoJSON(fc, { pane: "outline", interactive: false, style: { color: "#1f7a5a", weight: 2.5, fill: false } });
+      if (!haveDistrictOutline.current) { outline.addTo(map); stateStroke.current = outline; }
       if (mine.length) {
         const bounds = outline.getBounds();
         try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
@@ -104,6 +112,17 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
     loadJson<any>(`${state.id}/districts.json`).then(setDistrictData).catch(() => {});
   }, [state.id]);
 
+  // The green state line is merged from the district shapes (scripts/build-outline.mjs), so it matches the dashed lines exactly.
+  useEffect(() => {
+    haveDistrictOutline.current = !!districtData?.outline;
+    const map = mapRef.current;
+    if (!map || !districtData?.outline) return;
+    stateStroke.current?.remove();
+    const line = L.geoJSON(districtData.outline, { pane: "outline", interactive: false, style: { color: "#1f7a5a", weight: 2.5, fill: false } }).addTo(map);
+    stateStroke.current = line;
+    return () => { line.remove(); };
+  }, [districtData, ready]);
+
   useEffect(() => {
     const map = mapRef.current;
     districtLayer.current?.remove();
@@ -112,10 +131,10 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
     const layer = L.geoJSON(districtData, {
       pane: "outline", interactive: false,
       style: { color: "#4b5563", weight: 1.3, opacity: 0.85, dashArray: "6 4", fill: false },
-      onEachFeature: (f, l) => (l as L.Polygon).bindTooltip(f.properties.name, { permanent: true, direction: "center", className: "district-label" })
+      onEachFeature: (f, l) => (l as L.Polygon).bindTooltip(el("span", {}, String(f.properties.name)), { permanent: true, direction: "center", className: "district-label" })
     }).addTo(map);
     districtLayer.current = layer;
-    const hideLabels = () => map.getContainer().classList.toggle("hide-district-labels", map.getZoom() < 8);
+    const hideLabels = () => map.getContainer().classList.toggle("hide-district-labels", map.getZoom() < LABEL_MIN_ZOOM);
     hideLabels();
     map.on("zoomend", hideLabels);
     // Required credit for the open boundary data (ODbL).
@@ -153,9 +172,15 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
       group.addLayer(m);
       pins.current.set(p.id, m);
     });
-    if (places.length && map.getSize().x > 0) {
-      try { map.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 11 }); } catch { /* ignore */ }
-    }
+    // Keep the open popup across filter changes; only re-zoom (after typing pauses) when nothing is selected.
+    const keep = selectedRef.current ? pins.current.get(selectedRef.current) : undefined;
+    if (keep) { keep.openPopup(); return; }
+    const t = setTimeout(() => {
+      if (places.length && map.getSize().x > 0) {
+        try { map.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 11 }); } catch { /* ignore */ }
+      }
+    }, 300);
+    return () => clearTimeout(t);
   }, [places, categories, state]);
 
   // Selecting a place from the list flies to its pin and opens it
@@ -164,7 +189,7 @@ export function MapView({ state, places, categories, selectedId, onSelect }: Pro
     if (!map || !m) return;
     map.flyTo(m.getLatLng(), Math.max(map.getZoom(), 10), { duration: 0.6 });
     m.openPopup();
-  }, [selectedId]);
+  }, [selectedId, focusTick]);
 
   const choose = (s: MapStyle) => { setStyle(s); store.set("map-style", s); };
 

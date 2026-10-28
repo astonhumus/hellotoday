@@ -1,5 +1,6 @@
 // Cuts one state's district outlines out of the geoBoundaries India ADM2 file.
 // Usage: node scripts/build-districts.mjs <india-adm2.geojson> <state name> <state id>
+// Then run: node scripts/build-outline.mjs <state id>   (adds the merged state outline to the same file)
 import { readFileSync, writeFileSync } from "node:fs";
 
 const [src, stateName, stateId] = process.argv.slice(2);

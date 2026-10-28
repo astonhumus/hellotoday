@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { store } from "../lib/data";
 import { useOverlay } from "../lib/overlay";
+import { confirmAsk, notify } from "../lib/ui";
+import { FooterLinks } from "./AboutPage";
 
-interface Catalog {
+export interface Catalog {
   trips: { id: string; label: string; icon: string }[];
   categories: { id: string; label: string; icon: string; items: string[] }[]; // items: "Name | trip trip"
 }
@@ -41,6 +43,14 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
     ...saved.custom.map(c => ({ ...c, trips: [] as string[] }))
   ], [catalogItems.items, saved.custom]);
 
+  // Forget ticks for items an admin has since deleted (only once the full catalog has loaded).
+  useEffect(() => {
+    if (!catalogItems.ready) return;
+    const known = new Set(items.map(i => i.id));
+    setSaved(s => (s.sel.every(id => known.has(id)) && s.packed.every(id => known.has(id))
+      ? s : { ...s, sel: s.sel.filter(id => known.has(id)), packed: s.packed.filter(id => known.has(id)) }));
+  }, [catalogItems.ready, items]);
+
   const sel = useMemo(() => new Set(saved.sel), [saved.sel]);
   const packed = useMemo(() => new Set(saved.packed), [saved.packed]);
   const chosen = items.filter(i => sel.has(i.id));
@@ -75,7 +85,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
     const text = "Packing list\n\n" + asText();
     try {
       if (navigator.share) await navigator.share({ title: "Packing list", text });
-      else { await navigator.clipboard.writeText(text); alert("Copied. Paste it into WhatsApp or notes."); }
+      else { await navigator.clipboard.writeText(text); void notify("Copied. Paste it into WhatsApp or notes."); }
     } catch { /* user cancelled */ }
   };
 
@@ -86,15 +96,15 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
   return (
     <div className="page checklist">
       <h2>Trip checklist</h2>
-      <div className="seg" role="tablist">
-        <button className="chip" role="tab" aria-pressed={mode === "choose"} onClick={() => setMode("choose")}>1. Choose items</button>
-        <button className="chip" role="tab" aria-pressed={mode === "list"} onClick={() => setMode("list")}>2. My list ({chosen.length})</button>
+      <div className="seg" role="group" aria-label="Checklist steps">
+        <button className="chip" aria-pressed={mode === "choose"} onClick={() => setMode("choose")}>1. Choose items</button>
+        <button className="chip" aria-pressed={mode === "list"} onClick={() => setMode("list")}>2. My list ({chosen.length})</button>
       </div>
 
       {mode === "choose" ? (
         <>
           <div className="hint">Quick start: tap a trip type to tick everything usually needed, then adjust.</div>
-          <div className="chips" role="group" aria-label="Trip type">
+          <div className="chips wrap" role="group" aria-label="Trip type">
             {catalog.trips.map(t => (
               <button key={t.id} className="chip" onClick={() => toggleSel(items.filter(i => i.trips.includes(t.id)).map(i => i.id), true)}>
                 {t.icon} {t.label}
@@ -125,7 +135,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
                       {admin && !i.id.startsWith("custom:") && (
                         <span className="row-actions">
                           <button className="link" onClick={() => setDialog({ editing: i })}>Edit</button>
-                          <button className="link danger" onClick={() => confirm(`Delete "${i.name}" from the catalog for everyone?`) && (catalogItems.remove(i.id), toggleSel([i.id], false))}>Delete</button>
+                          <button className="link danger" onClick={async () => { if (await confirmAsk(`Delete "${i.name}" from the catalog for everyone?`, { yes: "Delete", danger: true })) { void catalogItems.remove(i.id); toggleSel([i.id], false); } }}>Delete</button>
                         </span>
                       )}
                     </li>
@@ -181,6 +191,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
           <button className="btn" onClick={() => setMode("choose")}>+ Add more items</button>
         </>
       )}
+      <FooterLinks />
       {dialog && (
         <ItemDialog editing={dialog.editing} cats={cats} trips={catalog.trips}
           onSave={(item, id) => { catalogItems.save(item, id); setDialog(null); }} onClose={() => setDialog(null)} />

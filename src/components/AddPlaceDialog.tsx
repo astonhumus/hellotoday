@@ -10,6 +10,8 @@ interface Props {
   onClose: () => void;
 }
 
+// Local date (not UTC), so people in India can pick today before 5:30am.
+const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const safeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : "");
 
 export function AddPlaceDialog({ categories, districts, editing, onSave, onClose }: Props) {
@@ -64,11 +66,11 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
             placeholder="Paste from Google Maps: 24.8089, 93.9426" />
         </label>
         <p className={"hint" + (coordText && !parsed ? " bad" : "")}>{hint}</p>
-        <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={500} /></label>
+        <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={1000} /></label>
         <div className="row">
-          <label>Visited on<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={new Date().toISOString().slice(0, 10)} /></label>
+          <label>Visited on<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
         </div>
-        <label>My notes<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={1000} placeholder="What to order, best time, who to ask for, parking…" /></label>
+        <label>My notes<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={2000} placeholder="What to order, best time, who to ask for, parking…" /></label>
         <div className="row">
           <label>Phone<input value={phone} onChange={e => setPhone(e.target.value)} type="tel" maxLength={40} /></label>
           <label>Website<input value={website} onChange={e => setWebsite(e.target.value)} type="url" placeholder="https://" maxLength={300} /></label>
