@@ -304,3 +304,8 @@ dialog.msg .actions { position: static; border: none; padding: 0; }
 .footer-links { display: flex; gap: 14px; justify-content: center; padding: 14px 0 6px; font-size: 13px; color: var(--muted); }
 .footer-links a { color: var(--muted); min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; }
 .footer-links .admin-link { font-size: 12px; opacity: 0.6; }
+
+/* "Mark as visited" */
+.been { grid-column: 2; justify-self: start; min-height: 40px; padding: 4px 14px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+.been.on { background: var(--active); border-color: var(--accent); }
+.popup-visit { width: 100%; padding: 9px 10px; border: 1px solid #1f7a5a; border-radius: 8px; background: #fff; color: #1f7a5a; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }

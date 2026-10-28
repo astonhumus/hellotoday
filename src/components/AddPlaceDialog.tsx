@@ -68,7 +68,7 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
         <p className={"hint" + (coordText && !parsed ? " bad" : "")}>{hint}</p>
         <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={1000} /></label>
         <div className="row">
-          <label>Visited on<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
+          <label>Editor visited on (shown publicly)<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
         </div>
         <label>My notes<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={2000} placeholder="What to order, best time, who to ask for, parking…" /></label>
         <div className="row">

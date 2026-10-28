@@ -4,6 +4,7 @@ import { MapView } from "./MapView";
 import { AddPlaceDialog } from "./AddPlaceDialog";
 import { confirmAsk } from "../lib/ui";
 import { FooterLinks } from "./AboutPage";
+import { useVisited } from "../lib/visited";
 
 interface Props {
   state: StateInfo;
@@ -24,7 +25,8 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
   const [picked, setPicked] = useState<Set<string>>(new Set()); // empty = all categories
   const [district, setDistrict] = useState("all");
   const [q, setQ] = useState("");
-  const [visitedOnly, setVisitedOnly] = useState(false);
+  const [visitedOnly, setVisitedOnly] = useState(false); // show only the places this person marked as visited
+  const mine = useVisited();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focusTick, setFocusTick] = useState(0);
   const [view, setView] = useState<"list" | "map">("list"); // phones show one at a time
@@ -44,10 +46,10 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
     return places
       .filter(p => (!picked.size || picked.has(p.category)) &&
         (district === "all" || p.district === district) &&
-        (!visitedOnly || p.visited) &&
+        (!visitedOnly || mine.has(p.id)) &&
         (!needle || [p.name, p.desc, p.district, p.notes].join(" ").toLowerCase().includes(needle)))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [places, picked, district, q, visitedOnly]);
+  }, [places, picked, district, q, visitedOnly, mine.visited]);
 
   const toggle = (id: string) => setPicked(prev => {
     const next = new Set(prev);
@@ -66,7 +68,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
           <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search places…" aria-label="Search places" />
           <div className="chips" role="group" aria-label="Filter by category">
             <button className="chip" aria-pressed={picked.size === 0} onClick={() => setPicked(new Set())}>All</button>
-            <button className="chip" aria-pressed={visitedOnly} onClick={() => setVisitedOnly(v => !v)}>✅ Visited</button>
+            <button className="chip" aria-pressed={visitedOnly} onClick={() => setVisitedOnly(v => !v)}>✅ My visited{mine.count ? <span className="chip-n">{mine.count}</span> : null}</button>
             {visibleCats.map(c => (
               <button key={c.id} className="chip" aria-pressed={picked.has(c.id)} onClick={() => toggle(c.id)}>
                 <span className="dot" style={{ background: c.color }} /> {c.label} <span className="chip-n">{counts[c.id]}</span>
@@ -90,7 +92,9 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
           <div className="count">{filtered.length} place{filtered.length === 1 ? "" : "s"}{loading ? " · updating…" : ""}</div>
         </div>
         <ul>
-          {filtered.length === 0 && <div className="empty">No places match your filters.</div>}
+          {filtered.length === 0 && (
+            <div className="empty">{visitedOnly && !mine.count ? "You haven't marked any places yet. Tap “Mark as visited” on a place and it will appear here." : "No places match your filters."}</div>
+          )}
           {filtered.map(p => {
             const c = catById[p.category];
             const local = localIds.has(p.id);
@@ -102,7 +106,11 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
                 {p.desc && <span className="desc">{p.desc}</span>}
                 {p.notes && <span className="desc notes">📝 {p.notes}</span>}
                 {p.status && p.status !== "approved" && <span className={"badge " + p.status}>{p.status === "pending" ? "⏳ Waiting for approval" : `✖ Rejected${p.reviewNote ? ": " + p.reviewNote : ""}`}</span>}
-                {p.visited && <span className="meta">✅ Visited {p.visited}</span>}
+                {p.visited && <span className="meta">📝 Editor visited {p.visited}</span>}
+                <button className={"been" + (mine.has(p.id) ? " on" : "")} aria-pressed={mine.has(p.id)}
+                  onClick={e => { e.stopPropagation(); mine.toggle(p.id); }}>
+                  {mine.has(p.id) ? `✅ You visited · ${mine.when(p.id)}` : "☐ Mark as visited"}
+                </button>
                 {admin && (
                   <span className="row-actions" onClick={e => e.stopPropagation()}>
                     <button className="link" onClick={() => setDialog({ editing: p })}>Edit</button>
@@ -116,7 +124,7 @@ export function PlacesPage({ state, categories, places, localIds, admin, canDele
         </ul>
       </aside>
       <div className="map-wrap">
-        <MapView state={state} places={filtered} categories={catById} selectedId={selectedId} focusTick={focusTick} onSelect={setSelectedId} />
+        <MapView state={state} places={filtered} categories={catById} selectedId={selectedId} focusTick={focusTick} isVisited={mine.has} onToggleVisited={mine.toggle} onSelect={setSelectedId} />
       </div>
       {dialog && (
         <AddPlaceDialog categories={categories} districts={districts} editing={dialog.editing}

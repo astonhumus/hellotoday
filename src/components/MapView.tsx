@@ -17,6 +17,8 @@ interface Props {
   places: Place[];
   categories: Record<string, Category>;
   selectedId: string | null;
+  isVisited: (id: string) => boolean;
+  onToggleVisited: (id: string) => void;
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
 }
@@ -29,12 +31,16 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
-function buildPopup(p: Place, cat: Category): HTMLElement {
+function buildPopup(p: Place, cat: Category, isVisited: boolean, toggleVisited: (id: string) => void): HTMLElement {
   const coords = formatCoords(p.lat, p.lng);
   const copy = el("button", { type: "button", className: "popup-copy", title: "Copy coordinates" }, "Copy");
   copy.addEventListener("click", () => {
     navigator.clipboard?.writeText(coords).then(() => { copy.textContent = "Copied"; setTimeout(() => (copy.textContent = "Copy"), 1500); });
   });
+  let on = isVisited;
+  const label = () => (on ? "✅ You visited. Tap to undo" : "☐ Mark as visited");
+  const visit = el("button", { type: "button", className: "popup-visit", textContent: label() });
+  visit.addEventListener("click", () => { toggleVisited(p.id); on = !on; visit.textContent = label(); });
   const link = (href: string, label: string) =>
     el("a", { href, target: "_blank", rel: "noopener", className: "popup-btn" }, label);
 
@@ -43,19 +49,22 @@ function buildPopup(p: Place, cat: Category): HTMLElement {
     el("div", { className: "popup-meta" }, `${cat.icon} ${cat.label}${p.district ? " · " + p.district : ""}`),
     el("div", { className: "popup-coords" }, el("code", {}, coords), copy),
     p.approx ? el("div", { className: "popup-meta" }, "📍 Approximate location") : "",
-    p.visited ? el("div", { className: "popup-meta" }, `✅ Visited ${p.visited}`) : "",
+    p.visited ? el("div", { className: "popup-meta" }, `📝 Editor visited ${p.visited}`) : "",
     p.notes ? el("div", {}, p.notes) : "",
+    visit,
     el("div", { className: "popup-actions" }, link(googleMapsUrl(p.lat, p.lng), "Google Maps ↗"), link(appleMapsUrl(p.lat, p.lng, p.name), "Apple Maps ↗"))
   );
 }
 
-export function MapView({ state, places, categories, selectedId, focusTick, onSelect }: Props) {
+export function MapView({ state, places, categories, selectedId, focusTick, isVisited, onToggleVisited, onSelect }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.CircleMarker>());
   const pinLayer = useRef<L.FeatureGroup | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const visitedRef = useRef({ isVisited, onToggleVisited });
+  visitedRef.current = { isVisited, onToggleVisited };
   const selectedRef = useRef(selectedId);
   selectedRef.current = selectedId;
 
@@ -167,7 +176,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, onSe
       const cat = categories[p.category] ?? FALLBACK;
       const m = L.circleMarker([p.lat, p.lng], {
         radius: 8, weight: 2, color: "#fff", fillColor: cat.color, fillOpacity: 0.95
-      }).bindPopup(() => buildPopup(p, cat), { minWidth: 210 });
+      }).bindPopup(() => buildPopup(p, cat, visitedRef.current.isVisited(p.id), visitedRef.current.onToggleVisited), { minWidth: 210 });
       m.on("click", () => onSelectRef.current(p.id));
       group.addLayer(m);
       pins.current.set(p.id, m);
