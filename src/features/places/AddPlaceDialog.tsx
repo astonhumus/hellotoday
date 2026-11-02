@@ -42,7 +42,7 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
   };
 
   const hint = parsed
-    ? `✓ Latitude ${parsed.lat.toFixed(5)}, longitude ${parsed.lng.toFixed(5)}`
+    ? `Latitude ${parsed.lat.toFixed(5)}, longitude ${parsed.lng.toFixed(5)}`
     : coordText
       ? "Couldn't read that. Use “lat, lng”, degrees/minutes/seconds, or a Google Maps link."
       : "In Google Maps, right-click a spot and click the coordinates to copy them, then paste here.";
@@ -55,7 +55,7 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
         <div className="row">
           <label>Category *
             <select value={category} onChange={e => setCategory(e.target.value)}>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+              {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
           </label>
           <label>District<input value={district} onChange={e => setDistrict(e.target.value)} list="district-list" maxLength={60} autoComplete="off" /></label>
@@ -63,19 +63,24 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
         <datalist id="district-list">{districts.map(d => <option key={d} value={d} />)}</datalist>
         <label>Coordinates *
           <input value={coordText} onChange={e => setCoordText(e.target.value)} required autoComplete="off"
-            placeholder="Paste from Google Maps: 24.8089, 93.9426" />
+            placeholder="24.8089, 93.9426" />
         </label>
         <p className={"hint" + (coordText && !parsed ? " bad" : "")}>{hint}</p>
         <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={1000} /></label>
-        <div className="row">
-          <label>Editor visited on (shown publicly)<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
-        </div>
-        <label>My notes<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={2000} placeholder="What to order, best time, who to ask for, parking…" /></label>
-        <div className="row">
-          <label>Phone<input value={phone} onChange={e => setPhone(e.target.value)} type="tel" maxLength={40} /></label>
-          <label>Website<input value={website} onChange={e => setWebsite(e.target.value)} type="url" placeholder="https://" maxLength={300} /></label>
-        </div>
-        <label className="check"><input type="checkbox" checked={approx} onChange={e => setApprox(e.target.checked)} /> Location is approximate</label>
+        <details className="more" open={!!(editing && (editing.visited || editing.notes || editing.phone || editing.website || editing.approx))}>
+          <summary>More details</summary>
+          <div className="more-body">
+            <div className="row">
+              <label>Editor visited on (shown publicly)<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
+            </div>
+            <label>My notes<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={2000} placeholder="What to order, best time, who to ask for, parking…" /></label>
+            <div className="row">
+              <label>Phone<input value={phone} onChange={e => setPhone(e.target.value)} type="tel" maxLength={40} /></label>
+              <label>Website<input value={website} onChange={e => setWebsite(e.target.value)} type="url" placeholder="https://" maxLength={300} /></label>
+            </div>
+            <label className="check"><input type="checkbox" checked={approx} onChange={e => setApprox(e.target.checked)} /> Location is approximate</label>
+          </div>
+        </details>
         <div className="actions">
           <button type="button" className="btn" onClick={() => dlg.current?.close()}>Cancel</button>
           <button type="submit" className="btn primary" disabled={!parsed || !name.trim()}>Save place</button>

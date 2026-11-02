@@ -31,9 +31,8 @@ export function HomePage({ state, categories, places, songCount }: Props) {
   return (
     <div className="page home">
       <section className="hero">
-        <p className="hero-eyebrow">Tourist guide</p>
         <h1 className="hero-title">Explore {name || "India"}</h1>
-        <p className="hero-sub">Places to visit, eat and stay. A song library and a packing list for the trip. Works offline once opened.</p>
+        <p className="hero-sub">Places to visit, eat and stay, plus songs and a packing list. Works offline.</p>
         <form className="hero-search" onSubmit={search} role="search">
           <Icon name="search" size={18} />
           <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search places" aria-label="Search places" enterKeyHint="search" />
@@ -46,8 +45,8 @@ export function HomePage({ state, categories, places, songCount }: Props) {
         <div className="tiles">
           {categories.length === 0 && [0, 1, 2, 3, 4].map(i => <span key={i} className="tile skel" aria-hidden="true" />)}
           {categories.map(c => (
-            <a key={c.id} className="tile" href={`#/places?cat=${c.id}`} style={{ "--tile": c.color } as React.CSSProperties}>
-              <span className="tile-icon" aria-hidden="true">{c.icon}</span>
+            <a key={c.id} className="tile" href={`#/places?cat=${c.id}`}>
+              <span className="tile-icon" aria-hidden="true"><Icon name={c.icon} size={22} /></span>
               <span className="tile-label">{c.label}</span>
               <span className="tile-count">{counts[c.id] ? `${counts[c.id]} places` : "\u00a0"}</span>
             </a>
@@ -55,8 +54,7 @@ export function HomePage({ state, categories, places, songCount }: Props) {
         </div>
       </section>
 
-      <section aria-labelledby="h-quick" className="stack">
-        <h2 id="h-quick" className="home-h">Quick links</h2>
+      <section aria-label="More ways to explore" className="stack">
         <a className="row-card" href="#/places?near=1">
           <span className="rc-icon"><Icon name="pin" size={22} /></span>
           <span className="rc-text"><strong>Near me</strong><span>Sort places by distance from where you are</span></span>
@@ -66,16 +64,12 @@ export function HomePage({ state, categories, places, songCount }: Props) {
           <span className="rc-text"><strong>My visited{mine.count ? ` (${mine.count})` : ""}</strong>
             <span>{mine.count ? "The places you have ticked off" : "Tick places you've been to and they will collect here"}</span></span>
         </a>
-      </section>
-
-      <section aria-labelledby="h-more" className="stack">
-        <h2 id="h-more" className="home-h">Plan and enjoy</h2>
         <a className="row-card" href="#/checklist">
-          <span className="rc-icon emoji" aria-hidden="true">🎒</span>
+          <span className="rc-icon"><Icon name="checklist" size={22} /></span>
           <span className="rc-text"><strong>Trip checklist</strong><span>Picnic, camping, trek or road trip: never forget an item</span></span>
         </a>
         <a className="row-card" href="#/music">
-          <span className="rc-icon emoji" aria-hidden="true">🎵</span>
+          <span className="rc-icon"><Icon name="music" size={22} /></span>
           <span className="rc-text"><strong>Songs</strong><span>{songCount} song{songCount === 1 ? "" : "s"}: lyrics by language and artist</span></span>
         </a>
       </section>

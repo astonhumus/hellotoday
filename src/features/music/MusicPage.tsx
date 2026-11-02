@@ -11,6 +11,7 @@ import { Chip } from "../../ui/Chip";
 import { Icon } from "../../ui/Icon";
 import { PageHeader } from "../../ui/PageHeader";
 import { SearchField } from "../../ui/SearchField";
+import { EmptyState, Skeleton } from "../../ui/States";
 import "./music.css";
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
   localIds: Set<string>;
   admin: boolean;
   canDelete: boolean;
+  ready?: boolean; // the song list has arrived (or failed)
   songId: string | null;
   open: (id: string | null) => void;
   onSave: (s: Omit<Song, "id">, id?: string) => void;
@@ -27,7 +29,7 @@ interface Props {
 const LANGUAGES = ["Manipuri (Meiteilon)", "English", "Hindi", "Bengali", "Tangkhul", "Thadou", "Mizo"];
 const uniq = (xs: (string | undefined)[]) => [...new Set(xs.filter(Boolean) as string[])].sort();
 
-export function MusicPage({ songs, localIds, admin, canDelete, songId, open, onSave, onDelete }: Props) {
+export function MusicPage({ songs, localIds, admin, canDelete, ready = true, songId, open, onSave, onDelete }: Props) {
   const song = songs.find(s => s.id === songId) ?? null;
   usePageMeta(song ? `${song.title}${song.lyrics.trim() ? " lyrics" : ""}` : "Song lyrics by language and artist",
     song ? `${song.lyrics.trim() ? "Lyrics of" : "Song:"} ${song.title}${song.artist ? ` by ${song.artist}` : ""}${song.language ? ` in ${song.language}` : ""}.` : "Read song lyrics, filtered by language (including Manipuri) and artist. Large text and auto-scroll for singing along.");
@@ -40,7 +42,7 @@ export function MusicPage({ songs, localIds, admin, canDelete, songId, open, onS
     <>
       {song
         ? <Lyrics song={song} admin={admin} canDelete={canDelete} onBack={() => open(null)} onEdit={onEdit} onDelete={onRemove} />
-        : <SongList songs={songs} localIds={localIds} admin={admin} canDelete={canDelete} open={open} onAdd={() => setDialog({ editing: null })} onEdit={onEdit} onDelete={onRemove} />}
+        : <SongList ready={ready} songs={songs} localIds={localIds} admin={admin} canDelete={canDelete} open={open} onAdd={() => setDialog({ editing: null })} onEdit={onEdit} onDelete={onRemove} />}
       {dialog && (
         <SongDialog editing={dialog.editing} languages={languages} artists={artists}
           onSave={(s, id) => { onSave(s, id); setDialog(null); }} onClose={() => setDialog(null)} />
@@ -50,11 +52,12 @@ export function MusicPage({ songs, localIds, admin, canDelete, songId, open, onS
 }
 
 interface ListProps {
+  ready: boolean;
   songs: Song[]; localIds: Set<string>; admin: boolean; canDelete: boolean;
   open: (id: string) => void; onAdd: () => void; onEdit: (s: Song) => void; onDelete: (s: Song) => void;
 }
 
-function SongList({ songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }: ListProps) {
+function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }: ListProps) {
   const [q, setQ] = useState("");
   const { picked, toggle, clear, multi, setMulti } = useChipFilter(); // languages: single-select unless "Select several" is on
   const [artist, setArtist] = useState("all");
@@ -67,18 +70,20 @@ function SongList({ songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }
     return songs
       .filter(s => (!picked.size || (!!s.language && picked.has(s.language))) && (artist === "all" || s.artist === artist) &&
         (!n || [s.title, s.artist, s.language].join(" ").toLowerCase().includes(n)))
-      .sort((a, b) => a.title.localeCompare(b.title));
+      // songs with lyrics first, so the first things you tap open something to read
+      .sort((a, b) => Number(!!b.lyrics.trim()) - Number(!!a.lyrics.trim()) || a.title.localeCompare(b.title));
   }, [songs, q, picked, artist]);
+  const clearFilters = () => { setQ(""); clear(); setArtist("all"); };
 
   return (
     <div className="page music">
-      <PageHeader title="Songs" sub={`${songs.length} song${songs.length === 1 ? "" : "s"} · ${withLyrics} with lyrics`}
+      <PageHeader title="Songs" sub={ready ? `${songs.length} song${songs.length === 1 ? "" : "s"} · ${withLyrics} with lyrics` : undefined}
         actions={admin && <Button variant="primary" icon="plus" onClick={onAdd}>Add song</Button>} />
       <SearchField value={q} onChange={setQ} placeholder="Search songs" />
       <div className="chip-row" role="group" aria-label="Filter by language">
         <Chip pressed={picked.size === 0} onClick={clear}>All languages</Chip>
         {langs.map(l => <Chip key={l} pressed={picked.has(l)} count={count("language", l)} onClick={() => toggle(l)}>{l}</Chip>)}
-        {langs.length > 2 && <Chip className="multi" pressed={multi} onClick={() => setMulti(!multi)} title="Pick more than one language at a time">☑ Select several</Chip>}
+        {langs.length > 2 && <Chip className="multi" pressed={multi} onClick={() => setMulti(!multi)} icon="square-check" title="Pick more than one language at a time">Select several</Chip>}
         {artists.length > 1 && (
           <select className="pill-select" value={artist} onChange={e => setArtist(e.target.value)} aria-label="Filter by artist" data-active={artist !== "all"}>
             <option value="all">All artists</option>
@@ -88,7 +93,14 @@ function SongList({ songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }
       </div>
 
       <ul className="song-list">
-        {shown.length === 0 && <li className="empty">No songs found.</li>}
+        {!ready && <li><Skeleton rows={5} label="Loading songs" /></li>}
+        {ready && shown.length === 0 && (
+          <li>
+            {songs.length === 0
+              ? <EmptyState title="No songs yet" />
+              : <EmptyState title="No songs match" hint="Try a different search or remove a filter." action={{ label: "Clear filters", onClick: clearFilters }} />}
+          </li>
+        )}
         {shown.map(s => {
           const soon = !s.lyrics.trim();
           return (
@@ -101,8 +113,8 @@ function SongList({ songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }
                   {(soon || (s.status && s.status !== "approved")) && (
                     <span className="sc-tags">
                       {soon && <span className="tag">Lyrics coming soon</span>}
-                      {s.status === "pending" && <span className="badge pending">⏳ Waiting for approval</span>}
-                      {s.status === "rejected" && <span className="badge rejected">✖ Rejected{s.reviewNote ? `: ${s.reviewNote}` : ""}</span>}
+                      {s.status === "pending" && <span className="badge pending"><Icon name="clock" size={14} /> Waiting for approval</span>}
+                      {s.status === "rejected" && <span className="badge rejected"><Icon name="circle-x" size={14} /> Rejected{s.reviewNote ? `: ${s.reviewNote}` : ""}</span>}
                     </span>
                   )}
                 </span>
@@ -203,7 +215,6 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
     <div className="lyrics-page">
       <div className="lyr-bar">
         <IconButton icon="back" label="Back to songs" onClick={onBack} />
-        <span className="lyr-name">{song.title}</span>
         <div className="lyr-tools" role="group" aria-label="Reading tools">
           <button type="button" className="tool-btn" onClick={() => setSize(s => Math.max(14, s - 2))} aria-label="Smaller text">A<small>−</small></button>
           <button type="button" className="tool-btn" onClick={() => setSize(s => Math.min(48, s + 2))} aria-label="Larger text">A<small>+</small></button>

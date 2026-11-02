@@ -8,11 +8,13 @@ import { Sheet, type Snap } from "../../ui/Sheet";
 import { useMedia } from "../../ui/useMedia";
 import { useChipFilter } from "../../ui/useChipFilter";
 import { usePageMeta } from "../../lib/pageMeta";
+import { canGoBack, goBack } from "../../lib/nav";
 import { MapView } from "./MapView";
 import { AddPlaceDialog } from "./AddPlaceDialog";
 import { FilterBar } from "./FilterBar";
 import { PlaceCard } from "./PlaceCard";
 import { PlaceDetails } from "./PlaceDetails";
+import { EmptyState, Skeleton } from "../../ui/States";
 import "./places.css";
 
 interface Props {
@@ -23,6 +25,7 @@ interface Props {
   admin: boolean;
   canDelete: boolean;
   loading?: boolean;
+  ready?: boolean; // this state's places have arrived (or failed); until then the list shows placeholders
   initial?: { cat: string | null; q: string; visited: boolean; near: boolean }; // from the address, e.g. #/places?cat=picnic
   onSavePlace: (p: Omit<Place, "id">, id?: string) => void;
   onDeletePlace: (id: string) => void;
@@ -38,9 +41,9 @@ const km = (from: { lat: number; lng: number }, p: Place) => {
   return 12742 * Math.asin(Math.sqrt(h));
 };
 
-const FILTER_BAR_HEIGHT = 124; // px the floating search and filters take at the top of the map on phones
+const FILTER_BAR_HEIGHT = 128; // px the floating search and filters take at the top of the map on phones
 
-export function PlacesPage({ initial, state, categories, places, admin, canDelete, loading, onSavePlace, onDeletePlace, exportCount, onExport, onImport }: Props) {
+export function PlacesPage({ initial, state, categories, places, admin, canDelete, loading, ready = true, onSavePlace, onDeletePlace, exportCount, onExport, onImport }: Props) {
   const phone = useMedia("(max-width: 760px)");
   const { picked, toggle: toggleCategory, clear: clearCategories, multi, setMulti } = useChipFilter(initial?.cat ? [initial.cat] : []); // single-select unless "Select several" is on
   const [district, setDistrict] = useState("all");
@@ -50,9 +53,12 @@ export function PlacesPage({ initial, state, categories, places, admin, canDelet
   const mine = useVisited();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focusTick, setFocusTick] = useState(0);
-  const [snap, setSnap] = useState<Snap>("peek");
+  // Arriving with a filter (a category tile, a search, "Near me", "My visited") opens the list so the results are visible at once.
+  const [snap, setSnap] = useState<Snap>(() => (phone && (initial?.cat || initial?.q || initial?.visited || initial?.near) ? "half" : "peek"));
   const [sheetH, setSheetH] = useState(84);
   const [dialog, setDialog] = useState<{ editing: Place | null } | null>(null);
+  // Opened from a tile, a search or a shortcut on another page: offer a way back to it.
+  const [cameFromLink] = useState(() => !!(initial?.cat || initial?.q || initial?.visited || initial?.near) && canGoBack());
 
   const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
   const counts = useMemo(() => {
@@ -69,7 +75,7 @@ export function PlacesPage({ initial, state, categories, places, admin, canDelet
     if (!navigator.geolocation) return void notify("This device can't share its location.", "error");
     navigator.geolocation.getCurrentPosition(
       pos => setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => void notify("Couldn't get your location. Allow location access for this site in your browser settings, then try again.", "error"),
+      () => void notify("Couldn't get your location. Allow location access for this site, then try again.", "error"),
       { timeout: 12000, maximumAge: 60000 });
   };
   const toggleNear = () => (me ? setMe(null) : askLocation());
@@ -117,12 +123,22 @@ export function PlacesPage({ initial, state, categories, places, admin, canDelet
     </div>
   );
 
+  const filtering = picked.size > 0 || district !== "all" || !!q.trim() || visitedOnly;
+  const clearFilters = () => { clearCategories(); setDistrict("all"); setQ(""); setVisitedOnly(false); };
+
   const list = (
     <>
       {adminTools}
       <ul className="pl-list">
-        {filtered.length === 0 && (
-          <li className="empty">{visitedOnly && !mine.count ? "You haven't marked any places yet. Tick a place and it will appear here." : "No places match your filters."}</li>
+        {!ready && <li><Skeleton rows={5} label="Loading places" /></li>}
+        {ready && filtered.length === 0 && (
+          <li>
+            {visitedOnly && !mine.count
+              ? <EmptyState title="No visited places yet" hint="Tick a place and it will appear here." action={{ label: "Browse places", onClick: () => setVisitedOnly(false) }} />
+              : filtering
+                ? <EmptyState title="No places match" hint="Try a different search or remove a filter." action={{ label: "Clear filters", onClick: clearFilters }} />
+                : <EmptyState title="No places yet" />}
+          </li>
         )}
         {filtered.map(p => (
           <PlaceCard key={p.id} place={p} category={catById[p.category]} active={p.id === selectedId}
@@ -148,7 +164,7 @@ export function PlacesPage({ initial, state, categories, places, admin, canDelet
 
   const title = selected
     ? <><IconButton icon="back" label="Back to the list" onClick={() => setSelectedId(null)} /><h2 className="pl-title">{selected.name}</h2></>
-    : <strong className="pl-title">{filtered.length} place{filtered.length === 1 ? "" : "s"}{loading ? " · updating…" : ""}</strong>;
+    : <>{cameFromLink && <IconButton icon="back" label="Back" onClick={() => goBack("#/")} />}<strong className="pl-title">{ready ? `${filtered.length} place${filtered.length === 1 ? "" : "s"}${loading ? " · updating…" : ""}` : "Loading places…"}</strong></>;
 
   return (
     <div className="places" style={{ "--sheet-h": `${phone ? sheetH : 0}px` } as React.CSSProperties}>

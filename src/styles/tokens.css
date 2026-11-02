@@ -1,68 +1,140 @@
-/* Design tokens: the one place colours, spacing, corners and shadows are defined. */
-:root {
-  /* colour */
-  --bg: #f4f3ee;
-  --panel: #ffffff;
-  --surface-2: #f0efe9;
-  --text: #17201b;
-  --muted: #5b675f;
-  --border: #e3e1d9;
-  --accent: #1a7f5a;
-  --on-accent: #ffffff;
-  --hover: #efeee8;
-  --active: #e3f1ea;
-  --danger: #c0392b;
-  --warn-bg: #fef3c7;
-  --warn-text: #92400e;
+/* Design tokens: the one place colours, type, spacing, corners, shadows and motion are defined.
+   Neutral base, one accent. Dark mode swaps the values below; every other file only reads the names. */
+:root, [data-theme="light"] {
+  color-scheme: light dark;
 
-  /* shape */
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 24px;
-  --r-pill: 999px;
+  /* colour: neutrals */
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-2: #f3f3f1;
+  --border: #e6e5e1;
+  --border-strong: #d2d1cb;
+  --text: #171717;
+  --text-2: #5c5b57;
 
-  /* depth */
-  --shadow-sm: 0 1px 2px rgba(16, 24, 20, 0.08);
-  --shadow-md: 0 4px 14px rgba(16, 24, 20, 0.12);
-  --shadow-lg: 0 -6px 28px rgba(16, 24, 20, 0.18);
+  /* colour: the one accent */
+  --accent: #0b7a55;
+  --accent-ink: #ffffff;
+  --accent-wash: #e7f4ee;
 
-  /* spacing scale */
+  /* colour: destructive / error only */
+  --danger: #b42318;
+  --danger-ink: #ffffff;
+
+  --scrim: rgba(0, 0, 0, 0.4);
+
+  /* type: one family, three weights */
+  --font: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Meetei Mayek", "Noto Sans Bengali", sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+
+  --text-xs: 12px;     --lh-xs: 16px;
+  --text-sm: 14px;     --lh-sm: 20px;
+  --text-md: 16px;     --lh-md: 24px;
+  --text-lg: 20px;     --lh-lg: 28px;
+  --text-xl: 28px;     --lh-xl: 34px;
+  --text-display: 40px; --lh-display: 44px;
+
+  /* space: 4/8 scale */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
   --s-4: 16px;
   --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
 
-  /* type scale */
-  --fs-sm: 13px;
-  --fs-md: 15px;
-  --fs-lg: 17px;
-  --fs-xl: 22px;
+  /* shape: one corner radius; circles only for round things */
+  --radius: 12px;
+  --radius-sm: 8px;    /* only for a control nested inside a 12px container (segmented buttons, tick boxes) */
+  --radius-full: 50%;
 
-  --tabbar: 58px;
+  /* depth: nothing rests on a shadow; only what floats over content has one */
+  --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* motion */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 280ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* sizes: controls and rows sit on this scale */
+  --tap: 44px;
+  --ctl-sm: 40px;
+  --ctl-lg: 48px;
+  --ctl-xl: 56px;
+  --row: 64px;
+  --tile-min: 112px;
+  --tabbar: 56px;
+  --filter-bar-h: 128px;  /* the floating search and filters on phones; keep equal to FILTER_BAR_HEIGHT in PlacesPage.tsx */
+
+  /* widths */
+  --page-w: 720px;
+  --page-w-wide: 880px;
+  --panel-w: 400px;
+  --dialog-w: 520px;
+  --msg-w: 420px;
+  --focus-ring: 2px solid var(--accent);
+}
+
+/* Derived from the palette, so declared wherever a palette can be set. */
+:root, [data-theme] {
+  /* colour: interaction states, derived from the tokens above so they follow the theme */
+  --hover: color-mix(in srgb, var(--text) 5%, transparent);
+  --pressed: color-mix(in srgb, var(--text) 10%, transparent);
+  --accent-hover: color-mix(in srgb, var(--accent) 88%, var(--text));
+  --accent-pressed: color-mix(in srgb, var(--accent) 76%, var(--text));
+  --danger-wash: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  --disabled-opacity: 0.5;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #101412;
-    --panel: #1a1f1c;
-    --surface-2: #222824;
-    --text: #e9eeea;
-    --muted: #9aa69f;
-    --border: #2c332f;
-    --accent: #4fbf92;
-    --on-accent: #08241a;
-    --hover: #232a26;
-    --active: #1f3229;
-    --danger: #ef6b5b;
-    --warn-bg: #3b3012;
-    --warn-text: #f5d58a;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 -6px 28px rgba(0, 0, 0, 0.6);
+  :root:not([data-theme="light"]) {
+    --bg: #0f0f0e;
+    --surface: #171716;
+    --surface-2: #1f1f1d;
+    --border: #2a2a28;
+    --border-strong: #3a3a37;
+    --text: #f2f2f0;
+    --text-2: #a3a29d;
+
+    --accent: #3dba8a;
+    --accent-ink: #06241a;
+    --accent-wash: #12271f;
+
+    --danger: #f28b82;
+    --danger-ink: #2a0a07;
+
+    --scrim: rgba(0, 0, 0, 0.6);
+    --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.4);
   }
 }
+[data-theme="dark"] {
+  --bg: #0f0f0e;
+  --surface: #171716;
+  --surface-2: #1f1f1d;
+  --border: #2a2a28;
+  --border-strong: #3a3a37;
+  --text: #f2f2f0;
+  --text-2: #a3a29d;
+
+  --accent: #3dba8a;
+  --accent-ink: #06241a;
+  --accent-wash: #12271f;
+
+  --danger: #f28b82;
+  --danger-ink: #2a0a07;
+
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme] { background: var(--bg); color: var(--text); }
+
+:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }

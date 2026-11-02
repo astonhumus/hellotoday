@@ -55,8 +55,8 @@ export default defineConfig(({ mode }) => {
         scope: "./",
         display: "standalone",
         orientation: "any",
-        theme_color: "#1f7a5a",
-        background_color: "#f6f5f1",
+        theme_color: "#fafaf9",
+        background_color: "#fafaf9",
         categories: ["travel", "navigation", "lifestyle"],
         icons: [
           { src: "icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

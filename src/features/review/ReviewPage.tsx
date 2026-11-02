@@ -6,6 +6,7 @@ import { usePageMeta } from "../../lib/pageMeta";
 import { Button, IconButton } from "../../ui/Button";
 import { Icon } from "../../ui/Icon";
 import { PageHeader } from "../../ui/PageHeader";
+import { goBack } from "../../lib/nav";
 import "./review.css";
 
 type Row = Record<string, any>;
@@ -92,10 +93,10 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
 
   return (
     <div className="page review">
-      <PageHeader title="Review" sub={waiting ? `${waiting} waiting for your decision` : "Nothing waiting for approval"} />
+      <PageHeader title="Review" onBack={() => goBack("#/places")} sub={waiting ? `${waiting} waiting for your decision` : "Nothing waiting for approval"} />
       {nothing && (
         <div className="card rv-empty">
-          <span className="rv-empty-ic" aria-hidden="true">🎉</span>
+          <span className="rv-empty-ic" aria-hidden="true"><Icon name="party-popper" size={40} /></span>
           <strong>All caught up</strong>
           <p className="ph-sub">New places and songs from contributors will show up here.</p>
         </div>

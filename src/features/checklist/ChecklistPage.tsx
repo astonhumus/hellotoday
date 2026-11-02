@@ -9,6 +9,7 @@ import { Icon } from "../../ui/Icon";
 import { PageHeader } from "../../ui/PageHeader";
 import { SearchField } from "../../ui/SearchField";
 import { Segmented } from "../../ui/Segmented";
+import { EmptyState, Skeleton } from "../../ui/States";
 import "./checklist.css";
 
 export interface Catalog {
@@ -28,7 +29,7 @@ function load(): Saved {
   } catch { return { sel: [], packed: [], custom: [] }; }
 }
 
-export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; admin: boolean }) {
+export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catalog | null; admin: boolean; ready?: boolean }) {
   usePageMeta("Trip packing checklist for picnics, camping and treks", "Tick what to bring for a picnic, camping, trek, road trip or day trip: food, utensils, tents, clothing, health and more. Share or print your list.");
   const [saved, setSaved] = useState<Saved>(load);
   const [mode, setMode] = useState<"choose" | "list">(() => (load().sel.length ? "list" : "choose"));
@@ -86,7 +87,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
 
   const asText = () => cats.map(c => {
     const rows = chosen.filter(i => i.cat === c.id);
-    return rows.length ? `${c.icon} ${c.label}\n${rows.map(i => `${packed.has(i.id) ? "[x]" : "[ ]"} ${i.name}`).join("\n")}` : "";
+    return rows.length ? `${c.label}\n${rows.map(i => `${packed.has(i.id) ? "[x]" : "[ ]"} ${i.name}`).join("\n")}` : "";
   }).filter(Boolean).join("\n\n");
 
   const share = async () => {
@@ -97,14 +98,23 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
     } catch { /* user cancelled */ }
   };
 
-  if (!catalog) return <div className="page"><div className="empty">Loading checklist…</div></div>;
+  if (!catalog) {
+    return (
+      <div className="page">
+        {ready
+          ? <EmptyState title="Can't load the checklist" hint="Check your connection and try again." action={{ label: "Reload", onClick: () => location.reload() }} />
+          : <Skeleton rows={4} kind="card" label="Loading checklist" />}
+      </div>
+    );
+  }
 
   const needle = q.trim().toLowerCase();
+  const noMatch = !!needle && !items.some(i => i.name.toLowerCase().includes(needle));
   const pct = chosen.length ? Math.round((done / chosen.length) * 100) : 0;
 
   return (
     <div className="page checklist">
-      <PageHeader title="Trip checklist" sub={mode === "choose" ? "Pick what you need, then tick it off as you pack." : `${done} of ${chosen.length} packed`} />
+      <PageHeader title="Trip checklist" sub={mode === "choose" ? undefined : `${done} of ${chosen.length} packed`} />
       <Segmented label="Checklist steps" value={mode} onChange={setMode}
         options={[{ id: "choose", label: "1. Choose items" }, { id: "list", label: `2. My list (${chosen.length})` }]} />
 
@@ -116,12 +126,12 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
             <div className="trip-grid" role="group" aria-label="Trip type">
               {catalog.trips.map(t => (
                 <button key={t.id} type="button" className="trip-tile" onClick={() => toggleSel(items.filter(i => i.trips.includes(t.id)).map(i => i.id), true)}>
-                  <span className="trip-emoji" aria-hidden="true">{t.icon}</span>
+                  <span className="trip-emoji" aria-hidden="true"><Icon name={t.icon} size={28} /></span>
                   <span className="trip-name">{t.label}</span>
                   <span className="trip-n">{items.filter(i => i.trips.includes(t.id)).length} items</span>
                 </button>
               ))}
-              <button type="button" className="trip-tile clear" onClick={() => toggleSel(saved.sel, false)} disabled={!saved.sel.length}>
+              <button type="button" className="trip-tile clear" onClick={async () => { if (await confirmAsk(`Untick all ${saved.sel.length} items?`, { yes: "Clear all", danger: true })) toggleSel(saved.sel, false); }} disabled={!saved.sel.length}>
                 <span className="trip-emoji" aria-hidden="true"><Icon name="undo" size={24} /></span>
                 <span className="trip-name">Clear all</span>
                 <span className="trip-n">{saved.sel.length} ticked</span>
@@ -130,6 +140,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
           </section>
 
           <SearchField value={q} onChange={setQ} placeholder="Search items" />
+          {noMatch && <EmptyState title={`No items match “${q.trim()}”`} hint="Add it as your own item below." action={{ label: "Clear search", onClick: () => setQ("") }} />}
 
           {cats.map(c => {
             const rows = items.filter(i => i.cat === c.id && (!needle || i.name.toLowerCase().includes(needle)));
@@ -138,7 +149,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
             return (
               <details key={c.id} open={!!needle || undefined} className="ck-card">
                 <summary>
-                  <span className="ck-ic" aria-hidden="true">{c.icon}</span>
+                  <span className="ck-ic" aria-hidden="true"><Icon name={c.icon} size={20} /></span>
                   <span className="ck-name">{c.label}</span>
                   <span className={"ck-count" + (n ? " on" : "")}>{n}/{rows.length}</span>
                   <Icon name="chevron-down" size={18} />
@@ -171,7 +182,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
             <div className="ck-add-row">
               <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Raincoat for the child" maxLength={80} aria-label="Custom item" />
               <select value={newCat} onChange={e => setNewCat(e.target.value)} aria-label="Category for custom item">
-                {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+                {cats.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
               <Button variant="primary" type="submit" icon="plus" disabled={!newName.trim()}>Add</Button>
             </div>
@@ -186,7 +197,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
         <>
           {chosen.length === 0 ? (
             <div className="card ck-empty">
-              <span className="ck-empty-ic" aria-hidden="true">🎒</span>
+              <span className="ck-empty-ic" aria-hidden="true"><Icon name="backpack" size={40} /></span>
               <strong>Nothing chosen yet</strong>
               <p className="ph-sub">Pick a trip type or tick items to build your packing list.</p>
               <Button variant="primary" onClick={() => setMode("choose")}>Choose items</Button>
@@ -196,14 +207,14 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
               <section className="card ck-progress" aria-label="Packing progress">
                 <div className="ckp-top">
                   <strong className="ckp-num">{done}<span>/{chosen.length}</span></strong>
-                  <span className="ckp-label">packed{done === chosen.length ? " 🎉" : ` · ${pct}%`}</span>
+                  <span className="ckp-label">packed{done === chosen.length ? " · all done" : ` · ${pct}%`}</span>
                 </div>
                 <div className="ckp-bar" role="progressbar" aria-label="Packed" aria-valuemin={0} aria-valuemax={chosen.length} aria-valuenow={done}><div style={{ width: `${pct}%` }} /></div>
               </section>
               <div className="ck-tools">
                 <Button icon="share" onClick={share}>Share</Button>
                 <Button icon="print" onClick={() => window.print()}>Print</Button>
-                <Button icon="undo" onClick={() => update(s => ({ ...s, packed: [] }))} disabled={!done}>Untick all</Button>
+                <Button icon="undo" onClick={async () => { if (await confirmAsk(`Mark all ${done} packed items as not packed?`, { yes: "Untick all", danger: true })) update(s => ({ ...s, packed: [] })); }} disabled={!done}>Untick all</Button>
               </div>
               {cats.map(c => {
                 const rows = chosen.filter(i => i.cat === c.id);
@@ -212,7 +223,7 @@ export function ChecklistPage({ catalog, admin }: { catalog: Catalog | null; adm
                 return (
                   <section key={c.id} className="ck-card open">
                     <h2 className="ck-head">
-                      <span className="ck-ic" aria-hidden="true">{c.icon}</span>
+                      <span className="ck-ic" aria-hidden="true"><Icon name={c.icon} size={20} /></span>
                       <span className="ck-name">{c.label}</span>
                       <span className={"ck-count" + (d === rows.length ? " on" : "")}>{d}/{rows.length}</span>
                     </h2>
@@ -265,7 +276,7 @@ function ItemDialog({ editing, cats, trips, onSave, onClose }: DialogProps) {
         <label>Name *<input value={name} onChange={e => setName(e.target.value)} required maxLength={80} autoComplete="off" /></label>
         <label>Category
           <select value={cat} onChange={e => setCat(e.target.value)}>
-            {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+            {cats.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         </label>
         <fieldset className="trip-pick">
@@ -273,7 +284,7 @@ function ItemDialog({ editing, cats, trips, onSave, onClose }: DialogProps) {
           {trips.map(t => (
             <label key={t.id} className="check">
               <input type="checkbox" checked={picked.includes(t.id)}
-                onChange={e => setPicked(p => (e.target.checked ? [...p, t.id] : p.filter(x => x !== t.id)))} /> {t.icon} {t.label}
+                onChange={e => setPicked(p => (e.target.checked ? [...p, t.id] : p.filter(x => x !== t.id)))} /> {t.label}
             </label>
           ))}
         </fieldset>

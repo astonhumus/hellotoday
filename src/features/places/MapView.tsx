@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import type { Category, Place, StateInfo } from "../../types";
 import { loadJson, store } from "../../lib/data";
 import { Icon } from "../../ui/Icon";
+import { iconSvg } from "../../ui/icons";
 
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
 // Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
@@ -41,7 +42,16 @@ if (!mapProto._zoomGuarded) {
   mapProto._zoomGuarded = true;
 }
 
-const FALLBACK: Category = { id: "", label: "Place", color: "#64748b", icon: "📍" };
+// Leaflet draws to canvas/SVG and can't read CSS variables, so the theme tokens are read once here.
+const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const fallbackCategory = (): Category => ({ id: "", label: "Place", color: "", icon: "pin" });
+
+// A place is a neutral round pin with its category glyph; the selected one fills with the accent, visited ones get an accent ring.
+type PinState = "plain" | "visited" | "selected";
+const pinIcon = (glyph: string, state: PinState) => {
+  const size = state === "selected" ? 38 : 26;
+  return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}">${iconSvg(glyph, state === "selected" ? 20 : 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+};
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...kids: (Node | string)[]) {
   const node = Object.assign(document.createElement(tag), props);
@@ -52,7 +62,8 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
 export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, me, insets, onSelect }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const pins = useRef(new Map<string, L.CircleMarker>());
+  const pins = useRef(new Map<string, L.Marker>());
+  const pinState = useRef(new Map<string, { glyph: string; state: PinState }>());
   const pinLayer = useRef<L.FeatureGroup | null>(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
@@ -85,13 +96,13 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
 
     Promise.all([loadJson<any>("world.json"), loadJson<any>("india-states.json")]).then(([world, india]) => {
       if (cancelled) return;
-      L.geoJSON(world, { pane: "borders", interactive: false, style: { color: "#9aa69f", weight: 0.8, fillColor: "#e9e7df", fillOpacity: 1 } }).addTo(map);
-      L.geoJSON(india, { pane: "borders", interactive: false, style: { color: "#b4bdb7", weight: 0.8, fillColor: "#efede6", fillOpacity: 1 } }).addTo(map);
+      L.geoJSON(world, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface-2"), fillOpacity: 1 } }).addTo(map);
+      L.geoJSON(india, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface"), fillOpacity: 1 } }).addTo(map);
       const mine = india.features.filter((f: any) => f.properties.name === state.name);
       const fc = { type: "FeatureCollection", features: mine } as any;
-      L.geoJSON(fc, { pane: "borders", interactive: false, style: { color: "#1f7a5a", weight: 2, fillColor: "#dcefe6", fillOpacity: 1 } }).addTo(map);
+      L.geoJSON(fc, { pane: "borders", interactive: false, style: { color: token("--accent"), weight: 2, fillColor: token("--accent-wash"), fillOpacity: 1 } }).addTo(map);
       // Green state boundary stays visible on top of the street map.
-      const outline = L.geoJSON(fc, { pane: "outline", interactive: false, style: { color: "#1f7a5a", weight: 2.5, fill: false } });
+      const outline = L.geoJSON(fc, { pane: "outline", interactive: false, style: { color: token("--accent"), weight: 2.5, fill: false } });
       if (!haveDistrictOutline.current) { outline.addTo(map); stateStroke.current = outline; }
       if (mine.length) {
         const bounds = outline.getBounds();
@@ -121,7 +132,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     const map = mapRef.current;
     if (!map || !districtData?.outline) return;
     stateStroke.current?.remove();
-    const line = L.geoJSON(districtData.outline, { pane: "outline", interactive: false, style: { color: "#1f7a5a", weight: 2.5, fill: false } }).addTo(map);
+    const line = L.geoJSON(districtData.outline, { pane: "outline", interactive: false, style: { color: token("--accent"), weight: 2.5, fill: false } }).addTo(map);
     stateStroke.current = line;
     return () => { line.remove(); };
   }, [districtData, ready]);
@@ -133,7 +144,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     if (!map || !showDistricts || !districtData) return;
     const layer = L.geoJSON(districtData, {
       pane: "outline", interactive: false,
-      style: { color: "#4b5563", weight: 1.3, opacity: 0.85, dashArray: "6 4", fill: false },
+      style: { color: token("--text-2"), weight: 1.3, opacity: 0.85, dashArray: "6 4", fill: false },
       onEachFeature: (f, l) => (l as L.Polygon).bindTooltip(el("span", {}, String(f.properties.name)), { permanent: true, direction: "center", className: "district-label" })
     }).addTo(map);
     districtLayer.current = layer;
@@ -166,12 +177,14 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     if (!map || !group) return;
     group.clearLayers();
     pins.current.clear();
+    pinState.current.clear();
     places.forEach(p => {
-      const cat = categories[p.category] ?? FALLBACK;
-      const m = L.circleMarker([p.lat, p.lng], { radius: 8, weight: 2, color: "#fff", fillColor: cat.color, fillOpacity: 0.95 });
+      const glyph = (categories[p.category] ?? fallbackCategory()).icon;
+      const m = L.marker([p.lat, p.lng], { icon: pinIcon(glyph, "plain"), keyboard: false });
       m.on("click", () => onSelectRef.current(p.id));
       group.addLayer(m);
       pins.current.set(p.id, m);
+      pinState.current.set(p.id, { glyph, state: "plain" });
     });
     paint();
     // Re-zoom only after typing pauses, and never while a place is selected.
@@ -185,24 +198,26 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     return () => clearTimeout(t);
   }, [places, categories, state]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Pin looks: the selected one is big with a dark ring; places you have visited get a gold ring.
+  // Pin looks: the selected one is big and filled; places you have visited get an accent ring.
   const paint = () => {
     pins.current.forEach((m, id) => {
-      const selected = id === selectedRef.current, visited = visitedIds.has(id);
-      m.setStyle({ radius: selected ? 13 : 8, weight: selected ? 4 : visited ? 4 : 2, color: selected ? "#111827" : visited ? "#facc15" : "#fff" });
-      if (selected) m.bringToFront();
+      const meta = pinState.current.get(id);
+      if (!meta) return;
+      const state: PinState = id === selectedRef.current ? "selected" : visitedIds.has(id) ? "visited" : "plain";
+      if (meta.state !== state) { m.setIcon(pinIcon(meta.glyph, state)); meta.state = state; }
+      m.setZIndexOffset(state === "selected" ? 1000 : 0);
     });
   };
   useEffect(paint, [selectedId, visitedIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "You are here": a blue dot, and the map moves there
+  // "You are here": a dark dot, and the map moves there
   const meMarker = useRef<L.CircleMarker | null>(null);
   useEffect(() => {
     const map = mapRef.current;
     meMarker.current?.remove();
     meMarker.current = null;
     if (!map || !me) return;
-    meMarker.current = L.circleMarker([me.lat, me.lng], { radius: 9, weight: 3, color: "#fff", fillColor: "#2563eb", fillOpacity: 1, interactive: false }).addTo(map);
+    meMarker.current = L.circleMarker([me.lat, me.lng], { radius: 9, weight: 3, color: token("--surface"), fillColor: token("--text"), fillOpacity: 1, interactive: false }).addTo(map);
     const zoom = 11, { top, bottom } = insetsRef.current;
     map.flyTo(map.unproject(map.project([me.lat, me.lng], zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 0.6 });
   }, [me, ready]);

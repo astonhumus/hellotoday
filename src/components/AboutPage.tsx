@@ -1,6 +1,8 @@
 import { supabase } from "../lib/supabase";
 import { useHasSession } from "../lib/auth";
 import { usePageMeta } from "../lib/pageMeta";
+import { goBack } from "../lib/nav";
+import { PageHeader } from "../ui/PageHeader";
 
 const CONTACT = import.meta.env.VITE_CONTACT_EMAIL;
 
@@ -24,7 +26,7 @@ export function AboutPage() {
   usePageMeta("About and privacy", "What Explore India is, where its map and place information comes from, how song lyrics and copyright are handled, and how your data is kept.");
   return (
     <div className="page about">
-      <h1>About Explore India</h1>
+      <PageHeader title="About Explore India" onBack={() => goBack("#/")} />
       <p>A free guide to places to visit, eat and stay, a library of song lyrics, and a trip packing checklist. It works offline once you have opened it.</p>
 
       <h2>Where the information comes from</h2>

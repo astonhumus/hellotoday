@@ -21,20 +21,20 @@ interface Props {
 export function PlaceDetails({ place: p, category: c, visited, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete }: Props) {
   const [copied, setCopied] = useState(false);
   const coords = formatCoords(p.lat, p.lng);
-  const color = c?.color ?? "#64748b";
   const copy = () => navigator.clipboard?.writeText(coords).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+  const apple = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent); // the Apple Maps link only helps on Apple devices
   const web = p.website && /^https?:\/\//i.test(p.website) ? p.website : "";
 
   return (
     <div className="pd">
       <div className="pd-tags">
-        <span className="pd-tag" style={{ background: `color-mix(in srgb, ${color} 16%, transparent)`, color }}>{c?.icon} {c?.label ?? p.category}</span>
+        <span className="pd-tag"><Icon name={c?.icon ?? "pin"} size={14} /> {c?.label ?? p.category}</span>
         {p.district && <span className="pd-tag plain">{p.district}</span>}
         {p.approx && <span className="pd-tag plain">Approximate location</span>}
       </div>
 
       {p.desc && <p className="pd-desc">{p.desc}</p>}
-      {p.notes && <p className="pd-note">📝 {p.notes}</p>}
+      {p.notes && <p className="pd-note">{p.notes}</p>}
       {p.visited && <p className="pd-meta">Editor visited {p.visited}</p>}
 
       <div className="pd-actions">
@@ -49,7 +49,7 @@ export function PlaceDetails({ place: p, category: c, visited, visitedOn, onTogg
         {web && <li><Icon name="globe" /><a href={web} target="_blank" rel="noopener">{web.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "")}</a></li>}
         <li><Icon name="pin" /><span className="pd-coords">{coords}</span>
           <button type="button" className="link" onClick={copy}>{copied ? "Copied" : "Copy"}</button></li>
-        <li><Icon name="directions" /><a href={appleMapsUrl(p.lat, p.lng, p.name)} target="_blank" rel="noopener">Open in Apple Maps</a></li>
+        {apple && <li><Icon name="directions" /><a href={appleMapsUrl(p.lat, p.lng, p.name)} target="_blank" rel="noopener">Open in Apple Maps</a></li>}
       </ul>
 
       {admin && (

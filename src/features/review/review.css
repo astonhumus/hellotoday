@@ -1,33 +1,32 @@
 /* Review: approve or reject what contributors send, and manage who can contribute. */
-.review { gap: 14px; }
-.rv-section { display: grid; gap: 10px; }
-.rv-section > h2 { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.rv-n { min-width: 24px; padding: 1px 8px; border-radius: var(--r-pill); background: var(--active); color: var(--accent); font-size: 13px; font-weight: 700; text-align: center; }
+.review { gap: var(--s-4); }
+.rv-section { display: grid; gap: var(--s-3); }
+.rv-section > h2 { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-2); }
+.rv-n { min-width: var(--s-5); padding: 0 var(--s-2); border-radius: var(--radius); background: var(--accent-wash); color: var(--accent); font-size: var(--text-xs); font-weight: var(--w-semibold); text-align: center; line-height: var(--lh-md); }
 
-.rv-card { gap: 10px; }
-.rv-title { margin: 0; font-size: var(--fs-lg); }
-.rv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.rv-card { gap: var(--s-3); }
+.rv-title { margin: 0; font-size: var(--text-md); font-weight: var(--w-semibold); }
+.rv-tags { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .rv-body { margin: 0; color: var(--text); }
-.rv-pre { white-space: pre-wrap; font: inherit; font-size: 14px; max-height: 160px; overflow: auto; margin: 0; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); color: var(--muted); }
-.rv-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
-.rv-actions .btn { min-width: 110px; }
+.rv-pre { white-space: pre-wrap; font: inherit; font-size: var(--text-sm); max-height: calc(var(--s-6) * 5); overflow: auto; margin: 0; padding: var(--s-3); border-radius: var(--radius); background: var(--surface-2); color: var(--text-2); }
+.rv-actions { display: flex; justify-content: flex-end; gap: var(--s-2); padding-top: var(--s-1); }
+.rv-actions .btn { min-width: calc(var(--s-8) + var(--s-7)); }
 
 /* what changed in a proposal */
-.diff { display: grid; gap: 2px; padding: 8px 12px; border-radius: var(--r-md); background: var(--surface-2); font-size: 14px; }
-.diff b { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
-.diff del { color: #b42318; text-decoration: line-through; }
-.diff ins { color: #166534; text-decoration: none; font-weight: 600; }
-@media (prefers-color-scheme: dark) { .diff del { color: #f19a8f; } .diff ins { color: #7fd8a0; } }
+.diff { display: grid; gap: var(--s-1); padding: var(--s-2) var(--s-3); border-radius: var(--radius); background: var(--surface-2); font-size: var(--text-sm); }
+.diff b { font-size: var(--text-xs); font-weight: var(--w-medium); color: var(--text-2); }
+.diff del { color: var(--danger); text-decoration: line-through; }
+.diff ins { color: var(--accent); text-decoration: none; font-weight: var(--w-medium); }
 
-.rv-empty { justify-items: center; text-align: center; padding: 28px 16px; }
-.rv-empty-ic { font-size: 40px; line-height: 1; }
+.rv-empty { justify-items: center; text-align: center; padding: var(--s-5) var(--s-4); }
+.rv-empty-ic { color: var(--text-2); }
 
 /* people */
-.rv-members { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.rv-member { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
-.rv-avatar { width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: var(--surface-2); color: var(--muted); }
-.rv-who { flex: 1; min-width: 0; display: grid; gap: 4px; justify-items: start; }
-.rv-who strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rv-add { gap: 10px; }
+.rv-members { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.rv-member { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3); }
+.rv-avatar { width: var(--ctl-sm); height: var(--ctl-sm); flex-shrink: 0; display: grid; place-items: center; border-radius: var(--radius-full); background: var(--surface-2); color: var(--text-2); }
+.rv-who { flex: 1; min-width: 0; display: grid; gap: var(--s-1); justify-items: start; }
+.rv-who strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--w-semibold); }
+.rv-add { gap: var(--s-3); }
 
 @media (max-width: 520px) { .rv-member { flex-wrap: wrap; } .rv-actions .btn { flex: 1; } }

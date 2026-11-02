@@ -13,6 +13,9 @@ import { DialogHost } from "./components/DialogHost";
 import { AboutPage } from "./components/AboutPage";
 import { notify } from "./lib/ui";
 import { LIMITS } from "./lib/limits";
+import { SkeletonPage } from "./ui/States";
+import { Icon } from "./ui/Icon";
+import { trackHistory } from "./lib/nav";
 
 // Heavy screens load only when opened, so the home page stays fast. (The map library lives in the Places chunk.)
 const PlacesPage = lazy(() => import("./features/places/PlacesPage").then(m => ({ default: m.PlacesPage })));
@@ -73,6 +76,8 @@ export default function App() {
   const page = route === "places" ? "places" : route === "music" ? "music" : route === "checklist" ? "checklist"
     : route === "review" && IS_ADMIN && supabase ? "review" : route === "about" ? "about" : "home";
 
+  useEffect(trackHistory, []);
+
   useEffect(() => {
     const t = window.setTimeout(() => { void import("./features/places/PlacesPage"); }, 2500);
     return () => window.clearTimeout(t);
@@ -85,6 +90,8 @@ export default function App() {
   const [base, setBase] = useState<Place[]>([]);
   const [checklist, setChecklist] = useState<Catalog | null>(null);
   const [error, setError] = useState("");
+  const [dataReady, setDataReady] = useState(false);    // the shared lists (states, categories, songs, checklist) have arrived or failed
+  const [placesReady, setPlacesReady] = useState(false); // this state's places have arrived or failed
 
   useEffect(() => {
     Promise.all([
@@ -93,7 +100,8 @@ export default function App() {
       loadJson<Song[]>("songs.json").catch(() => [] as Song[]),
       loadJson<Catalog>("checklist.json").catch(() => null)
     ]).then(([s, c, m, k]) => { setStates(s); setCategories(c); setBaseSongs(m); setChecklist(k); })
-      .catch(e => setError(e.message));
+      .catch(e => setError(e.message))
+      .finally(() => setDataReady(true));
   }, []);
 
   const state = states.find(s => s.id === stateId) ?? states[0];
@@ -102,7 +110,8 @@ export default function App() {
     if (!state) return;
     store.set("state", state.id);
     setBase([]);
-    loadJson<Place[]>(`${state.id}/places.json`).then(setBase).catch(e => setError(e.message));
+    setPlacesReady(false);
+    loadJson<Place[]>(`${state.id}/places.json`).then(setBase).catch(e => setError(e.message)).finally(() => setPlacesReady(true));
   }, [state?.id]);
 
   // With Supabase, places and songs are rows in their own tables; without it, edits are kept in this browser.
@@ -186,28 +195,34 @@ export default function App() {
           </select>
         ) : state && <span className="state-name">{state.name}</span>}
         <nav className="tabs" aria-label="Main menu">
-          <a href="#/" aria-current={page === "home" ? "page" : undefined}><span aria-hidden>🏠</span> Home</a>
-          <a href="#/places" aria-current={page === "places" ? "page" : undefined}><span aria-hidden>🗺️</span> Places</a>
-          <a href="#/music" aria-current={page === "music" ? "page" : undefined}><span aria-hidden>🎵</span> Music</a>
-          <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><span aria-hidden>🎒</span> Checklist</a>
+          <a href="#/" aria-current={page === "home" ? "page" : undefined}><Icon name="home" size={22} /> Home</a>
+          <a href="#/places" aria-current={page === "places" ? "page" : undefined}><Icon name="map" size={22} /> Places</a>
+          <a href="#/music" aria-current={page === "music" ? "page" : undefined}><Icon name="music" size={22} /> Music</a>
+          <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><Icon name="checklist" size={22} /> Checklist</a>
         </nav>
         {supabase && IS_ADMIN && <a className="btn" href="#/review">Review{pending ? ` (${pending})` : ""}</a>}
         <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) location.hash = "#/places"; }} />
       </header>
       <PwaBar />
       <main>
-        <Suspense fallback={<div className="page"><p className="empty" role="status">Loading…</p></div>}>
-        {error && <div className="error">Couldn't load data: {error}</div>}
+        <Suspense fallback={<SkeletonPage />}>
+        {error && (
+          <div className="error" role="alert">
+            <span>Can't load the data. Check your connection and try again.</span>
+            <button className="btn" onClick={() => location.reload()}>Reload</button>
+          </div>
+        )}
+        {page === "places" && !state && !error && <SkeletonPage />}
         {page === "places" && state && (
-          <PlacesPage key={state.id + "?" + query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1" }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} loading={supabase ? dbPlaces.loading : false}
+          <PlacesPage key={state.id + "?" + query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1" }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
             onSavePlace={placeStore.save} onDeletePlace={placeStore.remove} exportCount={exportRows.length} onExport={exportPlaces} onImport={importPlaces} />
         )}
         {page === "home" && <HomePage state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
-        {page === "checklist" && <ChecklistPage catalog={checklist} admin={IS_ADMIN} />}
+        {page === "checklist" && <ChecklistPage catalog={checklist} ready={dataReady} admin={IS_ADMIN} />}
         {page === "review" && <ReviewPage categories={categories} />}
         {page === "about" && <AboutPage />}
         {page === "music" && (
-          <MusicPage songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ?? null} open={id => { location.hash = id ? `#/music/${id}` : "#/music"; }} />
+          <MusicPage ready={dataReady} songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ?? null} open={id => { location.hash = id ? `#/music/${id}` : "#/music"; }} />
         )}
         </Suspense>
       </main>

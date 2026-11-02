@@ -29,12 +29,12 @@ export function FilterBar(p: Props) {
       <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places" />
       <div className="fb-chips" role="group" aria-label="Filters">
         <Chip pressed={p.picked.size === 0 && !p.visitedOnly} onClick={() => { p.onAllCategories(); if (p.visitedOnly) p.onVisitedOnly(); }}>All</Chip>
-        <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} onClick={p.onVisitedOnly}>✓ My visited</Chip>
-        <Chip pressed={p.near} onClick={p.onNear} title="Sort by distance from where you are">📍 Near me</Chip>
+        <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} icon="check" onClick={p.onVisitedOnly}>My visited</Chip>
+        <Chip pressed={p.near} icon="pin" onClick={p.onNear} title="Sort by distance from where you are">Near me</Chip>
         {p.categories.map(c => (
-          <Chip key={c.id} pressed={p.picked.has(c.id)} dotColor={c.color} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
+          <Chip key={c.id} pressed={p.picked.has(c.id)} icon={c.icon} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}
-        <Chip className="multi" pressed={p.multi} onClick={() => p.onMulti(!p.multi)} title="Pick more than one category at a time">☑ Select several</Chip>
+        <Chip className="multi" pressed={p.multi} onClick={() => p.onMulti(!p.multi)} icon="square-check" title="Pick more than one category at a time">Select several</Chip>
         <select className="fb-district pill-select" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>
           <option value="all">All districts</option>
           {p.districts.map(d => <option key={d} value={d}>{d}</option>)}

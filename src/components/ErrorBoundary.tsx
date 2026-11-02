@@ -21,10 +21,10 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
   render() {
     if (!this.state.failed) return this.props.children;
     return (
-      <div style={{ padding: 24, maxWidth: 420, margin: "10vh auto", font: "16px/1.5 system-ui, sans-serif" }}>
+      <div className="page" style={{ maxWidth: 420, margin: "10vh auto" }}>
         <h2>Something went wrong</h2>
         <p>The page couldn't load. Try reloading; if it keeps happening, reset the saved app copy.</p>
-        <p style={{ display: "flex", gap: 8 }}>
+        <p className="actions" style={{ justifyContent: "flex-start" }}>
           <button className="btn primary" onClick={() => location.reload()}>Reload</button>
           <button className="btn" onClick={this.reset}>Reset &amp; reload</button>
         </p>
