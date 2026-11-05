@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Category, Place } from "../../types";
 import { formatCoords, parseCoords } from "../../lib/coords";
+import { notify } from "../../lib/ui";
+import { LocationPicker } from "./LocationPicker";
 
 interface Props {
   categories: Category[];
@@ -29,6 +31,27 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
 
   useEffect(() => { dlg.current?.showModal(); }, []);
   const parsed = parseCoords(coordText);
+  const [locating, setLocating] = useState(false);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
+
+  // Turn on GPS and fill in the coordinates from where the admin is standing.
+  const locate = () => {
+    if (!navigator.geolocation) return void notify("This browser can't give your location.", "error");
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setLocating(false);
+        setCoordText(formatCoords(pos.coords.latitude, pos.coords.longitude));
+        setAccuracy(Math.round(pos.coords.accuracy));
+        setApprox(pos.coords.accuracy > 100); // a weak GPS fix is flagged as approximate
+      },
+      err => {
+        setLocating(false);
+        void notify(err.code === err.PERMISSION_DENIED ? "Location is blocked. Allow it for this site in your browser settings, then try again."
+          : "Couldn't get your location. Move to an open area and try again.", "error");
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +84,11 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
           <label>District<input value={district} onChange={e => setDistrict(e.target.value)} list="district-list" maxLength={60} autoComplete="off" /></label>
         </div>
         <datalist id="district-list">{districts.map(d => <option key={d} value={d} />)}</datalist>
+        <div className="loc-bar">
+          <button type="button" className="btn" onClick={locate} disabled={locating}>{locating ? "Getting your location…" : "Use my current location (GPS)"}</button>
+          {accuracy != null && <span className="hint">Accurate to about {accuracy} m</span>}
+        </div>
+        <LocationPicker point={parsed} accuracy={accuracy} onMove={p => { setCoordText(formatCoords(p.lat, p.lng)); setAccuracy(null); }} />
         <label>Coordinates *
           <input value={coordText} onChange={e => setCoordText(e.target.value)} required autoComplete="off"
             placeholder="24.8089, 93.9426" />

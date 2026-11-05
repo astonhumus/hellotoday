@@ -79,6 +79,9 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   const districtLayer = useRef<L.GeoJSON | null>(null);
   const stateStroke = useRef<L.GeoJSON | null>(null);
   const haveDistrictOutline = useRef(false);
+  const stateBounds = useRef<L.LatLngBounds | null>(null);
+  const lastFit = useRef("");            // which set of places the map was last fitted to, so a data refresh doesn't move the map
+  const fitMinZoom = (map: L.Map) => { if (stateBounds.current) map.setMinZoom(Math.max(0, map.getBoundsZoom(stateBounds.current) - 1)); };
   const [menu, setMenu] = useState(false); // the layers menu
   const [ready, setReady] = useState(0); // bumps when the map is rebuilt, so the tiles are re-added
 
@@ -94,8 +97,10 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     pinLayer.current = L.featureGroup().addTo(map);
     let cancelled = false;
 
-    Promise.all([loadJson<any>("world.json"), loadJson<any>("india-states.json")]).then(([world, india]) => {
-      if (cancelled) return;
+    // Drawing the borders is the heavy part: do it when the browser is idle, after the pins and tiles are up.
+    const idle = (fn: () => void) => ("requestIdleCallback" in window ? (window as any).requestIdleCallback(fn, { timeout: 800 }) : setTimeout(fn, 50));
+    Promise.all([loadJson<any>("world.json"), loadJson<any>("india-states.json")]).then(([world, india]) => new Promise<void>(res => idle(() => { if (!cancelled) draw(world, india); res(); }))).catch(() => {});
+    const draw = (world: any, india: any) => {
       L.geoJSON(world, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface-2"), fillOpacity: 1 } }).addTo(map);
       L.geoJSON(india, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface"), fillOpacity: 1 } }).addTo(map);
       const mine = india.features.filter((f: any) => f.properties.name === state.name);
@@ -106,18 +111,19 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
       if (!haveDistrictOutline.current) { outline.addTo(map); stateStroke.current = outline; }
       if (mine.length) {
         const bounds = outline.getBounds();
+        stateBounds.current = bounds;
         try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
-        map.setMinZoom(map.getZoom() - 1);
+        fitMinZoom(map);
         map.setMaxBounds(bounds.pad(0.6));
       }
       pinLayer.current?.bringToFront();
-    }).catch(() => {});
+    };
 
     // The map may be hidden (mobile List view) and shown later, or resized by rotating the phone.
-    const ro = new ResizeObserver(() => map.invalidateSize());
+    const ro = new ResizeObserver(() => { map.invalidateSize(); fitMinZoom(map); }); // rotating the phone changes how far out the map may zoom
     ro.observe(host.current);
 
-    return () => { cancelled = true; ro.disconnect(); map.stop(); map.remove(); mapRef.current = null; pins.current.clear(); };
+    return () => { cancelled = true; ro.disconnect(); map.stop(); map.remove(); mapRef.current = null; pins.current.clear(); pinState.current.clear(); stateBounds.current = null; lastFit.current = ""; };
   }, [state]);
 
   // District boundaries (public/data/<state>/districts.json), drawn over the tiles with the district name in the middle.
@@ -175,11 +181,18 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   useEffect(() => {
     const map = mapRef.current, group = pinLayer.current;
     if (!map || !group) return;
-    group.clearLayers();
-    pins.current.clear();
-    pinState.current.clear();
+    // Only add, move or remove the pins that actually changed, so a refresh or a keystroke doesn't rebuild hundreds of markers.
+    const next = new Set(places.map(p => p.id));
+    pins.current.forEach((m, id) => { if (!next.has(id)) { group.removeLayer(m); pins.current.delete(id); pinState.current.delete(id); } });
     places.forEach(p => {
       const glyph = (categories[p.category] ?? fallbackCategory()).icon;
+      const have = pins.current.get(p.id), meta = pinState.current.get(p.id);
+      if (have) {
+        const ll = have.getLatLng();
+        if (ll.lat !== p.lat || ll.lng !== p.lng) have.setLatLng([p.lat, p.lng]);
+        if (meta && meta.glyph !== glyph) { have.setIcon(pinIcon(glyph, meta.state)); meta.glyph = glyph; }
+        return;
+      }
       const m = L.marker([p.lat, p.lng], { icon: pinIcon(glyph, "plain"), keyboard: false });
       m.on("click", () => onSelectRef.current(p.id));
       group.addLayer(m);
@@ -187,9 +200,12 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
       pinState.current.set(p.id, { glyph, state: "plain" });
     });
     paint();
-    // Re-zoom only after typing pauses, and never while a place is selected.
+    // Re-zoom only when the set of places really changed (a filter, a search), after typing pauses, and never while a place is selected.
+    const signature = places.map(p => p.id).sort().join("|");
+    if (signature === lastFit.current) return;
     if (selectedRef.current && pins.current.has(selectedRef.current)) return;
     const t = setTimeout(() => {
+      lastFit.current = signature;
       if (places.length && map.getSize().x > 0) {
         const { top, bottom } = insetsRef.current;
         try { map.fitBounds(group.getBounds(), { paddingTopLeft: [40, top + 16], paddingBottomRight: [40, bottom + 16], maxZoom: 11 }); } catch { /* ignore */ }
@@ -217,6 +233,8 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     meMarker.current?.remove();
     meMarker.current = null;
     if (!map || !me) return;
+    // Outside the state the map can't show you (it is locked to the state): the list still sorts by distance.
+    if (map.options.maxBounds && !L.latLngBounds(map.options.maxBounds as L.LatLngBoundsLiteral).contains([me.lat, me.lng])) return;
     meMarker.current = L.circleMarker([me.lat, me.lng], { radius: 9, weight: 3, color: token("--surface"), fillColor: token("--text"), fillOpacity: 1, interactive: false }).addTo(map);
     const zoom = 11, { top, bottom } = insetsRef.current;
     map.flyTo(map.unproject(map.project([me.lat, me.lng], zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 0.6 });

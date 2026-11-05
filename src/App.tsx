@@ -1,8 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { Category, Place, Song, StateInfo } from "./types";
 import { loadJson, store } from "./lib/data";
-import { MusicPage } from "./features/music/MusicPage";
-import { ChecklistPage, type Catalog } from "./features/checklist/ChecklistPage";
+import type { Catalog } from "./features/checklist/ChecklistPage";
 import { useOverlay } from "./lib/overlay";
 import { useRows } from "./lib/rows";
 import { supabase } from "./lib/supabase";
@@ -19,6 +18,8 @@ import { trackHistory } from "./lib/nav";
 
 // Heavy screens load only when opened, so the home page stays fast. (The map library lives in the Places chunk.)
 const PlacesPage = lazy(() => import("./features/places/PlacesPage").then(m => ({ default: m.PlacesPage })));
+const MusicPage = lazy(() => import("./features/music/MusicPage").then(m => ({ default: m.MusicPage })));
+const ChecklistPage = lazy(() => import("./features/checklist/ChecklistPage").then(m => ({ default: m.ChecklistPage })));
 const ReviewPage = lazy(() => import("./features/review/ReviewPage").then(m => ({ default: m.ReviewPage })));
 
 interface Member { role: "admin" | "contributor"; auto_approve: boolean }
@@ -84,7 +85,7 @@ export default function App() {
   }, []);
 
   const [states, setStates] = useState<StateInfo[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [baseCategories, setBaseCategories] = useState<Category[]>([]);
   const [baseSongs, setBaseSongs] = useState<Song[]>([]);
   const [stateId, setStateId] = useState(() => store.get("state") ?? "manipur");
   const [base, setBase] = useState<Place[]>([]);
@@ -99,7 +100,7 @@ export default function App() {
       loadJson<Category[]>("categories.json"),
       loadJson<Song[]>("songs.json").catch(() => [] as Song[]),
       loadJson<Catalog>("checklist.json").catch(() => null)
-    ]).then(([s, c, m, k]) => { setStates(s); setCategories(c); setBaseSongs(m); setChecklist(k); })
+    ]).then(([s, c, m, k]) => { setStates(s); setBaseCategories(c); setBaseSongs(m); setChecklist(k); })
       .catch(e => setError(e.message))
       .finally(() => setDataReady(true));
   }, []);
@@ -133,12 +134,36 @@ export default function App() {
       lyrics: r.lyrics as string, credit: nul(r.credit as string),
       status: r.status as Song["status"], reviewNote: nul(r.review_note as string), updatedAt: nul(r.updated_at as string) })
   } : null, baseSongs);
+  const dbCategories = useRows<Category>(supabase ? {
+    table: "categories", kind: "category", columns: "id,label,color,icon,sort",
+    toRow: (c, id) => ({ id, label: c.label, color: c.color, icon: c.icon, sort: c.sort ?? 0 }),
+    fromRow: r => ({ id: r.id as string, label: r.label as string, color: r.color as string, icon: r.icon as string, sort: r.sort as number })
+  } : null, baseCategories);
+  const localCategories = useOverlay<Category>(!supabase ? "categories" : null, baseCategories);
+  const categoryStore = supabase ? dbCategories : localCategories;
+  const categories = useMemo(() => categoryStore.items.map((c, i) => ({ ...c, sort: c.sort ?? i })).sort((a, b) => a.sort - b.sort), [categoryStore.items]);
   const localPlaces = useOverlay<Place>(!supabase && state ? `places:${state.id}` : null, base);
   const localSongs = useOverlay<Song>(!supabase ? "songs" : null, baseSongs);
   const placeStore = supabase ? dbPlaces : localPlaces;
   const songStore = supabase ? dbSongs : localSongs;
-  // Refresh when switching tabs or signing in/out, so approvals and pending items show up.
-  useEffect(() => { void dbPlaces.reload(); void dbSongs.reload(); }, [page, member?.role]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Refresh after signing in/out, when leaving the Review page (approvals), and when coming back to the tab after a while.
+  // Not on every tab switch: that re-downloaded everything each time.
+  const refresh = () => { void dbPlaces.reload(); void dbSongs.reload(); void dbCategories.reload(); };
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+  const firstRole = useRef(true); // the data hooks already load once on start
+  useEffect(() => { if (firstRole.current) { firstRole.current = false; return; } refreshRef.current(); }, [member?.role]);
+  const prevPage = useRef(page);
+  useEffect(() => { if (prevPage.current === "review" && page !== "review") refreshRef.current(); prevPage.current = page; }, [page]);
+  useEffect(() => {
+    let hiddenAt = 0;
+    const on = () => {
+      if (document.visibilityState === "hidden") hiddenAt = Date.now();
+      else if (hiddenAt && Date.now() - hiddenAt > 120000) refreshRef.current();
+    };
+    document.addEventListener("visibilitychange", on);
+    return () => document.removeEventListener("visibilitychange", on);
+  }, []);
 
   // Admin: how many submissions wait for review.
   const [pending, setPending] = useState(0);
@@ -148,6 +173,16 @@ export default function App() {
       supabase!.from(t).select("id", { count: "exact", head: true }).eq("status", "pending")))
       .then(rs => setPending(rs.reduce((n, r) => n + (r.count ?? 0), 0)));
   }, [IS_ADMIN, hash]);
+
+  // A place's details have their own address (#/places/<id>), so Back closes them and the link can be shared.
+  const openPlace = (id: string | null) => { location.hash = `#/places${id ? "/" + encodeURIComponent(id) : ""}${query ? "?" + query : ""}`; };
+
+  // Places using a category in any state, so a category in use cannot be deleted from another state screen.
+  const categoryUsage = async (id: string) => {
+    if (!supabase) return 0;
+    const { count } = await supabase.from("places").select("id", { count: "exact", head: true }).eq("category_id", id);
+    return count ?? 0;
+  };
 
   const exportRows = supabase ? placeStore.items : localPlaces.local;
 
@@ -214,7 +249,7 @@ export default function App() {
         )}
         {page === "places" && !state && !error && <SkeletonPage />}
         {page === "places" && state && (
-          <PlacesPage key={state.id + "?" + query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1" }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
+          <PlacesPage key={state.id} placeId={arg ? decodeURIComponent(arg) : null} onOpenPlace={openPlace} queryKey={query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1" }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSaveCategory={IS_ADMIN ? categoryStore.save : undefined} onDeleteCategory={categoryStore.remove} categoryUsage={categoryUsage} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
             onSavePlace={placeStore.save} onDeletePlace={placeStore.remove} exportCount={exportRows.length} onExport={exportPlaces} onImport={importPlaces} />
         )}
         {page === "home" && <HomePage state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}

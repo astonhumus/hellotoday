@@ -2,7 +2,7 @@
 // Data files (categories.json, checklist.json) name their icons with these keys.
 import {
   Apple, ArrowLeft, Backpack, Bandage, BedDouble, Car, CarFront, Carrot, Check, ChevronDown, ChevronRight, ChevronUp, CircleX,
-  Clock, ClipboardCheck, CookingPot, Copy, Dices, Download, Droplets, Drumstick, Flashlight, Footprints, Globe, House, IdCard,
+  Clock, ClipboardCheck, Coffee, CookingPot, Copy, Dices, Download, Droplets, Drumstick, Flashlight, Footprints, Globe, House, IdCard,
   Landmark, Layers, ListFilter, Map as MapIcon, MapPin, Minus, Music, Navigation, Pause, Pencil, Phone, PartyPopper, Play, Plus,
   Printer, Search, Share2, Shirt, ShoppingBasket, SquareCheck, Sunrise, Tent, Trash2, TreePalm, TreePine, Undo2, User, Utensils,
   UtensilsCrossed, Wheat, Wrench, X, type IconNode
@@ -17,7 +17,7 @@ export const ICONS = {
   // navigation and features
   home: House, map: MapIcon, music: Music, checklist: ClipboardCheck, backpack: Backpack,
   // place categories
-  landmark: Landmark, "tree-pine": TreePine, utensils: Utensils, "bed-double": BedDouble, "tree-palm": TreePalm,
+  coffee: Coffee, landmark: Landmark, "tree-pine": TreePine, utensils: Utensils, "bed-double": BedDouble, "tree-palm": TreePalm,
   // trip types
   "shopping-basket": ShoppingBasket, tent: Tent, footprints: Footprints, car: Car, sunrise: Sunrise,
   // checklist categories

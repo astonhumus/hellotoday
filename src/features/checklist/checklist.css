@@ -72,3 +72,5 @@
   .app, .page { height: auto !important; overflow: visible !important; }
   .ck-card { break-inside: avoid; }
 }
+.ck-preset { display: flex; gap: var(--s-2); align-items: center; }
+.ck-preset select { flex: 1; min-width: 0; }

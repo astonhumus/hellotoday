@@ -29,6 +29,18 @@ interface Props {
 const LANGUAGES = ["Manipuri (Meiteilon)", "English", "Hindi", "Bengali", "Tangkhul", "Thadou", "Mizo"];
 const uniq = (xs: (string | undefined)[]) => [...new Set(xs.filter(Boolean) as string[])].sort();
 
+/** A web search for the song's lyrics, opened in a new tab. */
+const lyricsSearchUrl = (s: Song) => `https://www.google.com/search?q=${encodeURIComponent([s.title, s.artist, "lyrics"].filter(Boolean).join(" "))}`;
+
+function SearchLink({ song, className = "" }: { song: Song; className?: string }) {
+  const label = `Search the web for lyrics of ${song.title} (opens a new tab)`;
+  return (
+    <a className={`icon-btn ${className}`} href={lyricsSearchUrl(song)} target="_blank" rel="noopener noreferrer" aria-label={label} title="Search lyrics on the web">
+      <Icon name="search" size={20} />
+    </a>
+  );
+}
+
 export function MusicPage({ songs, localIds, admin, canDelete, ready = true, songId, open, onSave, onDelete }: Props) {
   const song = songs.find(s => s.id === songId) ?? null;
   usePageMeta(song ? `${song.title}${song.lyrics.trim() ? " lyrics" : ""}` : "Song lyrics by language and artist",
@@ -120,6 +132,7 @@ function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onD
                 </span>
                 <Icon name="chevron" size={18} />
               </a>
+              <SearchLink song={s} className="sm sc-search" />
               {admin && (
                 <span className="sc-admin">
                   <IconButton className="sm" icon="edit" label={`Edit ${s.title}`} onClick={() => onEdit(s)} />
@@ -225,6 +238,7 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
             </>
           )}
           <Button variant={scrolling ? "primary" : "secondary"} icon={scrolling ? "pause" : "play"} onClick={() => setScrolling(v => !v)}>{scrolling ? "Pause" : "Auto-scroll"}</Button>
+          <SearchLink song={song} className="sm" />
           {admin && <IconButton className="sm" icon="edit" label="Edit this song" onClick={() => onEdit(song)} />}
           {canDelete && <IconButton className="sm danger" icon="trash" label="Delete this song" onClick={() => onDelete(song)} />}
         </div>

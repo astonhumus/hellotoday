@@ -206,3 +206,12 @@ dialog.msg .actions { position: static; border: none; padding: 0; background: no
 
 .chip.multi { border-style: dashed; color: var(--text-2); }
 .chip.multi[aria-pressed="true"] { border-style: solid; color: var(--accent); }
+
+/* ── toasts: short notices that fade on their own ── */
+.toasts { position: fixed; z-index: 3000; left: var(--s-3); right: var(--s-3); bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + var(--s-3)); display: grid; gap: var(--s-2); justify-items: center; pointer-events: none; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: var(--s-3); max-width: var(--dialog-w); padding: var(--s-3) var(--s-4); font-size: var(--text-sm); background: var(--text); color: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-float); animation: dialog-in var(--dur-slow) var(--ease); }
+.toast.error { background: #b42318; color: #fff; }
+.toast-x { border: 0; background: transparent; color: inherit; font-size: var(--text-lg); line-height: 1; cursor: pointer; min-width: var(--tap); min-height: var(--tap); }
+@media (min-width: 761px) { .toasts { bottom: var(--s-4); } }
+
+@media (min-width: 761px) { dialog:not(.msg) .actions { position: sticky; bottom: calc(-1 * var(--s-5)); background: var(--surface); padding: var(--s-3) 0 var(--s-1); } }

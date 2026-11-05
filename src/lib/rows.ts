@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./supabase";
 import { cacheGet, cacheSet } from "./cache";
 import { explainError, notify } from "./ui";
@@ -7,7 +7,7 @@ type Row = Record<string, unknown>;
 
 interface Spec<T> {
   table: string;
-  kind: "place" | "song";
+  kind: "place" | "song" | "category";
   columns: string;                           // explicit list: the public may not read every column (see supabase/hardening.sql)
   propose?: boolean;                         // contributor without auto-approve: edits to live items become proposals
   scope?: { column: string; value: string }; // e.g. only the current state's places
@@ -26,6 +26,7 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
   const [loading, setLoading] = useState(false);
   const table = spec?.table, scopeCol = spec?.scope?.column, scopeVal = spec?.scope?.value;
   const cacheKey = `rows:${table}:${scopeVal ?? ""}`;
+  const lastSig = useRef("");
 
   const load = async () => {
     if (!supabase || !spec) return;
@@ -36,7 +37,9 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
     setLoading(false);
     if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return; } // keep whatever is showing (cached copy)
     const mapped = (data as unknown as Row[]).map(spec.fromRow);
-    setRows(mapped);
+    // Keep the same array when nothing changed, so the map and the list don't redraw after a background refresh.
+    const sig = JSON.stringify(mapped);
+    if (sig !== lastSig.current) { lastSig.current = sig; setRows(mapped); }
     // Offline copy = the public view (approved items only), whoever is signed in.
     void cacheSet(cacheKey, mapped.filter(x => !x.status || x.status === "approved"));
   };
@@ -44,6 +47,7 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
   useEffect(() => {
     let live = true;
     setRows(null);
+    lastSig.current = "";
     // Show the saved copy straight away (instant start, works offline), then refresh from the network.
     if (spec) void cacheGet<T[]>(cacheKey).then(c => { if (live && c) setRows(cur => cur ?? c); });
     void load();

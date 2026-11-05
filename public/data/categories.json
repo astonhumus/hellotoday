@@ -3,5 +3,6 @@
   { "id": "picnic", "label": "Picnic spots", "color": "#1f7a5a", "icon": "tree-pine" },
   { "id": "snacks", "label": "Snack spots", "color": "#be185d", "icon": "utensils" },
   { "id": "hotel", "label": "Hotels", "color": "#7c3aed", "icon": "bed-double" },
-  { "id": "resort", "label": "Resorts", "color": "#0369a1", "icon": "tree-palm" }
+  { "id": "resort", "label": "Resorts", "color": "#0369a1", "icon": "tree-palm" },
+  { "id": "coffee", "label": "Coffee Shops", "color": "#92400e", "icon": "coffee" }
 ]

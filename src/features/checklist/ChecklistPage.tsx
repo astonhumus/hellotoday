@@ -17,7 +17,7 @@ export interface Catalog {
   categories: { id: string; label: string; icon: string; items: string[] }[]; // items: "Name | trip trip"
 }
 interface Item { id: string; name: string; cat: string; trips: string[] }
-interface Saved { sel: string[]; packed: string[]; custom: { id: string; name: string; cat: string }[] }
+interface Saved { sel: string[]; packed: string[]; custom: { id: string; name: string; cat: string }[]; presets: Record<string, string[]> } // presets: the user's own item list per trip type
 
 const KEY = "checklist";
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -25,8 +25,8 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 function load(): Saved {
   try {
     const v = JSON.parse(store.get(KEY) ?? "{}");
-    return { sel: v.sel ?? [], packed: v.packed ?? [], custom: v.custom ?? [] };
-  } catch { return { sel: [], packed: [], custom: [] }; }
+    return { sel: v.sel ?? [], packed: v.packed ?? [], custom: v.custom ?? [], presets: v.presets ?? {} };
+  } catch { return { sel: [], packed: [], custom: [], presets: {} }; }
 }
 
 export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catalog | null; admin: boolean; ready?: boolean }) {
@@ -36,6 +36,8 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
   const [q, setQ] = useState("");
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("");
+  const [presetTrip, setPresetTrip] = useState("");
+  const presetSelect = useRef<HTMLSelectElement>(null);
 
   useEffect(() => { store.set(KEY, JSON.stringify(saved)); }, [saved]);
 
@@ -66,6 +68,8 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
   const done = chosen.filter(i => packed.has(i.id)).length;
 
   const update = (f: (s: Saved) => Saved) => setSaved(f);
+  const presetIds = (tripId: string) => (saved.presets[tripId] ?? []).filter(id => items.some(i => i.id === id));
+  const savePreset = (tripId: string) => update(s => ({ ...s, presets: { ...s.presets, [tripId]: s.sel } }));
   const toggleSel = (ids: string[], on: boolean) => update(s => {
     const set = new Set(s.sel);
     ids.forEach(id => (on ? set.add(id) : set.delete(id)));
@@ -82,7 +86,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
     setNewName("");
   };
   const removeCustom = (id: string) => update(s => ({
-    custom: s.custom.filter(c => c.id !== id), sel: s.sel.filter(x => x !== id), packed: s.packed.filter(x => x !== id)
+    ...s, custom: s.custom.filter(c => c.id !== id), sel: s.sel.filter(x => x !== id), packed: s.packed.filter(x => x !== id)
   }));
 
   const asText = () => cats.map(c => {
@@ -108,6 +112,16 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
     );
   }
 
+  const anyPreset = catalog.trips.some(t => presetIds(t.id).length);
+  const presetSaver = (
+    <div className="ck-preset">
+      <select ref={presetSelect} value={presetTrip} onChange={e => setPresetTrip(e.target.value)} aria-label="Trip type to save your ticked items as">
+        <option value="">Save my ticked items as…</option>
+        {catalog.trips.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+      </select>
+      <Button disabled={!presetTrip || !saved.sel.length} onClick={() => { savePreset(presetTrip); void notify(`Saved ${saved.sel.length} items as your ${catalog.trips.find(t => t.id === presetTrip)?.label} list.`); }}>Save</Button>
+    </div>
+  );
   const needle = q.trim().toLowerCase();
   const noMatch = !!needle && !items.some(i => i.name.toLowerCase().includes(needle));
   const pct = chosen.length ? Math.round((done / chosen.length) * 100) : 0;
@@ -122,13 +136,15 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
         <>
           <section className="ck-quick" aria-labelledby="ck-quick-h">
             <h2 id="ck-quick-h">Quick start</h2>
-            <p className="ph-sub">Tap a trip type to tick everything usually needed, then adjust.</p>
+            <p className="ph-sub">{anyPreset
+              ? "Tap a trip type to tick the items you saved for it."
+              : "Trip types start empty. Tick the items you need below, then save them as a trip type here. Next time, one tap ticks them all."}</p>
             <div className="trip-grid" role="group" aria-label="Trip type">
               {catalog.trips.map(t => (
-                <button key={t.id} type="button" className="trip-tile" onClick={() => toggleSel(items.filter(i => i.trips.includes(t.id)).map(i => i.id), true)}>
+                <button key={t.id} type="button" className="trip-tile" onClick={() => { if (presetIds(t.id).length) toggleSel(presetIds(t.id), true); else { setPresetTrip(t.id); presetSelect.current?.focus(); } }}>
                   <span className="trip-emoji" aria-hidden="true"><Icon name={t.icon} size={28} /></span>
                   <span className="trip-name">{t.label}</span>
-                  <span className="trip-n">{items.filter(i => i.trips.includes(t.id)).length} items</span>
+                  <span className="trip-n">{presetIds(t.id).length ? `${presetIds(t.id).length} items` : "Set up"}</span>
                 </button>
               ))}
               <button type="button" className="trip-tile clear" onClick={async () => { if (await confirmAsk(`Untick all ${saved.sel.length} items?`, { yes: "Clear all", danger: true })) toggleSel(saved.sel, false); }} disabled={!saved.sel.length}>
@@ -137,6 +153,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                 <span className="trip-n">{saved.sel.length} ticked</span>
               </button>
             </div>
+            {presetSaver}
           </section>
 
           <SearchField value={q} onChange={setQ} placeholder="Search items" />
@@ -178,7 +195,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
 
           <form className="card ck-add" onSubmit={addCustom}>
             <h2>Add your own item</h2>
-            <p className="ph-sub">Saved only on this device.</p>
+            <p className="ph-sub">Your list is saved in this browser, only for you.</p>
             <div className="ck-add-row">
               <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Raincoat for the child" maxLength={80} aria-label="Custom item" />
               <select value={newCat} onChange={e => setNewCat(e.target.value)} aria-label="Category for custom item">
@@ -211,6 +228,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                 </div>
                 <div className="ckp-bar" role="progressbar" aria-label="Packed" aria-valuemin={0} aria-valuemax={chosen.length} aria-valuenow={done}><div style={{ width: `${pct}%` }} /></div>
               </section>
+              {presetSaver}
               <div className="ck-tools">
                 <Button icon="share" onClick={share}>Share</Button>
                 <Button icon="print" onClick={() => window.print()}>Print</Button>
@@ -245,7 +263,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
       )}
       <FooterLinks />
       {dialog && (
-        <ItemDialog editing={dialog.editing} cats={cats} trips={catalog.trips}
+        <ItemDialog editing={dialog.editing} cats={cats}
           onSave={(item, id) => { catalogItems.save(item, id); setDialog(null); }} onClose={() => setDialog(null)} />
       )}
     </div>
@@ -253,20 +271,19 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
 }
 
 interface DialogProps {
-  editing: Item | null; cats: Catalog["categories"]; trips: Catalog["trips"];
+  editing: Item | null; cats: Catalog["categories"];
   onSave: (item: Omit<Item, "id">, id?: string) => void; onClose: () => void;
 }
 
-function ItemDialog({ editing, cats, trips, onSave, onClose }: DialogProps) {
+function ItemDialog({ editing, cats, onSave, onClose }: DialogProps) {
   const dlg = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState(editing?.name ?? "");
   const [cat, setCat] = useState(editing?.cat ?? cats[0]?.id ?? "");
-  const [picked, setPicked] = useState<string[]>(editing?.trips ?? []);
   useEffect(() => { dlg.current?.showModal(); }, []);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) onSave({ name: name.trim(), cat, trips: picked }, editing?.id);
+    if (name.trim()) onSave({ name: name.trim(), cat, trips: [] }, editing?.id);
   };
 
   return (
@@ -279,15 +296,6 @@ function ItemDialog({ editing, cats, trips, onSave, onClose }: DialogProps) {
             {cats.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         </label>
-        <fieldset className="trip-pick">
-          <legend>Pre-ticked for these trip types</legend>
-          {trips.map(t => (
-            <label key={t.id} className="check">
-              <input type="checkbox" checked={picked.includes(t.id)}
-                onChange={e => setPicked(p => (e.target.checked ? [...p, t.id] : p.filter(x => x !== t.id)))} /> {t.label}
-            </label>
-          ))}
-        </fieldset>
         <div className="actions">
           <button type="button" className="btn" onClick={() => dlg.current?.close()}>Cancel</button>
           <button type="submit" className="btn primary" disabled={!name.trim()}>Save item</button>

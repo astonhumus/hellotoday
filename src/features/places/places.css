@@ -99,3 +99,14 @@
   .map-style { top: calc(var(--filter-bar-h) + var(--s-1)); }
   .pc-main { padding-left: var(--s-4); }
 }
+
+/* admin: category manager */
+.cat-list { list-style: none; margin: 0 0 var(--s-3); padding: 0; display: grid; gap: var(--s-1); }
+.cat-row { display: flex; align-items: center; gap: var(--s-2); }
+.cat-dot { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: #fff; flex: none; }
+.cat-name { flex: 1; min-width: 0; }
+.cat-name small { color: var(--text-2); }
+
+/* add place: GPS button and the point on a small map */
+.loc-bar { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; margin-bottom: var(--s-2); }
+.loc-map { height: clamp(140px, 26dvh, 220px); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: var(--s-2); }

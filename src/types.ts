@@ -6,6 +6,7 @@ export interface StateInfo {
 }
 
 export interface Category {
+  sort?: number;
   id: string;
   label: string;
   color: string;

@@ -33,3 +33,4 @@
 .lyrics .credit { margin-top: 2em; }
 .lyrics .soon { font-size: 0.7em; margin: 1.2em 0; }
 
+.sc-search { margin-right: var(--s-1); color: var(--text-2); flex: none; text-decoration: none; display: inline-grid; place-items: center; }
