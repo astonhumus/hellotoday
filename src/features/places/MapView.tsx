@@ -6,6 +6,9 @@ import { loadJson, store } from "../../lib/data";
 import { Icon } from "../../ui/Icon";
 import { iconSvg } from "../../ui/icons";
 import { distanceKm, formatKm } from "../../lib/geo";
+import { useTheme } from "../../lib/theme";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
 // Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
@@ -19,7 +22,7 @@ interface Props {
   categories: Record<string, Category>;
   selectedId: string | null;
   visitedIds: Set<string>;
-  me?: { lat: number; lng: number } | null; // the visitor's own position while "Near me" is on
+  me?: { lat: number; lng: number; accuracy?: number; intent?: "map" | "fit" | "near"; at?: number } | null; // the visitor's own GPS position (intent: why it was asked for)
   insets: { top: number; bottom: number }; // screen covered by the search bar and the bottom sheet (phones)
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
@@ -67,7 +70,8 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.Marker>());
   const pinState = useRef(new Map<string, { glyph: string; state: PinState }>());
-  const pinLayer = useRef<L.FeatureGroup | null>(null);
+  const pinLayer = useRef<L.MarkerClusterGroup | null>(null);
+  const theme = useTheme(); // the map reads its colours when it is built, so a theme change rebuilds it
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
   const insetsRef = useRef(insets);
@@ -91,13 +95,21 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   // Border maps below the street tiles: they show through wherever a tile can't be loaded (offline, not cached yet).
   useEffect(() => {
     if (!host.current) return;
-    const map = L.map(host.current, { preferCanvas: true, zoomSnap: 0.5, worldCopyJump: false })
+    const map = L.map(host.current, { preferCanvas: true, zoomSnap: 0.5, worldCopyJump: false, maxZoom: 18 }) // maxZoom is needed up front by the pin clusters
       .setView(state.center, state.zoom);
     map.createPane("borders").style.zIndex = "150";   // under the tile pane (200)
     map.createPane("outline").style.zIndex = "250";   // over the tiles
     mapRef.current = map;
+    const host0 = host.current;
+    const mark = () => { host0.dataset.zoom = String(map.getZoom()); }; // the current zoom, readable from outside (tests, debugging)
+    map.on("zoomend", mark); mark();
+    prevView.current = null; zoomedRef.current = false; setZoomedToMe(false);
     setReady(n => n + 1);
-    pinLayer.current = L.featureGroup().addTo(map);
+    // Pins that overlap merge into a numbered circle (tap to zoom in), so a crowded town stays readable and fast.
+    pinLayer.current = L.markerClusterGroup({
+      showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 16, chunkedLoading: true,
+      iconCreateFunction: c => L.divIcon({ html: `<span class="cluster">${c.getChildCount()}</span>`, className: "cluster-wrap", iconSize: [40, 40] })
+    }).addTo(map);
     let cancelled = false;
 
     // Drawing the borders is the heavy part: do it when the browser is idle, after the pins and tiles are up.
@@ -129,7 +141,6 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
         fitMinZoom(map);
         map.setMaxBounds(bounds.pad(0.6));
       }
-      pinLayer.current?.bringToFront();
     };
 
     // The map may be hidden (mobile List view) and shown later, or resized by rotating the phone.
@@ -137,7 +148,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     ro.observe(host.current);
 
     return () => { cancelled = true; ro.disconnect(); map.stop(); map.remove(); mapRef.current = null; pins.current.clear(); pinState.current.clear(); stateBounds.current = null; lastFit.current = ""; };
-  }, [state]);
+  }, [state, theme]);
 
   // District boundaries (public/data/<state>/districts.json), drawn over the tiles with the district name in the middle.
   useEffect(() => {
@@ -239,25 +250,63 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   };
   useEffect(paint, [selectedId, visitedIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // "You are here": a dark dot, and the map moves there
+  // "You are here": a blue dot, like Google Maps. The map can always show you,
+  // even when you are far outside the region: its limits are widened to take you in.
   const meMarker = useRef<L.CircleMarker | null>(null);
+  const prevView = useRef<{ center: L.LatLng; zoom: number } | null>(null); // where the map was before the GPS button zoomed in
+  const zoomedRef = useRef(false);
+  const [zoomedToMe, setZoomedToMe] = useState(false);
+  const zoomIn = (map: L.Map, at: L.LatLngTuple, zoom: number) => {
+    const { top, bottom } = insetsRef.current;
+    map.flyTo(map.unproject(map.project(at, zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 1.2 }); // the glide, as in Google Maps
+  };
   useEffect(() => {
     const map = mapRef.current;
-    meMarker.current?.remove();
-    meMarker.current = null;
+    meMarker.current?.remove(); meMarker.current = null;
     if (!map || !me) return;
-    // Outside the state the map can't show you (it is locked to the state): the list still sorts by distance.
-    if (map.options.maxBounds && !L.latLngBounds(map.options.maxBounds as L.LatLngBoundsLiteral).contains([me.lat, me.lng])) return;
-    meMarker.current = L.circleMarker([me.lat, me.lng], { radius: 9, weight: 3, color: token("--surface"), fillColor: token("--text"), fillOpacity: 1, interactive: false }).addTo(map);
+    const at: L.LatLngTuple = [me.lat, me.lng];
+    const b = stateBounds.current;
+    if (b && !b.contains(at)) {
+      const wider = L.latLngBounds(b.getSouthWest(), b.getNorthEast()).extend(at);
+      stateBounds.current = wider;
+      map.setMaxBounds(wider.pad(0.6));
+      fitMinZoom(map);
+    }
+    meMarker.current = L.circleMarker(at, { radius: 8, weight: 3, color: "#ffffff", fillColor: "#1a73e8", fillOpacity: 1, interactive: false }).addTo(map);
     const { top, bottom } = insetsRef.current;
     const chosen = selectedRef.current ? pins.current.get(selectedRef.current) : null;
-    if (chosen) { // a place is open: show you and the place together, so the distance can be seen
-      map.flyToBounds(L.latLngBounds([[me.lat, me.lng], chosen.getLatLng()]), { paddingTopLeft: [40, top + 24], paddingBottomRight: [40, bottom + 24], maxZoom: 15, duration: 0.6 });
+    if (me.intent === "fit" && chosen) { // a place is open: show you and the place together, so the distance can be seen
+      map.flyToBounds(L.latLngBounds([at, chosen.getLatLng()]), { paddingTopLeft: [40, top + 24], paddingBottomRight: [40, bottom + 24], maxZoom: 16, duration: 0.6 });
       return;
     }
-    const zoom = 11;
-    map.flyTo(map.unproject(map.project([me.lat, me.lng], zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 0.6 });
+    if (me.intent === "near") return void zoomIn(map, at, 13);
+    // The GPS button: glide in to you at a modest zoom. The next tap on the button glides back out (see toggleLocate).
+    zoomIn(map, at, Math.max(map.getZoom(), 15));
+    if (me.intent === "map") { zoomedRef.current = true; setZoomedToMe(true); }
   }, [me, ready]);
+
+  // If the GPS could not be read, forget the view that was saved for the way back
+  useEffect(() => { if (!locating && !zoomedRef.current) prevView.current = null; }, [locating]);
+
+  // The GPS button, like Google Maps: first tap zooms in on you, the next tap zooms back out to where you were.
+  // If you have moved the map away from yourself while zoomed in, the tap brings you back to the blue dot instead.
+  const toggleLocate = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (zoomedRef.current && me) {
+      const away = map.latLngToContainerPoint([me.lat, me.lng]).distanceTo(map.getSize().divideBy(2));
+      if (away > 90) return void zoomIn(map, [me.lat, me.lng], map.getZoom());
+      const back = prevView.current;
+      zoomedRef.current = false; setZoomedToMe(false); prevView.current = null;
+      if (back) map.flyTo(back.center, back.zoom, { duration: 1.2 });
+      return;
+    }
+    prevView.current = { center: map.getCenter(), zoom: map.getZoom() };
+    if (me?.at && Date.now() - me.at < 30000) { // a recent reading: no need to ask the GPS again
+      zoomedRef.current = true; setZoomedToMe(true);
+      zoomIn(map, [me.lat, me.lng], Math.max(map.getZoom(), 15));
+    } else onLocate?.();
+  };
 
   // A dashed line from you to the open place, labelled with the distance
   const meLine = useRef<L.Polyline | null>(null);
@@ -276,9 +325,11 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   useEffect(() => {
     const map = mapRef.current, m = selectedId ? pins.current.get(selectedId) : null;
     if (!map || !m) return;
-    const zoom = Math.max(map.getZoom(), 11), { top, bottom } = insetsRef.current;
+    const zoom = Math.max(map.getZoom(), 14), { top, bottom } = insetsRef.current;
     const centre = map.unproject(map.project(m.getLatLng(), zoom).add([0, (bottom - top) / 2]), zoom);
     map.flyTo(centre, zoom, { duration: 0.6 });
+    // If the pin is still folded into a cluster after arriving, open the cluster
+    map.once("moveend", () => { const g = pinLayer.current; if (g && g.hasLayer(m) && g.getVisibleParent(m) !== m) g.zoomToShowLayer(m, () => {}); });
   }, [selectedId, focusTick]);
 
   const choose = (s: MapStyle) => { setStyle(s); store.set("map-style", s); };
@@ -288,7 +339,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
       <div ref={host} className="map" role="region" aria-label={`Map of ${state.name}`} />
       {onLocate && (
         <div className="map-locate">
-          <button type="button" className={"map-layers" + (me ? " on" : "")} aria-label={me ? "Update my location" : "Show my location"} title="My location" disabled={locating} onClick={onLocate}>
+          <button type="button" className={"map-layers" + (zoomedToMe ? " on" : "")} aria-pressed={zoomedToMe} aria-label={zoomedToMe ? "Zoom back out" : "Zoom to my location"} title={zoomedToMe ? "Zoom back out" : "My location"} disabled={locating} onClick={toggleLocate}>
             <Icon name="locate" />
           </button>
         </div>

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { Category, CountryInfo, Place, Song, StateInfo } from "./types";
 import { RegionPicker } from "./components/RegionPicker";
+import { SettingsDialog } from "./components/SettingsDialog";
 import { loadJson, store } from "./lib/data";
 import type { Catalog } from "./features/checklist/ChecklistPage";
 import { useOverlay } from "./lib/overlay";
@@ -125,6 +126,8 @@ export default function App() {
     setCountryId(cId);
     location.hash = "#/";
   };
+  const [regionOpen, setRegionOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const state = states.find(s => s.id === stateId) ?? states[0];
 
   useEffect(() => {
@@ -245,7 +248,9 @@ export default function App() {
     <div className="app">
       <header>
         <p className="site-name"><a href="#/" className="brand">Explore<span className={"brand-country" + ((country?.name.length ?? 0) > 12 ? " long" : "")}> {country?.name ?? "India"}</span></a></p>
-        <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion} />
+        <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion}
+          open={regionOpen} onOpen={() => setRegionOpen(true)} onClose={() => setRegionOpen(false)} />
+        <button type="button" className="icon-btn header-settings" aria-label="Settings" title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>
         <nav className="tabs" aria-label="Main menu">
           <a href="#/" aria-current={page === "home" ? "page" : undefined}><Icon name="home" size={22} /> Home</a>
           <a href="#/places" aria-current={page === "places" ? "page" : undefined}><Icon name="map" size={22} /> Places</a>
@@ -255,7 +260,8 @@ export default function App() {
         {supabase && IS_ADMIN && <a className="btn" href="#/review">Review{pending ? ` (${pending})` : ""}</a>}
         <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) location.hash = "#/places"; }} />
       </header>
-      <PwaBar />
+      <PwaBar showInstall={page === "home"} />
+      {settingsOpen && <SettingsDialog country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
       <main>
         <Suspense fallback={<SkeletonPage />}>
         {error && (

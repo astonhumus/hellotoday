@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CountryInfo, StateInfo } from "../types";
 import { loadJson } from "../lib/data";
 import { Button } from "../ui/Button";
@@ -9,23 +10,26 @@ interface Props {
   country: CountryInfo | undefined;
   state: StateInfo | undefined;
   onChoose: (countryId: string, regionId: string) => void;
+  open?: boolean;          // controlled by the app, so Settings can open it too
+  onOpen?: () => void;
+  onClose?: () => void;
 }
 
 interface Region { id: string; name: string }
 
 /** The header button that shows where you are exploring, and the setting to change country and state/province. */
-export function RegionPicker({ countries, country, state, onChoose }: Props) {
-  const [open, setOpen] = useState(false);
+export function RegionPicker({ countries, country, state, onChoose, open = false, onOpen, onClose }: Props) {
   return (
     <>
-      <button type="button" className="region-btn" onClick={() => setOpen(true)} aria-haspopup="dialog"
+      <button type="button" className="region-btn" onClick={onOpen} aria-haspopup="dialog"
         aria-label={`Region: ${state?.name ?? "loading"}${country ? `, ${country.name}` : ""}. Change country or ${country?.kind.toLowerCase() ?? "state"}`}>
         <Icon name="pin" size={18} />
         <span className="region-name">{state?.name ?? "Choose region"}</span>
         {country && <span className="region-country">{country.name}</span>}
       </button>
-      {open && <RegionDialog countries={countries} country={country} state={state} onClose={() => setOpen(false)}
-        onChoose={(c, r) => { setOpen(false); onChoose(c, r); }} />}
+      {open && createPortal(
+        <RegionDialog countries={countries} country={country} state={state} onClose={() => onClose?.()}
+          onChoose={(c, r) => { onClose?.(); onChoose(c, r); }} />, document.body)}
     </>
   );
 }
@@ -57,7 +61,7 @@ function RegionDialog({ countries, country, state, onChoose, onClose }: Props & 
   const kind = chosen?.kind ?? "State";
 
   return (
-    <dialog ref={dlg} onClose={onClose}>
+    <dialog ref={dlg} className="region-dialog" onClose={onClose}>
       <form onSubmit={e => { e.preventDefault(); if (regionId) onChoose(countryId, regionId); }}>
         <h2>Where do you want to explore?</h2>
         <label>Country

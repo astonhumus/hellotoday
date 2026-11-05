@@ -10,6 +10,8 @@ interface Props {
   picked: Set<string>;                    // empty = all
   onToggleCategory: (id: string) => void;
   onAllCategories: () => void;
+  allOn: boolean;                         // "All" is on: every place is pinned on the map
+  onAll: () => void;
   multi: boolean;                         // "Select several" is on
   onMulti: (on: boolean) => void;
   districts: string[];
@@ -28,7 +30,7 @@ export function FilterBar(p: Props) {
     <div className="fb">
       <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places" />
       <div className="fb-chips" role="group" aria-label="Filters">
-        <Chip pressed={p.picked.size === 0 && !p.visitedOnly} onClick={() => { p.onAllCategories(); if (p.visitedOnly) p.onVisitedOnly(); }}>All</Chip>
+        <Chip pressed={p.allOn} onClick={p.onAll} title="Show every place on the map">All</Chip>
         <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} icon="check" onClick={p.onVisitedOnly}>My visited</Chip>
         <Chip pressed={p.near} icon="pin" onClick={p.onNear} title="Sort by distance from where you are">Near me</Chip>
         {p.categories.map(c => (

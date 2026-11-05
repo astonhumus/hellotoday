@@ -8,7 +8,7 @@ const standalone = () => matchMedia("(display-mode: standalone)").matches || (na
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 
 // A thin strip under the header: new-version notice, offline notice, and an "Install app" offer.
-export function PwaBar() {
+export function PwaBar({ showInstall = true }: { showInstall?: boolean }) {
   const [online, setOnline] = useState(navigator.onLine);
   const [installEvent, setInstallEvent] = useState<InstallEvent | null>(null);
   const [dismissed, setDismissed] = useState(() => store.get("install-dismissed") === "1");
@@ -44,7 +44,7 @@ export function PwaBar() {
         </div>
       )}
       {!online && <div className="bar offline" role="status">You're offline. Showing saved data; editing resumes when you're back online.</div>}
-      {online && !dismissed && !standalone() && (installEvent || isIos()) && (
+      {showInstall && online && !dismissed && !standalone() && (installEvent || isIos()) && (
         <div className="bar install" role="status">
           <span>{installEvent ? "Install this app for quick access and offline use." : "Install: tap the Share button, then “Add to Home Screen”."}</span>
           {installEvent && <button className="btn primary" onClick={install}>Install</button>}

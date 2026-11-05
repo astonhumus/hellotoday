@@ -15,7 +15,9 @@
     "@fontsource/noto-sans-bengali": "^5.3.0",
     "@fontsource/noto-sans-meetei-mayek": "^5.3.0",
     "@supabase/supabase-js": "^2.118.0",
+    "@types/leaflet.markercluster": "^1.5.6",
     "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
     "lucide": "^1.66.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

@@ -122,3 +122,22 @@
 .pd-dist-text strong { font-size: var(--text-md); }
 .pd-dist-text small { color: var(--text-2); font-size: var(--text-xs); }
 @media (max-width: 760px) { .map-locate { top: calc(var(--filter-bar-h) + var(--s-1) + var(--tap) + var(--s-2)); } }
+
+/* ── no pins until something is chosen: a hint over the map ── */
+.map-hint { position: absolute; z-index: 700; left: var(--s-3); right: var(--s-3); bottom: calc(var(--sheet-h, 0px) + var(--s-4)); display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; padding: var(--s-3); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-float); font-size: var(--text-sm); }
+.map-hint span { flex: 1 1 12rem; }
+@media (min-width: 761px) { .map-hint { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - var(--s-6)); } }
+
+/* ── pins that overlap merge into a numbered circle ── */
+.cluster-wrap { background: transparent; border: 0; }
+.cluster { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 3px solid var(--surface); box-shadow: var(--shadow-float); font-weight: var(--w-semibold); font-size: var(--text-sm); }
+.marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background: transparent; }
+
+/* ── dark theme for the map: street tiles are inverted, controls follow the tokens ── */
+.leaflet-container { background: var(--surface-2); }
+.leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 85%, transparent) !important; color: var(--text-2) !important; }
+.leaflet-control-attribution a { color: var(--accent) !important; }
+.leaflet-bar a { background-color: var(--surface); color: var(--text); border-color: var(--border); }
+.leaflet-bar a:hover { background-color: var(--surface-2); }
+:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.75); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.75); } }

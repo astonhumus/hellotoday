@@ -226,3 +226,17 @@ dialog.msg .actions { position: static; border: none; padding: 0; background: no
 
 /* a long country name would push the header onto two lines on a phone: the region button already names the place */
 @media (max-width: 760px) { .brand-country.long { display: none; } }
+
+/* ── settings button, settings and region dialogs ── */
+.header-settings { flex: none; }
+@media (max-width: 760px) { .header-settings { margin-left: auto; } }
+dialog.region-dialog, dialog.settings { max-width: min(var(--dialog-w), 100vw); }
+.region-dialog form, .settings { min-width: 0; }
+.region-dialog label { min-width: 0; }
+.region-dialog select { width: 100%; max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+.settings { display: grid; gap: var(--s-4); }
+.settings h2 { margin: 0; }
+.set-row { display: grid; gap: var(--s-2); }
+.set-row h3 { margin: 0; font-size: var(--text-md); }
+.set-value { margin: 0; color: var(--text-2); overflow-wrap: anywhere; }
+@media (max-width: 760px) { dialog.settings { display: block; } dialog.settings > * + * { margin-top: var(--s-4); } }

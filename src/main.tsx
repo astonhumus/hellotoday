@@ -12,5 +12,8 @@ import "@fontsource-variable/inter/wght.css";
 import "./styles/tokens.css";
 import "./styles.css";
 import "./ui/ui.css";
+import { applyTheme } from "./lib/theme";
+
+applyTheme(); // the saved light/dark choice, before anything is drawn
 
 createRoot(document.getElementById("root")!).render(<StrictMode><ErrorBoundary><App /></ErrorBoundary></StrictMode>);
