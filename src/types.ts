@@ -1,8 +1,19 @@
 export interface StateInfo {
   id: string;
-  name: string; // must match the state's name in public/data/india-states.json
+  name: string;
   center: [number, number];
   zoom: number;
+  country?: string;                         // country code (Natural Earth adm0_a3, e.g. "IND"); the file public/data/regions/<code>.json holds its borders
+  bbox?: [number, number, number, number];  // south, west, north, east of the region's main landmass
+}
+
+export interface CountryInfo {
+  id: string;     // e.g. "IND"
+  name: string;
+  kind: string;   // what its subdivisions are called: State, Province, Region...
+  center: [number, number];
+  zoom: number;
+  regions: number;
 }
 
 export interface Category {

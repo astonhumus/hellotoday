@@ -13,13 +13,17 @@ import { EmptyState, Skeleton } from "../../ui/States";
 import "./checklist.css";
 
 export interface Catalog {
-  trips: { id: string; label: string; icon: string }[];
-  categories: { id: string; label: string; icon: string; items: string[] }[]; // items: "Name | trip trip"
+  trips: { id: string; label: string; icon: string; emoji?: string }[];
+  categories: { id: string; label: string; icon: string; emoji?: string; items: string[] }[]; // items: "Name | trip trip"
 }
 interface Item { id: string; name: string; cat: string; trips: string[] }
 interface Saved { sel: string[]; packed: string[]; custom: { id: string; name: string; cat: string }[]; presets: Record<string, string[]> } // presets: the user's own item list per trip type
 
 const KEY = "checklist";
+
+/** A friendly coloured emoji when the data has one, otherwise the line icon. */
+const Glyph = ({ emoji, icon, size }: { emoji?: string; icon: string; size: number }) =>
+  emoji ? <span className="glyph" style={{ fontSize: size }} aria-hidden="true">{emoji}</span> : <Icon name={icon} size={size} />;
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 function load(): Saved {
@@ -36,8 +40,6 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
   const [q, setQ] = useState("");
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("");
-  const [presetTrip, setPresetTrip] = useState("");
-  const presetSelect = useRef<HTMLSelectElement>(null);
 
   useEffect(() => { store.set(KEY, JSON.stringify(saved)); }, [saved]);
 
@@ -113,22 +115,32 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
   }
 
   const anyPreset = catalog.trips.some(t => presetIds(t.id).length);
-  const presetSaver = (
-    <div className="ck-preset">
-      <select ref={presetSelect} value={presetTrip} onChange={e => setPresetTrip(e.target.value)} aria-label="Trip type to save your ticked items as">
-        <option value="">Save my ticked items as…</option>
-        {catalog.trips.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-      </select>
-      <Button disabled={!presetTrip || !saved.sel.length} onClick={() => { savePreset(presetTrip); void notify(`Saved ${saved.sel.length} items as your ${catalog.trips.find(t => t.id === presetTrip)?.label} list.`); }}>Save</Button>
+  // One tap saves what is ticked as that trip's list (in this browser). Asks first when it would replace a list.
+  const saveAs = async (t: Catalog["trips"][number]) => {
+    const had = presetIds(t.id).length;
+    if (had && !(await confirmAsk(`Replace your ${had} saved items for ${t.label} with the ${saved.sel.length} ticked now?`, { yes: "Replace" }))) return;
+    savePreset(t.id);
+    void notify(`Saved ${saved.sel.length} items to ${t.label}.`);
+  };
+  const presetSaver = saved.sel.length > 0 ? (
+    <div className="ck-save" role="group" aria-label="Save ticked items to a trip">
+      <p className="ck-save-h">Save your <strong>{saved.sel.length}</strong> ticked items to:</p>
+      <div className="ck-save-chips">
+        {catalog.trips.map(t => (
+          <button key={t.id} type="button" className="chip" onClick={() => saveAs(t)}>
+            <Glyph emoji={t.emoji} icon={t.icon} size={16} /> {t.label}
+          </button>
+        ))}
+      </div>
     </div>
-  );
+  ) : null;
   const needle = q.trim().toLowerCase();
   const noMatch = !!needle && !items.some(i => i.name.toLowerCase().includes(needle));
   const pct = chosen.length ? Math.round((done / chosen.length) * 100) : 0;
 
   return (
     <div className="page checklist">
-      <PageHeader title="Trip checklist" sub={mode === "choose" ? undefined : `${done} of ${chosen.length} packed`} />
+      <PageHeader title="Trip checklist" sub={mode === "choose" ? "Pick what you need, then tick it off as you pack." : `${done} of ${chosen.length} packed`} />
       <Segmented label="Checklist steps" value={mode} onChange={setMode}
         options={[{ id: "choose", label: "1. Choose items" }, { id: "list", label: `2. My list (${chosen.length})` }]} />
 
@@ -137,26 +149,34 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
           <section className="ck-quick" aria-labelledby="ck-quick-h">
             <h2 id="ck-quick-h">Quick start</h2>
             <p className="ph-sub">{anyPreset
-              ? "Tap a trip type to tick the items you saved for it."
-              : "Trip types start empty. Tick the items you need below, then save them as a trip type here. Next time, one tap ticks them all."}</p>
+              ? "Tap a trip to tick your saved list for it."
+              : "Your trip lists start empty. Tick items below, then save them to a trip."}</p>
             <div className="trip-grid" role="group" aria-label="Trip type">
               {catalog.trips.map(t => (
-                <button key={t.id} type="button" className="trip-tile" onClick={() => { if (presetIds(t.id).length) toggleSel(presetIds(t.id), true); else { setPresetTrip(t.id); presetSelect.current?.focus(); } }}>
-                  <span className="trip-emoji" aria-hidden="true"><Icon name={t.icon} size={28} /></span>
+                <button key={t.id} type="button" className="trip-tile" onClick={() => {
+                  const ids = presetIds(t.id);
+                  if (!ids.length) return void notify(`${t.label} is empty. Tick items below, then save them to ${t.label}.`);
+                  toggleSel(ids, true);
+                  void notify(`Ticked ${ids.length} items for ${t.label}.`);
+                }}>
+                  <span className="trip-emoji" aria-hidden="true"><Glyph emoji={t.emoji} icon={t.icon} size={30} /></span>
                   <span className="trip-name">{t.label}</span>
-                  <span className="trip-n">{presetIds(t.id).length ? `${presetIds(t.id).length} items` : "Set up"}</span>
+                  <span className="trip-n">{presetIds(t.id).length} items</span>
                 </button>
               ))}
               <button type="button" className="trip-tile clear" onClick={async () => { if (await confirmAsk(`Untick all ${saved.sel.length} items?`, { yes: "Clear all", danger: true })) toggleSel(saved.sel, false); }} disabled={!saved.sel.length}>
-                <span className="trip-emoji" aria-hidden="true"><Icon name="undo" size={24} /></span>
+                <span className="trip-emoji" aria-hidden="true"><Icon name="undo" size={26} /></span>
                 <span className="trip-name">Clear all</span>
                 <span className="trip-n">{saved.sel.length} ticked</span>
               </button>
             </div>
             {presetSaver}
+            {anyPreset && (
+              <button type="button" className="link ck-reset" onClick={async () => { if (await confirmAsk("Remove all your saved trip lists? Your ticks stay.", { yes: "Remove lists", danger: true })) update(s => ({ ...s, presets: {} })); }}>Reset my saved trip lists</button>
+            )}
           </section>
 
-          <SearchField value={q} onChange={setQ} placeholder="Search items" />
+          <div className="ck-search"><SearchField value={q} onChange={setQ} placeholder="Search items" /></div>
           {noMatch && <EmptyState title={`No items match “${q.trim()}”`} hint="Add it as your own item below." action={{ label: "Clear search", onClick: () => setQ("") }} />}
 
           {cats.map(c => {
@@ -166,7 +186,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
             return (
               <details key={c.id} open={!!needle || undefined} className="ck-card">
                 <summary>
-                  <span className="ck-ic" aria-hidden="true"><Icon name={c.icon} size={20} /></span>
+                  <span className="ck-ic" aria-hidden="true"><Glyph emoji={c.emoji} icon={c.icon} size={22} /></span>
                   <span className="ck-name">{c.label}</span>
                   <span className={"ck-count" + (n ? " on" : "")}>{n}/{rows.length}</span>
                   <Icon name="chevron-down" size={18} />
@@ -206,9 +226,9 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
             {admin && <Button icon="plus" onClick={() => setDialog({ editing: null })}>Add item to the catalog (everyone)</Button>}
           </form>
 
-          <div className="ck-cta">
-            <Button variant="primary" onClick={() => setMode("list")} disabled={!chosen.length}>Make my list ({chosen.length})</Button>
-          </div>
+          {chosen.length > 0 && <div className="ck-cta">
+            <Button variant="primary" onClick={() => { setMode("list"); }} disabled={!chosen.length}>{chosen.length ? `View my list · ${chosen.length} items` : "Tick items to build your list"}</Button>
+          </div>}
         </>
       ) : (
         <>
@@ -228,7 +248,6 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                 </div>
                 <div className="ckp-bar" role="progressbar" aria-label="Packed" aria-valuemin={0} aria-valuemax={chosen.length} aria-valuenow={done}><div style={{ width: `${pct}%` }} /></div>
               </section>
-              {presetSaver}
               <div className="ck-tools">
                 <Button icon="share" onClick={share}>Share</Button>
                 <Button icon="print" onClick={() => window.print()}>Print</Button>
@@ -241,7 +260,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                 return (
                   <section key={c.id} className="ck-card open">
                     <h2 className="ck-head">
-                      <span className="ck-ic" aria-hidden="true"><Icon name={c.icon} size={20} /></span>
+                      <span className="ck-ic" aria-hidden="true"><Glyph emoji={c.emoji} icon={c.icon} size={22} /></span>
                       <span className="ck-name">{c.label}</span>
                       <span className={"ck-count" + (d === rows.length ? " on" : "")}>{d}/{rows.length}</span>
                     </h2>

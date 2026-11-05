@@ -30,11 +30,16 @@ export default defineConfig(({ mode }) => {
       workbox: {
         // Everything the app needs (code, map borders, bundled places/songs/checklist) is cached on first visit.
         globPatterns: ["**/*.{js,css,html,svg,png,json,woff2}"],
+        globIgnores: ["data/regions/**"], // 7 MB of borders for every country: fetched (and then cached) only for the countries someone opens
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         runtimeCaching: [{
+          urlPattern: /\/data\/regions\/[A-Z]+\.json$/,
+          handler: "StaleWhileRevalidate",
+          options: { cacheName: "regions", expiration: { maxEntries: 30 }, cacheableResponse: { statuses: [200] } }
+        }, {
           // Map tiles you have looked at keep working offline. Cache-first, capped so it can't grow without limit.
           urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
           handler: "CacheFirst",

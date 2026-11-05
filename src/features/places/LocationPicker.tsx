@@ -13,10 +13,12 @@ interface Props {
   point: LatLng | null;
   accuracy?: number | null;           // metres, from the GPS reading
   onMove: (p: LatLng) => void;        // the pin was dragged or the map tapped
+  center?: [number, number];          // where to start looking (the chosen region)
+  zoom?: number;
 }
 
 /** Small map showing the chosen point. Drag the pin or tap the map to fine-tune it. */
-export function LocationPicker({ point, accuracy, onMove }: Props) {
+export function LocationPicker({ point, accuracy, onMove, center = [24.75, 93.9], zoom = 9 }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const pin = useRef<L.Marker | null>(null);
@@ -35,7 +37,7 @@ export function LocationPicker({ point, accuracy, onMove }: Props) {
 
   useEffect(() => {
     if (!el.current) return;
-    const m = L.map(el.current, { zoomControl: true, attributionControl: true }).setView([24.75, 93.9], 9);
+    const m = L.map(el.current, { zoomControl: true, attributionControl: true }).setView(center, Math.min(zoom, 12));
     L.tileLayer(TILES, { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(m);
     m.on("click", e => { fromMap.current = true; move.current({ lat: e.latlng.lat, lng: e.latlng.lng }); });
     map.current = m;

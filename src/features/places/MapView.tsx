@@ -99,17 +99,27 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
 
     // Drawing the borders is the heavy part: do it when the browser is idle, after the pins and tiles are up.
     const idle = (fn: () => void) => ("requestIdleCallback" in window ? (window as any).requestIdleCallback(fn, { timeout: 800 }) : setTimeout(fn, 50));
-    Promise.all([loadJson<any>("world.json"), loadJson<any>("india-states.json")]).then(([world, india]) => new Promise<void>(res => idle(() => { if (!cancelled) draw(world, india); res(); }))).catch(() => {});
+    // The borders of every state/province of the chosen country come from public/data/regions/<country>.json.
+    Promise.all([loadJson<any>("world.json"), loadJson<any>(`regions/${state.country ?? "IND"}.json`)]).then(([world, regions]) => new Promise<void>(res => idle(() => { if (!cancelled) draw(world, regions); res(); }))).catch(() => {});
+    // The region's main landmass is known up front, so the view can be fitted and limited straight away.
+    if (state.bbox) {
+      const [s, w, n, e] = state.bbox;
+      const bounds = L.latLngBounds([s, w], [n, e]);
+      stateBounds.current = bounds;
+      try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
+      fitMinZoom(map);
+      map.setMaxBounds(bounds.pad(0.6));
+    }
     const draw = (world: any, india: any) => {
       L.geoJSON(world, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface-2"), fillOpacity: 1 } }).addTo(map);
       L.geoJSON(india, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface"), fillOpacity: 1 } }).addTo(map);
-      const mine = india.features.filter((f: any) => f.properties.name === state.name);
+      const mine = india.features.filter((f: any) => f.properties.id === state.id);
       const fc = { type: "FeatureCollection", features: mine } as any;
       L.geoJSON(fc, { pane: "borders", interactive: false, style: { color: token("--accent"), weight: 2, fillColor: token("--accent-wash"), fillOpacity: 1 } }).addTo(map);
       // Green state boundary stays visible on top of the street map.
       const outline = L.geoJSON(fc, { pane: "outline", interactive: false, style: { color: token("--accent"), weight: 2.5, fill: false } });
       if (!haveDistrictOutline.current) { outline.addTo(map); stateStroke.current = outline; }
-      if (mine.length) {
+      if (mine.length && !state.bbox) {
         const bounds = outline.getBounds();
         stateBounds.current = bounds;
         try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }

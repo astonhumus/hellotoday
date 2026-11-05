@@ -240,7 +240,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
         <CategoryManager categories={categories} counts={counts} usageOf={categoryUsage} onSave={onSaveCategory} onDelete={onDeleteCategory} onClose={() => setCatDialog(false)} />
       )}
       {dialog && (
-        <AddPlaceDialog categories={categories} districts={districts} editing={dialog.editing}
+        <AddPlaceDialog center={state.center} zoom={state.zoom} categories={categories} districts={districts} editing={dialog.editing}
           onSave={(p, id) => { if (!id) justAdded.current = { name: p.name, lat: p.lat, lng: p.lng }; onSavePlace(p, id); setDialog(null); }} onClose={() => setDialog(null)} />
       )}
     </div>

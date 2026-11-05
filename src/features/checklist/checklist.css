@@ -72,5 +72,43 @@
   .app, .page { height: auto !important; overflow: visible !important; }
   .ck-card { break-inside: avoid; }
 }
-.ck-preset { display: flex; gap: var(--s-2); align-items: center; }
-.ck-preset select { flex: 1; min-width: 0; }
+
+/* ── mobile-first refinements ── */
+.glyph { line-height: 1; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+
+/* trip tiles: three across on a phone (5 trips + Clear = two even rows), six across on wider screens */
+.trip-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
+@media (min-width: 640px) { .trip-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.trip-tile { min-height: 104px; align-content: center; padding: var(--s-3) var(--s-1); border-radius: calc(var(--radius) + 4px); box-shadow: var(--shadow-float); }
+.trip-tile.clear { box-shadow: none; }
+.trip-emoji { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-wash); color: var(--accent); }
+.trip-tile.clear .trip-emoji { background: var(--surface-2); color: var(--text-2); }
+.trip-name { line-height: 1.2; overflow-wrap: anywhere; }
+
+/* one-tap "save my ticks to a trip" */
+.ck-save { display: grid; gap: var(--s-2); margin-top: var(--s-3); padding: var(--s-3); border: 1px dashed var(--accent); border-radius: var(--radius); background: var(--accent-wash); }
+.ck-save-h { margin: 0; font-size: var(--text-sm); }
+.ck-save-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.ck-save-chips .chip { min-height: var(--tap); }
+.ck-reset { justify-self: start; min-height: var(--tap); }
+
+/* search stays in reach while scrolling a long list */
+.ck-search { position: sticky; top: 0; z-index: 4; margin: 0 calc(-1 * var(--s-3)); padding: var(--s-2) var(--s-3); background: var(--bg); }
+
+/* categories: bigger rows, tinted emoji badge */
+.ck-ic { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-wash); }
+.ck-card > summary, .ck-head { min-height: 60px; }
+.ck-check { min-height: 48px; }
+.ck-count { min-width: 44px; text-align: center; }
+
+/* the main action sits above the tab bar, full width, always reachable */
+.ck-cta { position: sticky; bottom: var(--s-2); z-index: 5; margin: 0 calc(-1 * var(--s-1)); }
+.ck-cta .btn { min-height: 52px; border-radius: calc(var(--radius) + 4px); }
+.ck-cta .btn:disabled { box-shadow: none; }
+
+/* progress summary and tools stay compact on small screens */
+@media (max-width: 400px) {
+  .ck-tools { grid-template-columns: 1fr 1fr; }
+  .ck-tools .btn:last-child { grid-column: 1 / -1; }
+  .ck-add-row { grid-template-columns: 1fr; }
+}

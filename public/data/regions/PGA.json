@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"pga-spratly-islands","name":"Spratly Islands","kind":"","center":[10.238,115.367],"zoom":13,"bbox":[10.237,115.366,10.239,115.368]},"geometry":{"type":"Polygon","coordinates":[[[115.367,10.237],[115.366,10.239],[115.368,10.239],[115.367,10.237]]]}}]}

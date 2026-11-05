@@ -3,27 +3,32 @@
     {
       "id": "picnic",
       "label": "Picnic",
-      "icon": "shopping-basket"
+      "icon": "shopping-basket",
+      "emoji": "🧺"
     },
     {
       "id": "camping",
       "label": "Camping",
-      "icon": "tent"
+      "icon": "tent",
+      "emoji": "⛺"
     },
     {
       "id": "trek",
       "label": "Trek / hike",
-      "icon": "footprints"
+      "icon": "footprints",
+      "emoji": "🥾"
     },
     {
       "id": "road",
       "label": "Road trip",
-      "icon": "car"
+      "icon": "car",
+      "emoji": "🚗"
     },
     {
       "id": "day",
       "label": "Day trip",
-      "icon": "sunrise"
+      "icon": "sunrise",
+      "emoji": "🌅"
     }
   ],
   "categories": [
@@ -55,7 +60,8 @@
         "Mint leaves",
         "Fermented bamboo shoot",
         "Chutney ingredients"
-      ]
+      ],
+      "emoji": "🥕"
     },
     {
       "id": "meat",
@@ -78,7 +84,8 @@
         "Meat masala",
         "Skewers for kebabs",
         "Meat thermometer"
-      ]
+      ],
+      "emoji": "🍗"
     },
     {
       "id": "fruit",
@@ -101,7 +108,8 @@
         "Roasted peanuts",
         "Sandwiches",
         "Boiled eggs"
-      ]
+      ],
+      "emoji": "🍎"
     },
     {
       "id": "pantry",
@@ -130,7 +138,8 @@
         "Ketchup / sauce",
         "Pickle",
         "Spice box"
-      ]
+      ],
+      "emoji": "🌾"
     },
     {
       "id": "drinks",
@@ -145,7 +154,8 @@
         "Flask with hot tea",
         "Ice box / cooler",
         "Ice packs"
-      ]
+      ],
+      "emoji": "💧"
     },
     {
       "id": "cook",
@@ -168,7 +178,8 @@
         "Barbecue grill & skewers",
         "Tin opener / bottle opener",
         "Mixing bowls"
-      ]
+      ],
+      "emoji": "🍲"
     },
     {
       "id": "serve",
@@ -189,7 +200,8 @@
         "Cling wrap",
         "Tissue / paper napkins",
         "Kitchen towel"
-      ]
+      ],
+      "emoji": "🍽️"
     },
     {
       "id": "shelter",
@@ -208,7 +220,8 @@
         "Folding table",
         "Umbrella shade / canopy",
         "Mosquito net"
-      ]
+      ],
+      "emoji": "⛺"
     },
     {
       "id": "light",
@@ -224,7 +237,8 @@
         "Car charger",
         "Portable speaker",
         "Solar charger"
-      ]
+      ],
+      "emoji": "🔦"
     },
     {
       "id": "clothes",
@@ -244,7 +258,8 @@
         "Warm cap / muffler",
         "Swimwear & towel",
         "Quick-dry towel"
-      ]
+      ],
+      "emoji": "👕"
     },
     {
       "id": "health",
@@ -264,7 +279,8 @@
         "Sanitary products",
         "Face masks",
         "Motion-sickness tablets"
-      ]
+      ],
+      "emoji": "🩹"
     },
     {
       "id": "cleanup",
@@ -277,7 +293,8 @@
         "Cleaning cloth",
         "Bucket / water container",
         "Bag for wet waste"
-      ]
+      ],
+      "emoji": "🧹"
     },
     {
       "id": "fun",
@@ -295,7 +312,8 @@
         "Book / magazine",
         "Hammock",
         "Bluetooth speaker"
-      ]
+      ],
+      "emoji": "🎲"
     },
     {
       "id": "tools",
@@ -312,7 +330,8 @@
         "Walking stick",
         "Axe / machete",
         "Sewing kit & safety pins"
-      ]
+      ],
+      "emoji": "🔧"
     },
     {
       "id": "docs",
@@ -326,7 +345,8 @@
         "Vehicle papers & driving licence",
         "Emergency contacts list",
         "Medical insurance card"
-      ]
+      ],
+      "emoji": "🪪"
     },
     {
       "id": "vehicle",
@@ -340,7 +360,8 @@
         "Car first-aid & triangle",
         "Tyre pressure check",
         "Paper map / GPS"
-      ]
+      ],
+      "emoji": "🚙"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import type { Category, Place, Song, StateInfo } from "./types";
+import type { Category, CountryInfo, Place, Song, StateInfo } from "./types";
+import { RegionPicker } from "./components/RegionPicker";
 import { loadJson, store } from "./lib/data";
 import type { Catalog } from "./features/checklist/ChecklistPage";
 import { useOverlay } from "./lib/overlay";
@@ -85,6 +86,7 @@ export default function App() {
   }, []);
 
   const [states, setStates] = useState<StateInfo[]>([]);
+  const [countries, setCountries] = useState<CountryInfo[]>([]);
   const [baseCategories, setBaseCategories] = useState<Category[]>([]);
   const [baseSongs, setBaseSongs] = useState<Song[]>([]);
   const [stateId, setStateId] = useState(() => store.get("state") ?? "manipur");
@@ -96,15 +98,33 @@ export default function App() {
 
   useEffect(() => {
     Promise.all([
-      loadJson<StateInfo[]>("states.json"),
+      loadJson<CountryInfo[]>("countries.json"),
       loadJson<Category[]>("categories.json"),
       loadJson<Song[]>("songs.json").catch(() => [] as Song[]),
       loadJson<Catalog>("checklist.json").catch(() => null)
-    ]).then(([s, c, m, k]) => { setStates(s); setBaseCategories(c); setBaseSongs(m); setChecklist(k); })
+    ]).then(([s, c, m, k]) => { setCountries(s); setBaseCategories(c); setBaseSongs(m); setChecklist(k); })
       .catch(e => setError(e.message))
       .finally(() => setDataReady(true));
   }, []);
 
+  // The country and state/province are a setting: remembered in this browser, India > Manipur until changed.
+  const [countryId, setCountryId] = useState(() => store.get("country") ?? "IND");
+  useEffect(() => {
+    let live = true;
+    setStates([]); // until this country's list arrives, don't show (or save) a region from the previous country
+    loadJson<{ features: { properties: StateInfo }[] }>(`regions/${countryId}.json`)
+      .then(g => { if (live) setStates(g.features.map(f => ({ ...f.properties, country: countryId }))); })
+      .catch(e => { if (live) setError(e.message); });
+    return () => { live = false; };
+  }, [countryId]);
+  const country = countries.find(c => c.id === countryId);
+  const chooseRegion = (cId: string, rId: string) => {
+    store.set("country", cId);
+    store.set("state", rId);
+    setStateId(rId);
+    setCountryId(cId);
+    location.hash = "#/";
+  };
   const state = states.find(s => s.id === stateId) ?? states[0];
 
   useEffect(() => {
@@ -112,7 +132,8 @@ export default function App() {
     store.set("state", state.id);
     setBase([]);
     setPlacesReady(false);
-    loadJson<Place[]>(`${state.id}/places.json`).then(setBase).catch(e => setError(e.message)).finally(() => setPlacesReady(true));
+    // Only the original region (Manipur) ships places in the app; every other region starts empty and fills from the database.
+    loadJson<Place[]>(`${state.id}/places.json`).then(setBase).catch(e => { setBase([]); if (state.id === "manipur") setError(e.message); }).finally(() => setPlacesReady(true));
   }, [state?.id]);
 
   // With Supabase, places and songs are rows in their own tables; without it, edits are kept in this browser.
@@ -223,12 +244,8 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <p className="site-name"><a href="#/" className="brand">Explore India</a></p>
-        {states.length > 1 ? (
-          <select value={state?.id} onChange={e => setStateId(e.target.value)} aria-label="State">
-            {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        ) : state && <span className="state-name">{state.name}</span>}
+        <p className="site-name"><a href="#/" className="brand">Explore<span className={"brand-country" + ((country?.name.length ?? 0) > 12 ? " long" : "")}> {country?.name ?? "India"}</span></a></p>
+        <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion} />
         <nav className="tabs" aria-label="Main menu">
           <a href="#/" aria-current={page === "home" ? "page" : undefined}><Icon name="home" size={22} /> Home</a>
           <a href="#/places" aria-current={page === "places" ? "page" : undefined}><Icon name="map" size={22} /> Places</a>

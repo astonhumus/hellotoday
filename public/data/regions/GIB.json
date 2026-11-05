@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"gib-gibraltar","name":"Gibraltar","kind":"","center":[36.126,-5.349],"zoom":12,"bbox":[36.111,-5.358,36.141,-5.339]},"geometry":{"type":"Polygon","coordinates":[[[-5.358,36.141],[-5.339,36.141],[-5.342,36.111],[-5.358,36.141]]]}}]}

@@ -215,3 +215,14 @@ dialog.msg .actions { position: static; border: none; padding: 0; background: no
 @media (min-width: 761px) { .toasts { bottom: var(--s-4); } }
 
 @media (min-width: 761px) { dialog:not(.msg) .actions { position: sticky; bottom: calc(-1 * var(--s-5)); background: var(--surface); padding: var(--s-3) 0 var(--s-1); } }
+
+/* header: where you are exploring (country and state/province setting) */
+.region-btn { display: inline-flex; align-items: center; gap: var(--s-1); min-height: var(--tap); max-width: 100%; padding: 0 var(--s-3); border: 1px solid var(--border-strong); border-radius: var(--radius-full); background: var(--surface); color: var(--text); font: inherit; font-size: var(--text-sm); cursor: pointer; }
+.region-btn:hover { background: var(--surface-2); }
+.region-name { font-weight: var(--w-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.region-country { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.region-country::before { content: "· "; }
+@media (max-width: 760px) { .region-country { display: none; } }
+
+/* a long country name would push the header onto two lines on a phone: the region button already names the place */
+@media (max-width: 760px) { .brand-country.long { display: none; } }

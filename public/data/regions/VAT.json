@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"vat-vatican","name":"Vatican","kind":"","center":[41.903,12.453],"zoom":13,"bbox":[41.903,12.453,41.904,12.454]},"geometry":{"type":"Polygon","coordinates":[[[12.453,41.903],[12.454,41.903],[12.454,41.904],[12.453,41.904],[12.453,41.903]]]}}]}

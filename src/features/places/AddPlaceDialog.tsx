@@ -8,6 +8,8 @@ interface Props {
   categories: Category[];
   districts: string[];
   editing: Place | null;
+  center?: [number, number];
+  zoom?: number;
   onSave: (p: Omit<Place, "id">, id?: string) => void;
   onClose: () => void;
 }
@@ -16,7 +18,7 @@ interface Props {
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const safeUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : "");
 
-export function AddPlaceDialog({ categories, districts, editing, onSave, onClose }: Props) {
+export function AddPlaceDialog({ categories, districts, editing, center, zoom, onSave, onClose }: Props) {
   const dlg = useRef<HTMLDialogElement>(null);
   const [name, setName] = useState(editing?.name ?? "");
   const [category, setCategory] = useState(editing?.category ?? categories[0]?.id ?? "");
@@ -88,7 +90,7 @@ export function AddPlaceDialog({ categories, districts, editing, onSave, onClose
           <button type="button" className="btn" onClick={locate} disabled={locating}>{locating ? "Getting your location…" : "Use my current location (GPS)"}</button>
           {accuracy != null && <span className="hint">Accurate to about {accuracy} m</span>}
         </div>
-        <LocationPicker point={parsed} accuracy={accuracy} onMove={p => { setCoordText(formatCoords(p.lat, p.lng)); setAccuracy(null); }} />
+        <LocationPicker center={center} zoom={zoom} point={parsed} accuracy={accuracy} onMove={p => { setCoordText(formatCoords(p.lat, p.lng)); setAccuracy(null); }} />
         <label>Coordinates *
           <input value={coordText} onChange={e => setCoordText(e.target.value)} required autoComplete="off"
             placeholder="24.8089, 93.9426" />
