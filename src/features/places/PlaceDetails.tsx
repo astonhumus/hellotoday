@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Category, Place } from "../../types";
 import { formatCoords } from "../../lib/coords";
 import { appleMapsUrl, googleMapsUrl } from "../../lib/nav";
+import { formatKm } from "../../lib/geo";
 import { Button } from "../../ui/Button";
 import { Icon } from "../../ui/Icon";
 
@@ -15,10 +16,13 @@ interface Props {
   canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  distanceKm?: number;        // straight-line distance from the visitor's GPS position, once known
+  onLocate?: () => void;      // ask for the position (or measure again)
+  locating?: boolean;
 }
 
 /** Everything about one place, with the actions people actually want: directions, call, website, mark as visited. */
-export function PlaceDetails({ place: p, category: c, visited, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete }: Props) {
+export function PlaceDetails({ place: p, category: c, visited, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete, distanceKm, onLocate, locating }: Props) {
   const [copied, setCopied] = useState(false);
   const coords = formatCoords(p.lat, p.lng);
   const copy = () => navigator.clipboard?.writeText(coords).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
@@ -43,6 +47,18 @@ export function PlaceDetails({ place: p, category: c, visited, visitedOn, onTogg
           {visited ? `Visited ${visitedOn ?? ""}`.trim() : "Mark as visited"}
         </Button>
       </div>
+
+      {onLocate && (
+        <div className="pd-dist" aria-live="polite">
+          <Icon name="locate" size={22} />
+          <div className="pd-dist-text">
+            {distanceKm != null
+              ? <><strong>{formatKm(distanceKm)}</strong> from your location<small>Straight-line distance. Roads are longer; use Directions for the route.</small></>
+              : <><strong>How far is it from you?</strong><small>Uses your phone's GPS. Your position is never sent anywhere.</small></>}
+          </div>
+          <Button onClick={onLocate} disabled={locating}>{locating ? "Locating…" : distanceKm != null ? "Update" : "Check"}</Button>
+        </div>
+      )}
 
       <ul className="pd-info">
         {p.phone && <li><Icon name="phone" /><a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}>{p.phone}</a></li>}

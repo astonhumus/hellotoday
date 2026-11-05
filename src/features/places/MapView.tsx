@@ -5,6 +5,7 @@ import type { Category, Place, StateInfo } from "../../types";
 import { loadJson, store } from "../../lib/data";
 import { Icon } from "../../ui/Icon";
 import { iconSvg } from "../../ui/icons";
+import { distanceKm, formatKm } from "../../lib/geo";
 
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
 // Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
@@ -22,6 +23,8 @@ interface Props {
   insets: { top: number; bottom: number }; // screen covered by the search bar and the bottom sheet (phones)
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
+  onLocate?: () => void;   // the "my location" button
+  locating?: boolean;
 }
 
 // Leaflet's canvas layer can try to redraw after its map was removed (quick page changes), which throws.
@@ -59,7 +62,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
-export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, me, insets, onSelect }: Props) {
+export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, me, insets, onSelect, onLocate, locating }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.Marker>());
@@ -246,9 +249,28 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     // Outside the state the map can't show you (it is locked to the state): the list still sorts by distance.
     if (map.options.maxBounds && !L.latLngBounds(map.options.maxBounds as L.LatLngBoundsLiteral).contains([me.lat, me.lng])) return;
     meMarker.current = L.circleMarker([me.lat, me.lng], { radius: 9, weight: 3, color: token("--surface"), fillColor: token("--text"), fillOpacity: 1, interactive: false }).addTo(map);
-    const zoom = 11, { top, bottom } = insetsRef.current;
+    const { top, bottom } = insetsRef.current;
+    const chosen = selectedRef.current ? pins.current.get(selectedRef.current) : null;
+    if (chosen) { // a place is open: show you and the place together, so the distance can be seen
+      map.flyToBounds(L.latLngBounds([[me.lat, me.lng], chosen.getLatLng()]), { paddingTopLeft: [40, top + 24], paddingBottomRight: [40, bottom + 24], maxZoom: 15, duration: 0.6 });
+      return;
+    }
+    const zoom = 11;
     map.flyTo(map.unproject(map.project([me.lat, me.lng], zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 0.6 });
   }, [me, ready]);
+
+  // A dashed line from you to the open place, labelled with the distance
+  const meLine = useRef<L.Polyline | null>(null);
+  useEffect(() => {
+    const map = mapRef.current, m = selectedId ? pins.current.get(selectedId) : null;
+    meLine.current?.remove();
+    meLine.current = null;
+    if (!map || !me || !m || !meMarker.current) return; // the marker only exists when you are inside the area the map shows
+    const to = m.getLatLng();
+    const dist = distanceKm(me, { lat: to.lat, lng: to.lng });
+    meLine.current = L.polyline([[me.lat, me.lng], to], { color: token("--text"), weight: 2, dashArray: "6 6", interactive: false })
+      .bindTooltip(formatKm(dist), { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
+  }, [me, selectedId, ready]);
 
   // Selecting a place flies to it, placing the pin in the part of the map the panels don't cover
   useEffect(() => {
@@ -264,6 +286,13 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   return (
     <>
       <div ref={host} className="map" role="region" aria-label={`Map of ${state.name}`} />
+      {onLocate && (
+        <div className="map-locate">
+          <button type="button" className={"map-layers" + (me ? " on" : "")} aria-label={me ? "Update my location" : "Show my location"} title="My location" disabled={locating} onClick={onLocate}>
+            <Icon name="locate" />
+          </button>
+        </div>
+      )}
       <div className="map-style">
         <button type="button" className="map-layers" aria-label="Map layers" aria-expanded={menu} onClick={() => setMenu(v => !v)}><Icon name="layers" /></button>
         {menu && (

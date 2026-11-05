@@ -8,6 +8,7 @@ import { Sheet, type Snap } from "../../ui/Sheet";
 import { useMedia } from "../../ui/useMedia";
 import { useChipFilter } from "../../ui/useChipFilter";
 import { usePageMeta } from "../../lib/pageMeta";
+import { distanceKm } from "../../lib/geo";
 import { canGoBack, goBack } from "../../lib/nav";
 import { MapView } from "./MapView";
 import { CategoryManager } from "./CategoryManager";
@@ -42,11 +43,7 @@ interface Props {
 }
 
 // Straight-line distance in km (good enough for "which is closest")
-const km = (from: { lat: number; lng: number }, p: Place) => {
-  const rad = (d: number) => (d * Math.PI) / 180, dLat = rad(p.lat - from.lat), dLng = rad(p.lng - from.lng);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(from.lat)) * Math.cos(rad(p.lat)) * Math.sin(dLng / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(h));
-};
+const km = (from: { lat: number; lng: number }, p: { lat: number; lng: number }) => distanceKm(from, p);
 
 const FILTER_BAR_FALLBACK = 128; // px the floating search and filters take at the top of the map on phones, until measured
 const FAR_KM = 400;               // further than this from the state: the map can't show you, the list still sorts by distance
@@ -57,7 +54,9 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   const [district, setDistrict] = useState("all");
   const [q, setQ] = useState(initial?.q ?? "");
   const [visitedOnly, setVisitedOnly] = useState(!!initial?.visited);
-  const [me, setMe] = useState<{ lat: number; lng: number } | null>(null); // set while "Near me" is on
+  const [me, setMe] = useState<{ lat: number; lng: number } | null>(null); // the visitor's GPS position, once asked for
+  const [sortNear, setSortNear] = useState(false); // "Near me": sort the list by distance from the position
+  const [locating, setLocating] = useState(false);
   const mine = useVisited();
   const selectedId = placeId;
   const openedHere = useRef(false); // true once a place was opened from this list, so Back can simply go back
@@ -94,17 +93,24 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   // "Near me": ask the phone where it is, then sort by distance. Nothing is sent anywhere.
   const askLocation = () => {
     if (!navigator.geolocation) return void notify("This device can't share its location.", "error");
+    setLocating(true);
     navigator.geolocation.getCurrentPosition(
       pos => {
+        setLocating(false);
         const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setMe(here);
         if (km(here, { lat: state.center[0], lng: state.center[1] } as Place) > FAR_KM) void notify(`You're far from ${state.name}, so you won't see yourself on the map. Places are sorted by distance from you.`);
       },
-      () => void notify("Couldn't get your location. Allow location access for this site, then try again.", "error"),
-      { timeout: 12000, maximumAge: 60000 });
+      err => {
+        setLocating(false);
+        void notify(err.code === err.PERMISSION_DENIED ? "Location is blocked. Allow it for this site in your browser settings, then try again."
+          : "Couldn't get your location. Move to an open area and try again.", "error");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
   };
-  const toggleNear = () => (me ? setMe(null) : askLocation());
-  useEffect(() => { if (initial?.near) askLocation(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // "Near me" sorts by distance; the position itself is also used to show how far a place is.
+  const toggleNear = () => { if (sortNear) setSortNear(false); else { setSortNear(true); if (!me) askLocation(); } };
+  useEffect(() => { if (initial?.near) { setSortNear(true); askLocation(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const deferredQ = useDeferredValue(q); // typing stays instant; the list and pins catch up a moment later
   const filtered = useMemo(() => {
@@ -114,8 +120,8 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
         (district === "all" || p.district === district) &&
         (!visitedOnly || visitedIds.has(p.id)) &&
         (!needle || [p.name, p.desc, p.district, p.notes].join(" ").toLowerCase().includes(needle)))
-      .sort((a, b) => (me ? km(me, a) - km(me, b) : a.name.localeCompare(b.name)));
-  }, [places, picked, district, deferredQ, visitedOnly, visitedIds, me]);
+      .sort((a, b) => (sortNear && me ? km(me, a) - km(me, b) : a.name.localeCompare(b.name)));
+  }, [places, picked, district, deferredQ, visitedOnly, visitedIds, me, sortNear]);
 
   const pickedCat = picked.size === 1 ? categories.find(c => c.id === [...picked][0]) : undefined;
   const selected = selectedId ? places.find(p => p.id === selectedId) ?? null : null;
@@ -169,7 +175,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
     if (initial?.cat) toggleCategory(initial.cat);
     setQ(initial?.q ?? "");
     setVisitedOnly(!!initial?.visited);
-    if (initial?.near) askLocation(); else setMe(null);
+    if (initial?.near) { setSortNear(true); askLocation(); } else setSortNear(false);
     if (phone && (initial?.cat || initial?.q || initial?.visited || initial?.near)) setSnap("half");
   }, [queryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -199,14 +205,15 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   const details = selected && (
     <PlaceDetails place={selected} category={catById[selected.category]} visited={mine.has(selected.id)} visitedOn={mine.when(selected.id)}
       onToggleVisited={() => mine.toggle(selected.id)} admin={admin} canDelete={canDelete}
-      onEdit={() => setDialog({ editing: selected })} onDelete={() => remove(selected)} />
+      onEdit={() => setDialog({ editing: selected })} onDelete={() => remove(selected)}
+      distanceKm={me ? km(me, selected) : undefined} onLocate={askLocation} locating={locating} />
   );
 
   const filterBar = (
     <FilterBar q={q} onQuery={setQ} categories={visibleCats} counts={counts} picked={picked} onToggleCategory={toggleCategory}
       onAllCategories={clearCategories} multi={multi} onMulti={setMulti} districts={districts} district={district} onDistrict={setDistrict}
       visitedOnly={visitedOnly} onVisitedOnly={() => setVisitedOnly(v => !v)} visitedCount={mine.count}
-      near={!!me} onNear={toggleNear} />
+      near={sortNear} onNear={toggleNear} />
   );
 
   const title = selected
@@ -218,7 +225,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
       <h1 className="sr-only">Places to visit in {state.name}</h1>
       <div className="map-wrap">
         <MapView state={state} places={filtered} categories={catById} selectedId={selected?.id ?? null} focusTick={focusTick}
-          visitedIds={visitedIds} me={me} insets={phone ? { top: filterH, bottom: sheetH } : { top: 0, bottom: 0 }} onSelect={open} />
+          visitedIds={visitedIds} me={me} onLocate={askLocation} locating={locating} insets={phone ? { top: filterH, bottom: sheetH } : { top: 0, bottom: 0 }} onSelect={open} />
       </div>
 
       {phone ? (

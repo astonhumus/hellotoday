@@ -110,3 +110,15 @@
 /* add place: GPS button and the point on a small map */
 .loc-bar { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; margin-bottom: var(--s-2); }
 .loc-map { height: clamp(140px, 26dvh, 220px); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: var(--s-2); }
+
+/* my location: the map button, the distance line and its label, and the distance card in a place's details */
+.map-locate { position: absolute; top: calc(var(--s-3) + var(--tap) + var(--s-2)); right: var(--s-3); z-index: 999; }
+.map-layers.on { color: var(--accent); border-color: var(--accent); }
+.map-layers:disabled { opacity: var(--disabled-opacity); }
+.dist-label { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); font-size: var(--text-xs); font-weight: var(--w-semibold); box-shadow: var(--shadow-float); }
+.dist-label::before { display: none; }
+.pd-dist { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3); border: 1px solid var(--border); border-radius: var(--radius); background: var(--accent-wash); color: var(--accent); }
+.pd-dist-text { flex: 1; min-width: 0; display: grid; gap: 2px; color: var(--text); font-size: var(--text-sm); }
+.pd-dist-text strong { font-size: var(--text-md); }
+.pd-dist-text small { color: var(--text-2); font-size: var(--text-xs); }
+@media (max-width: 760px) { .map-locate { top: calc(var(--filter-bar-h) + var(--s-1) + var(--tap) + var(--s-2)); } }
