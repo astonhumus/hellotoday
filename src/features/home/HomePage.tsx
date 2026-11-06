@@ -4,6 +4,7 @@ import { FooterLinks } from "../../components/AboutPage";
 import { useVisited } from "../../lib/visited";
 import { Icon } from "../../ui/Icon";
 import { usePageMeta } from "../../lib/pageMeta";
+import { go } from "../../lib/nav";
 import "./home.css";
 
 interface Props {
@@ -25,7 +26,7 @@ export function HomePage({ state, categories, places, songCount }: Props) {
 
   const search = (e: React.FormEvent) => {
     e.preventDefault();
-    location.hash = `#/places${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`;
+    go(`#/places${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`);
   };
 
   return (

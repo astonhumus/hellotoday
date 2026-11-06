@@ -36,7 +36,7 @@ function load(): Saved {
 export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catalog | null; admin: boolean; ready?: boolean }) {
   usePageMeta("Trip packing checklist for picnics, camping and treks", "Tick what to bring for a picnic, camping, trek, road trip or day trip: food, utensils, tents, clothing, health and more. Share or print your list.");
   const [saved, setSaved] = useState<Saved>(load);
-  const [mode, setMode] = useState<"choose" | "list">(() => (load().sel.length ? "list" : "choose"));
+  const [mode, setMode] = useState<"choose" | "list">("choose");
   const [q, setQ] = useState("");
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("");
@@ -139,7 +139,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
   const pct = chosen.length ? Math.round((done / chosen.length) * 100) : 0;
 
   return (
-    <div className="page checklist">
+    <div className={"page checklist" + (mode === "choose" && chosen.length > 0 ? " has-cta" : "")}>
       <PageHeader title="Trip checklist" sub={mode === "choose" ? "Pick what you need, then tick it off as you pack." : `${done} of ${chosen.length} packed`} />
       <Segmented label="Checklist steps" value={mode} onChange={setMode}
         options={[{ id: "choose", label: "1. Choose items" }, { id: "list", label: `2. My list (${chosen.length})` }]} />
@@ -153,7 +153,8 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
               : "Your trip lists start empty. Tick items below, then save them to a trip."}</p>
             <div className="trip-grid" role="group" aria-label="Trip type">
               {catalog.trips.map(t => (
-                <button key={t.id} type="button" className="trip-tile" onClick={() => {
+                <div key={t.id} className="trip-wrap">
+                <button type="button" className="trip-tile" onClick={() => {
                   const ids = presetIds(t.id);
                   if (!ids.length) return void notify(`${t.label} is empty. Tick items below, then save them to ${t.label}.`);
                   toggleSel(ids, true);
@@ -163,6 +164,11 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                   <span className="trip-name">{t.label}</span>
                   <span className="trip-n">{presetIds(t.id).length} items</span>
                 </button>
+                {presetIds(t.id).length > 0 && (
+                  <IconButton className="sm trip-clear" icon="trash" label={`Clear my saved ${t.label} list`}
+                    onClick={async () => { if (await confirmAsk(`Clear your ${presetIds(t.id).length} saved items for ${t.label}? Your ticks stay.`, { yes: "Clear list", danger: true })) update(s => { const { [t.id]: _gone, ...rest } = s.presets; return { ...s, presets: rest }; }); }} />
+                )}
+                </div>
               ))}
               <button type="button" className="trip-tile clear" onClick={async () => { if (await confirmAsk(`Untick all ${saved.sel.length} items?`, { yes: "Clear all", danger: true })) toggleSel(saved.sel, false); }} disabled={!saved.sel.length}>
                 <span className="trip-emoji" aria-hidden="true"><Icon name="undo" size={26} /></span>

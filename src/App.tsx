@@ -16,7 +16,7 @@ import { notify } from "./lib/ui";
 import { LIMITS } from "./lib/limits";
 import { SkeletonPage } from "./ui/States";
 import { Icon } from "./ui/Icon";
-import { trackHistory } from "./lib/nav";
+import { go, trackHistory } from "./lib/nav";
 
 // Heavy screens load only when opened, so the home page stays fast. (The map library lives in the Places chunk.)
 const PlacesPage = lazy(() => import("./features/places/PlacesPage").then(m => ({ default: m.PlacesPage })));
@@ -124,7 +124,7 @@ export default function App() {
     store.set("state", rId);
     setStateId(rId);
     setCountryId(cId);
-    location.hash = "#/";
+    go("#/");
   };
   const [regionOpen, setRegionOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -199,7 +199,7 @@ export default function App() {
   }, [IS_ADMIN, hash]);
 
   // A place's details have their own address (#/places/<id>), so Back closes them and the link can be shared.
-  const openPlace = (id: string | null) => { location.hash = `#/places${id ? "/" + encodeURIComponent(id) : ""}${query ? "?" + query : ""}`; };
+  const openPlace = (id: string | null) => { go(`#/places${id ? "/" + encodeURIComponent(id) : ""}${query ? "?" + query : ""}`); };
 
   // Places using a category in any state, so a category in use cannot be deleted from another state screen.
   const categoryUsage = async (id: string) => {
@@ -258,7 +258,7 @@ export default function App() {
           <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><Icon name="checklist" size={22} /> Checklist</a>
         </nav>
         {supabase && IS_ADMIN && <a className="btn" href="#/review">Review{pending ? ` (${pending})` : ""}</a>}
-        <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) location.hash = "#/places"; }} />
+        <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) go("#/places"); }} />
       </header>
       <PwaBar showInstall={page === "home"} />
       {settingsOpen && <SettingsDialog country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
@@ -280,7 +280,7 @@ export default function App() {
         {page === "review" && <ReviewPage categories={categories} />}
         {page === "about" && <AboutPage />}
         {page === "music" && (
-          <MusicPage ready={dataReady} songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ?? null} open={id => { location.hash = id ? `#/music/${id}` : "#/music"; }} />
+          <MusicPage ready={dataReady} songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ?? null} open={id => go(id ? `#/music/${id}` : "#/music")} />
         )}
         </Suspense>
       </main>

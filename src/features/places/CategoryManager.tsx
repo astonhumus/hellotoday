@@ -40,6 +40,14 @@ export function CategoryManager({ categories, counts, usageOf, onSave, onDelete,
     } else onSave({ label: name, color, icon, sort: editing.sort }, editing.id);
     setEditing(null);
   };
+  // Reordering rewrites every category's position (0, 1, 2 …) so ties and gaps can't make the order ambiguous.
+  const move = (index: number, dir: -1 | 1) => {
+    const to = index + dir;
+    if (to < 0 || to >= categories.length) return;
+    const order = [...categories];
+    [order[index], order[to]] = [order[to], order[index]];
+    order.forEach((c, i) => { if (c.sort !== i) onSave({ label: c.label, color: c.color, icon: c.icon, sort: i }, c.id); });
+  };
   const remove = async (c: Category) => {
     const used = Math.max(counts[c.id] ?? 0, usageOf ? await usageOf(c.id).catch(() => 0) : 0);
     if (used) return void notify(`"${c.label}" still has ${used} place(s). Move or delete them first.`, "error");
@@ -53,10 +61,12 @@ export function CategoryManager({ categories, counts, usageOf, onSave, onDelete,
         {!editing && (
           <>
             <ul className="cat-list">
-              {categories.map(c => (
+              {categories.map((c, i) => (
                 <li key={c.id} className="cat-row">
                   <span className="cat-dot" style={{ background: c.color }} aria-hidden="true"><Icon name={c.icon} size={16} /></span>
                   <span className="cat-name">{c.label} <small>({counts[c.id] ?? 0})</small></span>
+                  <IconButton className="sm" icon="chevron-up" label={`Move ${c.label} up`} onClick={() => move(i, -1)} disabled={i === 0} />
+                  <IconButton className="sm" icon="chevron-down" label={`Move ${c.label} down`} onClick={() => move(i, 1)} disabled={i === categories.length - 1} />
                   <IconButton className="sm" icon="edit" label={`Edit ${c.label}`} onClick={() => start(c)} />
                   <IconButton className="sm danger" icon="trash" label={`Delete ${c.label}`} onClick={() => remove(c)} />
                 </li>

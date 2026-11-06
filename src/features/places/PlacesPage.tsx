@@ -9,6 +9,7 @@ import { useMedia } from "../../ui/useMedia";
 import { useChipFilter } from "../../ui/useChipFilter";
 import { usePageMeta } from "../../lib/pageMeta";
 import { distanceKm } from "../../lib/geo";
+import { searchPlaces } from "../../lib/search";
 import { canGoBack, goBack } from "../../lib/nav";
 import { MapView } from "./MapView";
 import { CategoryManager } from "./CategoryManager";
@@ -113,15 +114,16 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   useEffect(() => { if (initial?.near) { setSortNear(true); askLocation("near"); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const deferredQ = useDeferredValue(q); // typing stays instant; the list and pins catch up a moment later
-  const filtered = useMemo(() => {
-    const needle = deferredQ.trim().toLowerCase();
-    return places
-      .filter(p => (!picked.size || picked.has(p.category)) &&
-        (district === "all" || p.district === district) &&
-        (!visitedOnly || visitedIds.has(p.id)) &&
-        (!needle || [p.name, p.desc, p.district, p.notes].join(" ").toLowerCase().includes(needle)))
-      .sort((a, b) => (sortNear && me ? km(me, a) - km(me, b) : a.name.localeCompare(b.name)));
-  }, [places, picked, district, deferredQ, visitedOnly, visitedIds, me, sortNear]);
+  const { list: filtered, total: matchTotal } = useMemo(() => {
+    const allowed = places.filter(p => (!picked.size || picked.has(p.category)) && (district === "all" || p.district === district) && (!visitedOnly || visitedIds.has(p.id)));
+    const found = searchPlaces(allowed, deferredQ, p => ({ name: p.name, category: catById[p.category]?.label, district: p.district, desc: p.desc, notes: p.notes }));
+    if (found) { // typed text: the most relevant few, unless the list is sorted by distance
+      const list = found.hits.map(h => h.item);
+      return { list: sortNear && me ? list.sort((a, b) => km(me, a) - km(me, b)) : list, total: found.total };
+    }
+    const list = allowed.sort((a, b) => (sortNear && me ? km(me, a) - km(me, b) : a.name.localeCompare(b.name)));
+    return { list, total: list.length };
+  }, [places, picked, district, deferredQ, visitedOnly, visitedIds, me, sortNear, catById]);
 
   const filtering = picked.size > 0 || district !== "all" || !!q.trim() || visitedOnly || sortNear;
   const pinsOn = showAll || filtering;
@@ -216,23 +218,23 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
     <FilterBar q={q} onQuery={setQ} categories={visibleCats} counts={counts} picked={picked} onToggleCategory={toggleCategory}
       onAllCategories={clearCategories} allOn={showAll && !filtering} onAll={() => { clearCategories(); setVisitedOnly(false); setDistrict("all"); setQ(""); setSortNear(false); setShowAll(v => !(v && !filtering)); }} multi={multi} onMulti={setMulti} districts={districts} district={district} onDistrict={setDistrict}
       visitedOnly={visitedOnly} onVisitedOnly={() => setVisitedOnly(v => !v)} visitedCount={mine.count}
-      near={sortNear} onNear={toggleNear} />
+      near={sortNear} onNear={toggleNear} onManageCategories={onSaveCategory ? () => setCatDialog(true) : undefined} />
   );
 
+  const n = filtered.length;
+  const what = picked.size === 1 && pickedCat ? pickedCat.label : picked.size > 1 ? `places in ${picked.size} categories` : visitedOnly ? "visited places" : "places";
+  const titleText = !ready ? "Loading places…"
+    : !filtering && !showAll ? "Choose a category or search to see places on the map"
+    : matchTotal > n ? `Top ${n} of ${matchTotal} ${what}: type more to narrow`
+    : `${n} ${what}${loading ? " · updating…" : ""}`;
   const title = selected
     ? <><IconButton icon="back" label="Back to the list" onClick={closeDetails} /><h2 className="pl-title">{selected.name}</h2></>
-    : <>{cameFromLink && <IconButton icon="back" label="Back" onClick={() => goBack("#/")} />}<strong className="pl-title">{ready ? `${filtered.length} place${filtered.length === 1 ? "" : "s"}${loading ? " · updating…" : ""}` : "Loading places…"}</strong></>;
+    : <>{cameFromLink && <IconButton icon="back" label="Back" onClick={() => goBack("#/")} />}<strong className={"pl-title" + (!filtering && !showAll ? " hint" : "")}>{titleText}</strong></>;
 
   return (
     <div className="places" style={{ "--sheet-h": `${phone ? sheetH : 0}px` } as React.CSSProperties}>
       <h1 className="sr-only">Places to visit in {state.name}</h1>
       <div className="map-wrap">
-        {!pinsOn && !selected && ready && (
-          <div className="map-hint" role="status">
-            <span>Choose a category or search to see places on the map.</span>
-            <Button onClick={() => setShowAll(true)}>Show all places</Button>
-          </div>
-        )}
         <MapView state={state} places={pinsOn ? filtered : selected ? [selected] : []} categories={catById} selectedId={selected?.id ?? null} focusTick={focusTick}
           visitedIds={visitedIds} me={me} onLocate={() => askLocation("map")} locating={locating} insets={phone ? { top: filterH, bottom: sheetH } : { top: 0, bottom: 0 }} onSelect={open} />
       </div>

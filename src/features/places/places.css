@@ -20,6 +20,7 @@
 .pl-side { order: -1; width: var(--panel-w); flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; background: var(--surface); border-right: 1px solid var(--border); }
 .pl-side-head { display: flex; align-items: center; gap: var(--s-1); min-height: var(--ctl-lg); padding: 0 var(--s-3) 0 var(--s-4); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .pl-side-body { flex: 1; overflow-y: auto; }
+.pl-title.hint { font-size: var(--text-sm); font-weight: var(--w-regular, 400); color: var(--text-2); }
 .pl-title { margin: 0; font-size: var(--text-md); font-weight: var(--w-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl-tools { display: flex; gap: var(--s-2); flex-wrap: wrap; padding: var(--s-3) var(--s-4); }
 .pl-list { list-style: none; margin: 0; padding: 0; }
@@ -124,10 +125,7 @@
 @media (max-width: 760px) { .map-locate { top: calc(var(--filter-bar-h) + var(--s-1) + var(--tap) + var(--s-2)); } }
 
 /* ── no pins until something is chosen: a hint over the map ── */
-.map-hint { position: absolute; z-index: 700; left: var(--s-3); right: var(--s-3); bottom: calc(var(--sheet-h, 0px) + var(--s-4)); display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; padding: var(--s-3); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-float); font-size: var(--text-sm); }
-.map-hint span { flex: 1 1 12rem; }
-@media (min-width: 761px) { .map-hint { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - var(--s-6)); } }
-
+@media (min-width: 761px) { 
 /* ── pins that overlap merge into a numbered circle ── */
 .cluster-wrap { background: transparent; border: 0; }
 .cluster { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 3px solid var(--surface); box-shadow: var(--shadow-float); font-weight: var(--w-semibold); font-size: var(--text-sm); }

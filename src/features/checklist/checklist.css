@@ -102,7 +102,10 @@
 .ck-count { min-width: 44px; text-align: center; }
 
 /* the main action sits above the tab bar, full width, always reachable */
-.ck-cta { position: sticky; bottom: var(--s-2); z-index: 5; margin: 0 calc(-1 * var(--s-1)); }
+/* (fixed, not sticky: .page is a grid, and a sticky item can't leave its own row) */
+.ck-cta { position: fixed; z-index: 1000; left: 50%; transform: translateX(-50%); width: min(var(--page-w), 100%); box-sizing: border-box; padding: 0 var(--s-3); bottom: var(--s-3); }
+@media (max-width: 760px) { .ck-cta { bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + var(--s-3)); } }
+.checklist.has-cta { padding-bottom: calc(var(--s-8) + var(--s-6)); }
 .ck-cta .btn { min-height: 52px; border-radius: calc(var(--radius) + 4px); }
 .ck-cta .btn:disabled { box-shadow: none; }
 
@@ -112,3 +115,9 @@
   .ck-tools .btn:last-child { grid-column: 1 / -1; }
   .ck-add-row { grid-template-columns: 1fr; }
 }
+
+/* Per-trip "clear my saved list" button, tucked in the tile's corner */
+.trip-wrap { position: relative; display: grid; }
+.trip-wrap .trip-tile { width: 100%; }
+.trip-clear { position: absolute; top: 2px; right: 2px; }
+.trip-tile.clear { height: 100%; }

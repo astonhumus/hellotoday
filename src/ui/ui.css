@@ -83,3 +83,6 @@
 .empty-state strong { font-weight: var(--w-semibold); }
 .empty-state p { margin: 0; color: var(--text-2); font-size: var(--text-sm); max-width: 36ch; }
 .empty-state .btn { margin-top: var(--s-2); }
+
+/* The step switch: the tab that isn't selected keeps a light background so it still reads as a button */
+.seg-btn:not([aria-pressed="true"]) { background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }

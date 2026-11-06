@@ -22,6 +22,7 @@ interface Props {
   visitedCount: number;
   near: boolean;
   onNear: () => void;
+  onManageCategories?: () => void;       // admin only
 }
 
 /** Search box plus one scrolling row of filters. On phones it floats over the map; on larger screens it heads the side panel. */
@@ -36,6 +37,7 @@ export function FilterBar(p: Props) {
         {p.categories.map(c => (
           <Chip key={c.id} pressed={p.picked.has(c.id)} icon={c.icon} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}
+        {p.onManageCategories && <Chip pressed={false} icon="edit" onClick={p.onManageCategories} title="Add, rename, reorder or delete categories">Manage categories</Chip>}
         <Chip className="multi" pressed={p.multi} onClick={() => p.onMulti(!p.multi)} icon="square-check" title="Pick more than one category at a time">Select several</Chip>
         <select className="fb-district pill-select" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>
           <option value="all">All districts</option>
