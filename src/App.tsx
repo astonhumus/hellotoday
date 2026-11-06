@@ -247,7 +247,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <p className="site-name"><a href="#/" className="brand">Explore<span className={"brand-country" + ((country?.name.length ?? 0) > 12 ? " long" : "")}> {country?.name ?? "India"}</span></a></p>
+        <p className="site-name"><a href="#/" className="brand">Explore Hack</a></p>
         <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion}
           open={regionOpen} onOpen={() => setRegionOpen(true)} onClose={() => setRegionOpen(false)} />
         <button type="button" className="icon-btn header-settings" aria-label="Settings" title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>

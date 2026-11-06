@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE = "Explore India";
+const SITE = "Explore Hack";
 
 const setMeta = (key: "name" | "property", id: string, content: string) => {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${key}="${id}"]`);

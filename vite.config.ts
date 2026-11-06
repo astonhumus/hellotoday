@@ -52,8 +52,8 @@ export default defineConfig(({ mode }) => {
       },
       manifest: {
         id: "./",
-        name: "Explore India",
-        short_name: "Explore",
+        name: "Explore Hack",
+        short_name: "Explore Hack",
         description: "Tourist places, food, stays and services by state, a song lyrics library and a trip checklist. Works offline.",
         lang: "en",
         start_url: "./",

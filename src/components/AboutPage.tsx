@@ -26,7 +26,7 @@ export function AboutPage() {
   usePageMeta("About and privacy", "What Explore India is, where its map and place information comes from, how song lyrics and copyright are handled, and how your data is kept.");
   return (
     <div className="page about">
-      <PageHeader title="About Explore India" onBack={() => goBack("#/")} />
+      <PageHeader title="About Explore Hack" onBack={() => goBack("#/")} />
       <p>A free guide to places to visit, eat and stay, a library of song lyrics, and a trip packing checklist. It works offline once you have opened it.</p>
 
       <h2>Where the information comes from</h2>

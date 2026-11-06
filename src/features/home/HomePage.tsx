@@ -32,7 +32,7 @@ export function HomePage({ state, categories, places, songCount }: Props) {
   return (
     <div className="page home">
       <section className="hero">
-        <h1 className="hero-title">Explore {name || "India"}</h1>
+        <h1 className="hero-title">Explore {name || "Hack"}</h1>
         <p className="hero-sub">Places to visit, eat and stay, plus songs and a packing list. Works offline.</p>
         <form className="hero-search" onSubmit={search} role="search">
           <Icon name="search" size={18} />
