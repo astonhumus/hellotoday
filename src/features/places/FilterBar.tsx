@@ -19,6 +19,9 @@ interface Props {
   visitedOnly: boolean;
   onVisitedOnly: () => void;
   visitedCount: number;
+  closedOnly?: boolean;                   // admin / contributor: only closed and archived places
+  onClosedOnly?: () => void;              // undefined = not available (visitors)
+  closedCount?: number;
   favOnly: boolean;
   onFavOnly: () => void;
   favCount: number;
@@ -38,7 +41,7 @@ interface Props {
  */
 export function FilterBar(p: Props) {
   const [open, setOpen] = useState(false);
-  const extra = (p.district !== "all" ? 1 : 0) + (p.visitedOnly ? 1 : 0) + (p.near ? 1 : 0) + (p.allRegions ? 1 : 0);
+  const extra = (p.district !== "all" ? 1 : 0) + (p.visitedOnly ? 1 : 0) + (p.near ? 1 : 0) + (p.allRegions ? 1 : 0) + (p.closedOnly ? 1 : 0);
   return (
     <div className="fb">
       <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places or areas" recentKey="places"
@@ -56,6 +59,7 @@ export function FilterBar(p: Props) {
       {open && !p.compact && (
         <div className="fb-more" id="fb-more">
           {p.onAllRegions && <Chip pressed={!!p.allRegions} icon="map" onClick={p.onAllRegions} title="Show places from every country and state, not just the chosen region">All regions</Chip>}
+          {p.onClosedOnly && <Chip pressed={!!p.closedOnly} icon="circle-x" count={p.closedCount || undefined} onClick={p.onClosedOnly} title="Only closed and archived places, so you can review or reopen them">Closed / archived</Chip>}
           <Chip pressed={p.near} icon="pin" onClick={p.onNear} title="Sort by distance from where you are">Near me</Chip>
           <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} icon="check" onClick={p.onVisitedOnly}>My visited</Chip>
           <select className="pill-select" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>

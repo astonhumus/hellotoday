@@ -62,6 +62,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   const [q, setQ] = useState(initial?.q ?? "");
   const [visitedOnly, setVisitedOnly] = useState(!!initial?.visited);
   const [favOnly, setFavOnly] = useState(!!initial?.fav);
+  const [closedOnly, setClosedOnly] = useState(false); // admin / contributor: only closed and archived places, to review or reopen them
   const [me, setMe] = useState<{ lat: number; lng: number; accuracy?: number; intent?: "map" | "fit" | "near"; at?: number } | null>(null); // the visitor's GPS position, once asked for
   const [sortNear, setSortNear] = useState(false); // "Near me": sort the list by distance from the position
   const [locating, setLocating] = useState(false);
@@ -137,10 +138,10 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   useEffect(() => { if (initial?.near) { setSortNear(true); askLocation("near"); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [pages, setPages] = useState(1); // "Show more" reveals another batch of search results
-  useEffect(() => setPages(1), [q, picked, district, visitedOnly, favOnly]);
+  useEffect(() => setPages(1), [q, picked, district, visitedOnly, favOnly, closedOnly]);
   const deferredQ = useDeferredValue(q); // typing stays instant; the list and pins catch up a moment later
   const { list: filtered, total: matchTotal } = useMemo(() => {
-    const allowed = places.filter(p => (!picked.size || picked.has(p.category)) && (district === "all" || p.district === district) && (!visitedOnly || visitedIds.has(p.id)) && (!favOnly || favs.set.has(p.id)));
+    const allowed = places.filter(p => (!picked.size || picked.has(p.category)) && (district === "all" || p.district === district) && (!visitedOnly || visitedIds.has(p.id)) && (!closedOnly || !!p.closure) && (!favOnly || favs.set.has(p.id)));
     const found = searchPlaces(allowed, deferredQ, p => ({ name: p.name, category: catById[p.category]?.label, district: p.district, desc: p.desc, notes: p.notes }), SEARCH_MAX * pages);
     if (found) { // typed text: the most relevant few, unless the list is sorted by distance
       const list = found.hits.map(h => h.item);
@@ -151,9 +152,9 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
       : favOnly ? catOrder(a.category) - catOrder(b.category) || a.name.localeCompare(b.name) // favourites are grouped by category
       : a.name.localeCompare(b.name)));
     return { list, total: list.length };
-  }, [places, picked, district, deferredQ, visitedOnly, visitedIds, favOnly, favs.set, me, sortNear, catById, categories, pages]);
+  }, [places, picked, district, deferredQ, visitedOnly, visitedIds, favOnly, closedOnly, favs.set, me, sortNear, catById, categories, pages]);
 
-  const filtering = picked.size > 0 || district !== "all" || !!q.trim() || visitedOnly || favOnly || sortNear;
+  const filtering = picked.size > 0 || district !== "all" || !!q.trim() || visitedOnly || favOnly || closedOnly || sortNear;
   const pinsOn = showAll || filtering;
   const pickedCat = picked.size === 1 ? categories.find(c => c.id === [...picked][0]) : undefined;
   const selected = selectedId ? places.find(p => p.id === selectedId) ?? null : null;
@@ -199,7 +200,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
     </div>
   );
 
-  const clearFilters = () => { clearCategories(); setDistrict("all"); setQ(""); setVisitedOnly(false); setFavOnly(false); setSortNear(false); };
+  const clearFilters = () => { clearCategories(); setDistrict("all"); setQ(""); setVisitedOnly(false); setFavOnly(false); setClosedOnly(false); setSortNear(false); };
   const toggleVisited = (p: Place) => {
     const was = mine.has(p.id);
     mine.toggle(p.id);
@@ -238,7 +239,9 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
         {!ready && <li><Skeleton rows={5} label="Loading places" /></li>}
         {ready && filtered.length === 0 && (
           <li>
-            {favOnly && !favs.count
+            {closedOnly
+              ? <EmptyState title="No closed or archived places" hint="Places marked as closed or archived show up here." action={{ label: "Show all places", onClick: () => setClosedOnly(false) }} />
+              : favOnly && !favs.count
               ? <EmptyState title="No favourites yet" hint="Tap the heart on a place to keep it here. Favourites are saved on this device only." action={{ label: "Browse places", onClick: () => setFavOnly(false) }} />
               : visitedOnly && !mine.count
               ? <EmptyState title="No visited places yet" hint="Tick a place and it will appear here." action={{ label: "Browse places", onClick: () => setVisitedOnly(false) }} />
@@ -273,12 +276,13 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
     <FilterBar q={q} onQuery={setQ} categories={visibleCats} counts={counts} picked={picked} onToggleCategory={toggleCategory}
       onAllCategories={clearCategories} allOn={showAll && !filtering} onAll={() => { clearFilters(); setShowAll(true); }} districts={districts} district={district} onDistrict={setDistrict}
       visitedOnly={visitedOnly} onVisitedOnly={() => setVisitedOnly(v => !v)} visitedCount={mine.count}
+      closedOnly={closedOnly} onClosedOnly={admin ? () => setClosedOnly(v => !v) : undefined} closedCount={closedIds.size}
       favOnly={favOnly} onFavOnly={() => setFavOnly(v => !v)} favCount={favs.count} filtering={filtering} onReset={clearFilters}
       compact={!phone && !!selected} near={sortNear} onNear={toggleNear} allRegions={allRegions} onAllRegions={onAllRegions} onManageCategories={onSaveCategory ? () => setCatDialog(true) : undefined} />
   );
 
   const n = filtered.length;
-  const what = picked.size === 1 && pickedCat ? pickedCat.label : picked.size > 1 ? `places in ${picked.size} categories` : visitedOnly ? "visited places" : favOnly ? "favourites" : "places";
+  const what = picked.size === 1 && pickedCat ? pickedCat.label : picked.size > 1 ? `places in ${picked.size} categories` : visitedOnly ? "visited places" : closedOnly ? "closed or archived places" : favOnly ? "favourites" : "places";
   const titleText = !ready ? "Loading places…"
     : !filtering && !showAll ? "Choose a category or search to see places on the map"
     : matchTotal > n ? `Showing ${n} of ${matchTotal} ${what}`
