@@ -1,6 +1,6 @@
 // In-app replacements for alert / confirm / prompt. Call from anywhere; <DialogHost /> (mounted once in App) renders them.
 export type UiRequest =
-  | { kind: "notice"; message: string; tone: "info" | "error"; resolve: () => void }
+  | { kind: "notice"; message: string; tone: "info" | "error"; action?: { label: string; run: () => void }; resolve: () => void }
   | { kind: "confirm"; message: string; yes: string; danger: boolean; resolve: (ok: boolean) => void }
   | { kind: "prompt"; message: string; resolve: (value: string | null) => void };
 
@@ -26,10 +26,14 @@ export const promptAsk = (message: string) =>
 /** Turns raw database or network errors into something a person can act on. */
 export function explainError(message: string): string {
   const m = message.toLowerCase();
-  if (m.includes("jwt") || m.includes("expired") || m.includes("401")) return "Your session has expired. Sign in again.";
+  if (m.includes("jwt") || m.includes("expired") || /(^|[^0-9])401([^0-9]|$)/.test(m)) return "Your session has expired. Sign in again.";
   if (m.includes("row-level") || m.includes("permission denied")) return "You don't have permission to do that. Sign in with an approved account.";
   if (m.includes("failed to fetch") || m.includes("network")) return "You seem to be offline. Try again when you're connected.";
   if (m.includes("violates check constraint")) return "One of the values is too long or not allowed. Shorten it and try again.";
   if (m.includes("duplicate key")) return "That item already exists.";
   return message;
 }
+
+/** A toast with one button, e.g. "Removed from favourites  [Undo]". Does not block. */
+export const toastAction = (message: string, label: string, run: () => void) =>
+  void new Promise<void>(resolve => push({ kind: "notice", message, tone: "info", action: { label, run }, resolve }));

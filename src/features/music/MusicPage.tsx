@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Song } from "../../types";
 import { store } from "../../lib/data";
 import { confirmAsk } from "../../lib/ui";
+import { useDirtyClose } from "../../lib/useDirtyClose";
 import { LIMITS } from "../../lib/limits";
 import { useChipFilter } from "../../ui/useChipFilter";
+import { useFavorites } from "../../lib/favorites";
 import { FooterLinks, reportLink } from "../../components/AboutPage";
 import { usePageMeta } from "../../lib/pageMeta";
 import { Button, IconButton } from "../../ui/Button";
@@ -71,8 +73,10 @@ interface ListProps {
 
 function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }: ListProps) {
   const [q, setQ] = useState("");
-  const { picked, toggle, clear, multi, setMulti } = useChipFilter(); // languages: single-select unless "Select several" is on
+  const { picked, toggle, clear } = useChipFilter(); // languages: tap several to combine
   const [artist, setArtist] = useState("all");
+  const [favOnly, setFavOnly] = useState(false);
+  const favs = useFavorites("song");
   const langs = useMemo(() => uniq(songs.map(s => s.language)), [songs]);
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
   const count = (key: "language" | "artist", v: string) => songs.filter(s => s[key] === v).length;
@@ -80,22 +84,22 @@ function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onD
   const shown = useMemo(() => {
     const n = q.trim().toLowerCase();
     return songs
-      .filter(s => (!picked.size || (!!s.language && picked.has(s.language))) && (artist === "all" || s.artist === artist) &&
+      .filter(s => (!picked.size || (!!s.language && picked.has(s.language))) && (artist === "all" || s.artist === artist) && (!favOnly || favs.has(s.id)) &&
         (!n || [s.title, s.artist, s.language].join(" ").toLowerCase().includes(n)))
       // songs with lyrics first, so the first things you tap open something to read
       .sort((a, b) => Number(!!b.lyrics.trim()) - Number(!!a.lyrics.trim()) || a.title.localeCompare(b.title));
-  }, [songs, q, picked, artist]);
-  const clearFilters = () => { setQ(""); clear(); setArtist("all"); };
+  }, [songs, q, picked, artist, favOnly, favs.ids]);
+  const clearFilters = () => { setQ(""); clear(); setArtist("all"); setFavOnly(false); };
 
   return (
     <div className="page music">
       <PageHeader title="Songs" sub={ready ? `${songs.length} song${songs.length === 1 ? "" : "s"} · ${withLyrics} with lyrics` : undefined}
         actions={admin && <Button variant="primary" icon="plus" onClick={onAdd}>Add song</Button>} />
-      <SearchField value={q} onChange={setQ} placeholder="Search songs" />
+      <SearchField value={q} onChange={setQ} placeholder="Search songs" recentKey="songs" />
       <div className="chip-row" role="group" aria-label="Filter by language">
+        <Chip pressed={favOnly} icon="heart" className="fav-chip" count={favs.count || undefined} onClick={() => setFavOnly(v => !v)} aria-label="Favourite songs only" title="Show only your favourite songs"><span className="sr-only">Favourites</span></Chip>
         <Chip pressed={picked.size === 0} onClick={clear}>All languages</Chip>
         {langs.map(l => <Chip key={l} pressed={picked.has(l)} count={count("language", l)} onClick={() => toggle(l)}>{l}</Chip>)}
-        {langs.length > 2 && <Chip className="multi" pressed={multi} onClick={() => setMulti(!multi)} icon="square-check" title="Pick more than one language at a time">Select several</Chip>}
         {artists.length > 1 && (
           <select className="pill-select" value={artist} onChange={e => setArtist(e.target.value)} aria-label="Filter by artist" data-active={artist !== "all"}>
             <option value="all">All artists</option>
@@ -117,7 +121,7 @@ function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onD
           const soon = !s.lyrics.trim();
           return (
             <li key={s.id} className="song-card">
-              <a className="sc-main" href={`#/music/${s.id}`}>
+              <a className="sc-main" href={`#/music/${encodeURIComponent(s.id)}`}>
                 <span className="sc-icon" aria-hidden="true"><Icon name="music" size={22} /></span>
                 <span className="sc-text">
                   <span className="sc-title">{s.title}</span>
@@ -132,6 +136,8 @@ function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onD
                 </span>
                 <Icon name="chevron" size={18} />
               </a>
+              <IconButton className={"sm sc-fav" + (favs.has(s.id) ? " on" : "")} icon="heart" pressed={favs.has(s.id)}
+                label={favs.has(s.id) ? `Remove ${s.title} from favourites` : `Add ${s.title} to favourites`} onClick={() => favs.toggle(s.id)} />
               <SearchLink song={s} className="sm sc-search" />
               {admin && (
                 <span className="sc-admin">
@@ -162,6 +168,8 @@ function SongDialog({ editing, languages, artists, onSave, onClose }: DialogProp
   const [credit, setCredit] = useState(editing?.credit ?? "");
   const [rights, setRights] = useState(!!editing); // new songs need the tick
   useEffect(() => { dlg.current?.showModal(); }, []);
+  const dirty = title !== (editing?.title ?? "") || artist !== (editing?.artist ?? "") || language !== (editing?.language ?? "") || lyrics !== (editing?.lyrics ?? "") || credit !== (editing?.credit ?? "");
+  const cancel = useDirtyClose(dlg, dirty);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,7 +198,7 @@ function SongDialog({ editing, languages, artists, onSave, onClose }: DialogProp
             I wrote these lyrics, they are public domain, or I have permission to share them.</label>
         )}
         <div className="actions">
-          <button type="button" className="btn" onClick={() => dlg.current?.close()}>Cancel</button>
+          <button type="button" className="btn" onClick={cancel}>Cancel</button>
           <button type="submit" className="btn primary" disabled={!title.trim() || !rights}>Save song</button>
         </div>
       </form>
@@ -205,6 +213,8 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
   const [scrolling, setScrolling] = useState(false);
   const [speed, setSpeed] = useState(30); // px per second
   const box = useRef<HTMLDivElement>(null);
+  const favs = useFavorites("song");
+  const fav = favs.has(song.id);
 
   useEffect(() => { store.set("lyrics-size", String(size)); }, [size]);
 
@@ -238,6 +248,7 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
             </>
           )}
           <Button variant={scrolling ? "primary" : "secondary"} icon={scrolling ? "pause" : "play"} onClick={() => setScrolling(v => !v)}>{scrolling ? "Pause" : "Auto-scroll"}</Button>
+          <IconButton className={"sm sc-fav" + (fav ? " on" : "")} icon="heart" pressed={fav} label={fav ? "Remove from favourites" : "Add to favourites"} onClick={() => favs.toggle(song.id)} />
           <SearchLink song={song} className="sm" />
           {admin && <IconButton className="sm" icon="edit" label="Edit this song" onClick={() => onEdit(song)} />}
           {canDelete && <IconButton className="sm danger" icon="trash" label="Delete this song" onClick={() => onDelete(song)} />}

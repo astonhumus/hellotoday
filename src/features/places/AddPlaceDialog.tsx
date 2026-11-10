@@ -3,6 +3,7 @@ import type { Category, Place } from "../../types";
 import { formatCoords, parseCoords } from "../../lib/coords";
 import { notify } from "../../lib/ui";
 import { LocationPicker } from "./LocationPicker";
+import { useDirtyClose } from "../../lib/useDirtyClose";
 
 interface Props {
   categories: Category[];
@@ -32,6 +33,10 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
   const [notes, setNotes] = useState(editing?.notes ?? "");
 
   useEffect(() => { dlg.current?.showModal(); }, []);
+  const dirty = name !== (editing?.name ?? "") || district !== (editing?.district ?? "") || desc !== (editing?.desc ?? "") || phone !== (editing?.phone ?? "")
+    || website !== (editing?.website ?? "") || notes !== (editing?.notes ?? "") || visited !== (editing?.visited ?? "") || category !== (editing?.category ?? categories[0]?.id ?? "")
+    || coordText !== (editing ? formatCoords(editing.lat, editing.lng) : "") || approx !== (editing?.approx ?? false);
+  const cancel = useDirtyClose(dlg, dirty);
   const parsed = parseCoords(coordText);
   const [locating, setLocating] = useState(false);
   const [accuracy, setAccuracy] = useState<number | null>(null);
@@ -58,11 +63,14 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!parsed || !name.trim()) return;
+    if (website.trim() && !safeUrl(website.trim())) return void notify("The website must start with http:// or https://", "error");
     onSave({
       name: name.trim(), category, district: district.trim() || undefined, lat: parsed.lat, lng: parsed.lng,
       desc: desc.trim() || undefined, phone: phone.trim() || undefined,
       website: safeUrl(website.trim()) || undefined, approx: approx || undefined,
-      visited: visited || undefined, notes: notes.trim() || undefined
+      visited: visited || undefined, notes: notes.trim() || undefined,
+      // An edit keeps the place's closure as it is (the form does not change it).
+      ...(editing ? { closure: editing.closure, closureNote: editing.closureNote, closedOn: editing.closedOn } : {})
     }, editing?.id);
   };
 
@@ -101,9 +109,9 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
           <summary>More details</summary>
           <div className="more-body">
             <div className="row">
-              <label>Editor visited on (shown publicly)<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
+              <label>Date last checked (shown publicly)<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
             </div>
-            <label>My notes<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={2000} placeholder="What to order, best time, who to ask for, parking…" /></label>
+            <label>Tips (shown publicly)<textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} maxLength={2000} placeholder="What to order, best time, who to ask for, parking…" /></label>
             <div className="row">
               <label>Phone<input value={phone} onChange={e => setPhone(e.target.value)} type="tel" maxLength={40} /></label>
               <label>Website<input value={website} onChange={e => setWebsite(e.target.value)} type="url" placeholder="https://" maxLength={300} /></label>
@@ -112,7 +120,7 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
           </div>
         </details>
         <div className="actions">
-          <button type="button" className="btn" onClick={() => dlg.current?.close()}>Cancel</button>
+          <button type="button" className="btn" onClick={cancel}>Cancel</button>
           <button type="submit" className="btn primary" disabled={!parsed || !name.trim()}>Save place</button>
         </div>
       </form>

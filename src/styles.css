@@ -240,3 +240,40 @@ dialog.region-dialog, dialog.settings { max-width: min(var(--dialog-w), 100vw); 
 .set-row h3 { margin: 0; font-size: var(--text-md); }
 .set-value { margin: 0; color: var(--text-2); overflow-wrap: anywhere; }
 @media (max-width: 760px) { dialog.settings { display: block; } dialog.settings > * + * { margin-top: var(--s-4); } }
+
+/* ── favourites: a heart that fills when on ── */
+.pc-fav { width: var(--tap); flex-shrink: 0; display: grid; place-items: center; border: 0; background: none; color: var(--text-2); cursor: pointer; }
+.pc-fav:hover { background: var(--hover); }
+.pc-fav:focus-visible { outline-offset: -2px; }
+.pc-fav.on, .sc-fav.on, .fav-btn.on, .fav-chip[aria-pressed="true"] { color: var(--danger); }
+.pc-fav.on svg, .sc-fav.on svg, .fav-btn.on svg, .fav-chip[aria-pressed="true"] svg { fill: currentColor; }
+.fav-btn.on { background: var(--danger-wash); border-color: var(--danger); }
+.fav-chip { padding-left: var(--s-3); padding-right: var(--s-3); }
+.rc-icon.fav { color: var(--danger); background: var(--danger-wash); }
+
+/* ── filters ── */
+.fb-more { display: flex; flex-wrap: wrap; gap: var(--s-2); padding: var(--s-1) 0; }
+.fb-more .pill-select { flex: 1 1 auto; }
+.reset-chip { color: var(--accent); }
+
+/* ── toasts with a button ── */
+.toast-act { color: inherit; text-decoration: underline; font-weight: var(--w-semibold); }
+
+/* ── text size setting (Settings) ── */
+html[data-text="large"] { --text-xs: 14px; --text-sm: 16px; --text-md: 18px; --text-lg: 22px; --lh-xs: 20px; --lh-sm: 22px; --lh-md: 26px; --lh-lg: 30px; }
+html[data-text="xlarge"] { --text-xs: 16px; --text-sm: 18px; --text-md: 20px; --text-lg: 24px; --lh-xs: 22px; --lh-sm: 26px; --lh-md: 30px; --lh-lg: 32px; }
+
+/* ── keyboard: skip link; motion: respect the system setting ── */
+.skip-link { position: absolute; left: var(--s-3); top: -100px; z-index: 5000; padding: var(--s-2) var(--s-4); background: var(--accent); color: var(--accent-ink); border-radius: var(--radius); }
+.skip-link:focus { top: var(--s-2); }
+main:focus { outline: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
+
+/* ── visited progress, welcome card, "see all" tile ── */
+.visit-progress { display: grid; gap: var(--s-2); margin: var(--s-3) var(--s-4) 0; padding: var(--s-3); border: 1px solid var(--border); border-radius: var(--radius); background: var(--accent-wash); font-size: var(--text-sm); }
+.welcome { display: grid; gap: var(--s-3); padding: var(--s-4); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.welcome p { margin: var(--s-1) 0 0; color: var(--text-2); font-size: var(--text-sm); }
+.welcome-actions { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+.tile-more { cursor: pointer; font: inherit; text-align: left; border-style: dashed; }
+.visit-progress .ckp-bar { height: var(--s-2); border-radius: var(--radius-full); background: var(--border); overflow: hidden; }
+.visit-progress .ckp-bar div { height: 100%; background: var(--accent); transition: width var(--dur-base) var(--ease); }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Category } from "../../types";
 import { Chip } from "../../ui/Chip";
 import { SearchField } from "../../ui/SearchField";
@@ -5,45 +6,64 @@ import { SearchField } from "../../ui/SearchField";
 interface Props {
   q: string;
   onQuery: (q: string) => void;
-  categories: Category[];                 // only those that have places
+  categories: Category[];
   counts: Record<string, number>;
   picked: Set<string>;                    // empty = all
   onToggleCategory: (id: string) => void;
   onAllCategories: () => void;
   allOn: boolean;                         // "All" is on: every place is pinned on the map
   onAll: () => void;
-  multi: boolean;                         // "Select several" is on
-  onMulti: (on: boolean) => void;
   districts: string[];
   district: string;
   onDistrict: (d: string) => void;
   visitedOnly: boolean;
   onVisitedOnly: () => void;
   visitedCount: number;
+  favOnly: boolean;
+  onFavOnly: () => void;
+  favCount: number;
+  allRegions?: boolean;                   // places from every region are shown, not just the chosen one
+  onAllRegions?: () => void;              // undefined = not available (no database)
+  compact?: boolean;                      // only the search box (the sidebar is showing a place's details)
   near: boolean;
   onNear: () => void;
+  filtering: boolean;                     // any filter or search is active
+  onReset: () => void;
   onManageCategories?: () => void;       // admin only
 }
 
-/** Search box plus one scrolling row of filters. On phones it floats over the map; on larger screens it heads the side panel. */
+/**
+ * Search box, then one scrolling row: Filters, Favourites, All and the categories (tap several to combine).
+ * The less common filters (district, visited, near me) sit behind the "Filters" button so the row stays short.
+ */
 export function FilterBar(p: Props) {
+  const [open, setOpen] = useState(false);
+  const extra = (p.district !== "all" ? 1 : 0) + (p.visitedOnly ? 1 : 0) + (p.near ? 1 : 0) + (p.allRegions ? 1 : 0);
   return (
     <div className="fb">
-      <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places" />
-      <div className="fb-chips" role="group" aria-label="Filters">
+      <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places or areas" recentKey="places"
+        suggestions={[...p.categories.map(c => c.label), ...p.districts]} />
+      {!p.compact && <div className="fb-chips" role="group" aria-label="Categories">
+        <Chip pressed={open || extra > 0} icon="sliders" count={extra || undefined} aria-expanded={open} aria-controls="fb-more" onClick={() => setOpen(o => !o)}>Filters</Chip>
+        <Chip pressed={p.favOnly} icon="heart" className="fav-chip" count={p.favCount || undefined} onClick={p.onFavOnly} title="Show only your favourites" aria-label="Favourites only"><span className="sr-only">Favourites</span></Chip>
         <Chip pressed={p.allOn} onClick={p.onAll} title="Show every place on the map">All</Chip>
-        <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} icon="check" onClick={p.onVisitedOnly}>My visited</Chip>
-        <Chip pressed={p.near} icon="pin" onClick={p.onNear} title="Sort by distance from where you are">Near me</Chip>
         {p.categories.map(c => (
           <Chip key={c.id} pressed={p.picked.has(c.id)} icon={c.icon} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}
         {p.onManageCategories && <Chip pressed={false} icon="edit" onClick={p.onManageCategories} title="Add, rename, reorder or delete categories">Manage categories</Chip>}
-        <Chip className="multi" pressed={p.multi} onClick={() => p.onMulti(!p.multi)} icon="square-check" title="Pick more than one category at a time">Select several</Chip>
-        <select className="fb-district pill-select" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>
-          <option value="all">All districts</option>
-          {p.districts.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-      </div>
+        {p.filtering && <Chip pressed={false} icon="x" className="reset-chip" onClick={p.onReset}>Reset</Chip>}
+      </div>}
+      {open && !p.compact && (
+        <div className="fb-more" id="fb-more">
+          {p.onAllRegions && <Chip pressed={!!p.allRegions} icon="map" onClick={p.onAllRegions} title="Show places from every country and state, not just the chosen region">All regions</Chip>}
+          <Chip pressed={p.near} icon="pin" onClick={p.onNear} title="Sort by distance from where you are">Near me</Chip>
+          <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} icon="check" onClick={p.onVisitedOnly}>My visited</Chip>
+          <select className="pill-select" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>
+            <option value="all">All districts</option>
+            {p.districts.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,8 @@ import "./styles.css";
 import "./ui/ui.css";
 import { applyTheme } from "./lib/theme";
 
+import { applyPrefs } from "./lib/prefs";
+applyPrefs();
 applyTheme(); // the saved light/dark choice, before anything is drawn
 
 createRoot(document.getElementById("root")!).render(<StrictMode><ErrorBoundary><App /></ErrorBoundary></StrictMode>);

@@ -12,3 +12,10 @@ describe("explainError", () => {
     expect(explainError("Something odd")).toBe("Something odd");
   });
 });
+
+describe("explainError (401)", () => {
+  it("only treats a standalone 401 as an expired session", () => {
+    expect(explainError("HTTP 401")).toMatch(/session/i);
+    expect(explainError("value 14012 is out of range")).toBe("value 14012 is out of range");
+  });
+});

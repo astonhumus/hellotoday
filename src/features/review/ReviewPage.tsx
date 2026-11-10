@@ -7,13 +7,21 @@ import { Button, IconButton } from "../../ui/Button";
 import { Icon } from "../../ui/Icon";
 import { PageHeader } from "../../ui/PageHeader";
 import { goBack } from "../../lib/nav";
+import { fetchAll } from "../../lib/fetchAll";
+import { Segmented } from "../../ui/Segmented";
 import "./review.css";
 
 type Row = Record<string, any>;
 interface Member { user_id: string; email: string; role: "admin" | "contributor"; auto_approve: boolean }
 
-const PLACE_FIELDS = ["name", "category_id", "district", "lat", "lng", "description", "phone", "website", "approx", "visited", "notes"];
+const PLACE_FIELDS = ["name", "category_id", "district", "lat", "lng", "description", "phone", "website", "approx", "visited", "notes", "closure", "closure_note"];
 const SONG_FIELDS = ["title", "artist", "language", "lyrics", "credit"];
+const same = (v: unknown) => (v === false || v === "" || v === undefined ? null : v); // "no value" is the same however it is stored
+
+// A backup covers a window of recent changes, at most six months back (keeps each file small and the database queries cheap).
+type Window = "3" | "6";
+const WINDOW_OPTIONS: { id: Window; label: string }[] = [{ id: "3", label: "Last 3 months" }, { id: "6", label: "Last 6 months" }];
+const since = (months: number) => { const d = new Date(); d.setMonth(d.getMonth() - months); return d.toISOString(); };
 
 // Admin only: approve or reject what contributors submitted, and manage who may contribute.
 export function ReviewPage({ categories }: { categories: Category[] }) {
@@ -26,6 +34,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [auto, setAuto] = useState(false);
+  const [window3or6, setWindow] = useState<Window>("3");
 
   const who = (id: string | null) => members.find(m => m.user_id === id)?.email ?? "unknown";
   const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id;
@@ -71,21 +80,29 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
     run(() => supabase!.rpc("add_member", { p_email: email, p_role: "contributor", p_auto: auto })).then(() => setEmail(""));
   };
 
-  // One file with everything the app stores. The free database plan has no restore, so keep copies.
+  // One file with what was added or changed in the chosen window (3 or 6 months). The free database plan has no restore, so keep copies.
+  // Read page by page: the server returns at most 1000 rows per request, which would silently cut a bigger table short.
   const backup = async () => {
     if (!supabase) return;
+    const months = window3or6 === "6" ? 6 : 3;
+    const from = since(months);
     setBusy(true);
+    const db = supabase;
     const [p, s, i, v, m] = await Promise.all([
-      supabase.from("places").select("*").limit(50000), supabase.from("songs").select("*").limit(50000),
-      supabase.from("items").select("*").limit(50000), supabase.from("revisions").select("*").limit(50000), supabase.rpc("list_members")
+      fetchAll<Row>((a, b) => db.from("places").select("*").gte("updated_at", from).order("id").range(a, b)),
+      fetchAll<Row>((a, b) => db.from("songs").select("*").gte("updated_at", from).order("id").range(a, b)),
+      fetchAll<Row>((a, b) => db.from("items").select("*").gte("updated_at", from).order("kind").order("id").range(a, b)),
+      fetchAll<Row>((a, b) => db.from("revisions").select("*").gte("created_at", from).order("id").range(a, b)),
+      db.rpc("list_members")
     ]);
     setBusy(false);
     const failed = [p, s, i, v, m].find(x => x.error);
     if (failed?.error) return void notify(`Backup failed: ${explainError(failed.error.message)}`, "error");
-    const file = { exportedAt: new Date().toISOString(), places: p.data, songs: s.data, checklistEdits: i.data, proposals: v.data, members: m.data };
+    const file = { exportedAt: new Date().toISOString(), window: { months, changedSince: from }, places: p.data, songs: s.data, checklistEdits: i.data, proposals: v.data, members: m.data };
     const url = URL.createObjectURL(new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }));
-    Object.assign(document.createElement("a"), { href: url, download: `explore-backup-${new Date().toISOString().slice(0, 10)}.json` }).click();
+    Object.assign(document.createElement("a"), { href: url, download: `explore-backup-${months}m-${new Date().toISOString().slice(0, 10)}.json` }).click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    void notify(`Backup saved: ${p.data.length} places, ${s.data.length} songs, ${i.data.length} checklist edits changed in the last ${months} months.`);
   };
 
   const nothing = !places.length && !songs.length && !revs.length;
@@ -145,7 +162,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
           {revs.map(r => {
             const current = targets[`${r.kind}:${r.target_id}`];
             const fields = r.kind === "place" ? PLACE_FIELDS : SONG_FIELDS;
-            const changed = fields.filter(f => (current?.[f] ?? null) !== (r.data?.[f] ?? null));
+            const changed = fields.filter(f => same(current?.[f]) !== same(r.data?.[f]));
             return (
               <article className="card rv-card" key={r.id}>
                 <h3 className="rv-title">{current ? current.name ?? current.title : r.target_id}</h3>
@@ -202,8 +219,9 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
       <section className="rv-section">
         <h2>Backup</h2>
         <div className="card">
-          <p className="rv-body">Downloads every place, song, checklist edit, proposal and member as one file. The free database plan has no restore, so keep a copy now and then.</p>
-          <Button icon="download" onClick={backup} disabled={busy}>Download full backup</Button>
+          <p className="rv-body">Downloads the places, songs, checklist edits and proposals added or changed in the chosen period, plus the member list. The free database plan has no restore, so keep a copy now and then. Items not touched in that period are not included, so make a backup at least every few months.</p>
+          <Segmented<Window> label="Backup period" value={window3or6} onChange={setWindow} options={WINDOW_OPTIONS} />
+          <Button icon="download" onClick={backup} disabled={busy}>Download backup</Button>
         </div>
       </section>
     </div>

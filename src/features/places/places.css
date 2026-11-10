@@ -125,7 +125,6 @@
 @media (max-width: 760px) { .map-locate { top: calc(var(--filter-bar-h) + var(--s-1) + var(--tap) + var(--s-2)); } }
 
 /* ── no pins until something is chosen: a hint over the map ── */
-@media (min-width: 761px) { 
 /* ── pins that overlap merge into a numbered circle ── */
 .cluster-wrap { background: transparent; border: 0; }
 .cluster { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 3px solid var(--surface); box-shadow: var(--shadow-float); font-weight: var(--w-semibold); font-size: var(--text-sm); }
@@ -139,3 +138,29 @@
 .leaflet-bar a:hover { background-color: var(--surface-2); }
 :root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.75); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.75); } }
+
+/* details: the heart sits beside Directions; it turns red and fills when on */
+.pd .pd-actions { grid-template-columns: 1fr auto; }
+.pd-actions .btn.fav-btn { min-width: var(--ctl-lg); padding: 0 var(--s-4); }
+.pd-actions .btn.fav-btn.on { color: var(--danger); border-color: var(--danger); background: var(--danger-wash); }
+.pl-more { display: flex; justify-content: center; padding: var(--s-3) var(--s-4); }
+
+/* closed / archived places */
+.pin.closed { opacity: 0.55; border-style: dashed; color: var(--text-2); }
+.badge.closed { background: var(--surface-2); color: var(--text-2); }
+.badge.closed.permanent { background: var(--danger-wash); color: var(--danger); border-color: transparent; }
+.pd-closed { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-3) var(--s-4); border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface-2); }
+.pd-closed.permanent { border-color: var(--danger); background: var(--danger-wash); color: var(--danger); }
+.pd-closed p { margin: var(--s-1) 0 0; }
+.closure-pick { border: 0; padding: 0; margin: 0 0 var(--s-3); display: grid; gap: var(--s-2); }
+.closure-pick .check { align-items: flex-start; }
+.closure-pick small { display: block; color: var(--text-2); }
+
+/* layers menu: as wide as its content, with the two kinds of choice kept apart */
+.map-style-menu { width: max-content; min-width: 11rem; gap: var(--s-2); padding: var(--s-3); }
+.map-style-menu .mm-h { margin: 0; font-size: var(--text-xs); font-weight: var(--w-semibold); color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.map-style-menu .mm-row { display: flex; gap: var(--s-2); }
+.map-style-menu .chip { justify-content: center; gap: var(--s-1); }
+.map-style-menu .chip[aria-checked="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); }
+/* credits at the corner of the map are easier to hit on touch screens */
+@media (pointer: coarse) { .leaflet-control-attribution a { display: inline-block; padding: var(--s-2) var(--s-1); } }

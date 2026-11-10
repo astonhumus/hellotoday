@@ -5,7 +5,8 @@ import type { Category, Place, StateInfo } from "../../types";
 import { loadJson, store } from "../../lib/data";
 import { Icon } from "../../ui/Icon";
 import { iconSvg } from "../../ui/icons";
-import { distanceKm, formatKm } from "../../lib/geo";
+import { distanceKm } from "../../lib/geo";
+import { formatDistance } from "../../lib/prefs";
 import { useTheme } from "../../lib/theme";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -13,7 +14,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
 // Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
 const TILES = import.meta.env.VITE_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const LABEL_MIN_ZOOM = 9; // district names appear from this zoom, so they don't pile up over Imphal
+const LABEL_MIN_ZOOM = 10; // district names appear from this zoom, so they don't pile up over Imphal
 type MapStyle = "detailed" | "simple";
 
 interface Props {
@@ -22,8 +23,10 @@ interface Props {
   categories: Record<string, Category>;
   selectedId: string | null;
   visitedIds: Set<string>;
+  closedIds?: Set<string>; // closed places: drawn faded
   me?: { lat: number; lng: number; accuracy?: number; intent?: "map" | "fit" | "near"; at?: number } | null; // the visitor's own GPS position (intent: why it was asked for)
   insets: { top: number; bottom: number }; // screen covered by the search bar and the bottom sheet (phones)
+  free?: boolean;      // not limited to one region: places from several regions are shown, so the map may go anywhere
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
   onSelect: (id: string) => void;
   onLocate?: () => void;   // the "my location" button
@@ -53,7 +56,7 @@ const token = (name: string) => getComputedStyle(document.documentElement).getPr
 const fallbackCategory = (): Category => ({ id: "", label: "Place", color: "", icon: "pin" });
 
 // A place is a neutral round pin with its category glyph; the selected one fills with the accent, visited ones get an accent ring.
-type PinState = "plain" | "visited" | "selected";
+type PinState = "plain" | "visited" | "selected" | "closed";
 const pinIcon = (glyph: string, state: PinState) => {
   const size = state === "selected" ? 38 : 26;
   return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}">${iconSvg(glyph, state === "selected" ? 20 : 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
@@ -65,7 +68,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
-export function MapView({ state, places, categories, selectedId, focusTick, visitedIds, me, insets, onSelect, onLocate, locating }: Props) {
+export function MapView({ state, places, categories, selectedId, free = false, focusTick, visitedIds, closedIds, me, insets, onSelect, onLocate, locating }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.Marker>());
@@ -79,6 +82,8 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   const selectedRef = useRef(selectedId);
   selectedRef.current = selectedId;
 
+  const freeRef = useRef(free);
+  freeRef.current = free;
   const tileLayer = useRef<L.TileLayer | null>(null);
   const [style, setStyle] = useState<MapStyle>(() => (store.get("map-style") === "simple" ? "simple" : "detailed"));
   const [showDistricts, setShowDistricts] = useState(() => store.get("map-districts") !== "off");
@@ -90,6 +95,16 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   const lastFit = useRef("");            // which set of places the map was last fitted to, so a data refresh doesn't move the map
   const fitMinZoom = (map: L.Map) => { if (stateBounds.current) map.setMinZoom(Math.max(0, map.getBoundsZoom(stateBounds.current) - 1)); };
   const [menu, setMenu] = useState(false); // the layers menu
+  const menuRef = useRef<HTMLDivElement>(null);
+  // The menu closes when you tap the map or press Escape.
+  useEffect(() => {
+    if (!menu) return;
+    const away = (e: Event) => { if (!menuRef.current?.contains(e.target as Node)) setMenu(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMenu(false); };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
+  }, [menu]);
   const [ready, setReady] = useState(0); // bumps when the map is rebuilt, so the tiles are re-added
 
   // Border maps below the street tiles: they show through wherever a tile can't be loaded (offline, not cached yet).
@@ -107,7 +122,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     setReady(n => n + 1);
     // Pins that overlap merge into a numbered circle (tap to zoom in), so a crowded town stays readable and fast.
     pinLayer.current = L.markerClusterGroup({
-      showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 16, chunkedLoading: true,
+      showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 16, // no chunkedLoading: removing pins while a chunked load is under way crashes the cluster layer
       iconCreateFunction: c => L.divIcon({ html: `<span class="cluster">${c.getChildCount()}</span>`, className: "cluster-wrap", iconSize: [40, 40] })
     }).addTo(map);
     let cancelled = false;
@@ -123,7 +138,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
       stateBounds.current = bounds;
       try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
       fitMinZoom(map);
-      map.setMaxBounds(bounds.pad(0.6));
+      if (!freeRef.current) map.setMaxBounds(bounds.pad(0.6));
     }
     const draw = (world: any, india: any) => {
       L.geoJSON(world, { pane: "borders", interactive: false, style: { color: token("--border-strong"), weight: 0.8, fillColor: token("--surface-2"), fillOpacity: 1 } }).addTo(map);
@@ -139,7 +154,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
         stateBounds.current = bounds;
         try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
         fitMinZoom(map);
-        map.setMaxBounds(bounds.pad(0.6));
+        if (!freeRef.current) map.setMaxBounds(bounds.pad(0.6));
       }
     };
 
@@ -149,6 +164,15 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
 
     return () => { cancelled = true; ro.disconnect(); map.stop(); map.remove(); mapRef.current = null; pins.current.clear(); pinState.current.clear(); stateBounds.current = null; lastFit.current = ""; };
   }, [state, theme]);
+
+  // "All regions": lift the limits that keep the map on the chosen region, and put them back when it is turned off.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (free) { map.setMaxBounds(null as unknown as L.LatLngBounds); map.setMinZoom(2); return; }
+    const b = stateBounds.current;
+    if (b) { map.setMaxBounds(b.pad(0.6)); fitMinZoom(map); map.fitBounds(b, { padding: [20, 20] }); }
+  }, [free, ready]);
 
   // District boundaries (public/data/<state>/districts.json), drawn over the tiles with the district name in the middle.
   useEffect(() => {
@@ -205,24 +229,33 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
   useEffect(() => {
     const map = mapRef.current, group = pinLayer.current;
     if (!map || !group) return;
-    // Only add, move or remove the pins that actually changed, so a refresh or a keystroke doesn't rebuild hundreds of markers.
-    const next = new Set(places.map(p => p.id));
-    pins.current.forEach((m, id) => { if (!next.has(id)) { group.removeLayer(m); pins.current.delete(id); pinState.current.delete(id); } });
-    places.forEach(p => {
+    // The cluster plugin leaves stale entries behind when pins are removed, moved or added one by one while others stay
+    // (a later add then crashes the whole map). So whenever the set of pins changes, its layer is emptied and refilled in one
+    // bulk step; the marker objects themselves are reused. A refresh that changes nothing touches nothing.
+    const unique = [...new Map(places.map(p => [p.id, p])).values()]; // one pin per id, whatever the list holds
+    const changed = unique.length !== pins.current.size || unique.some(p => {
+      const have = pins.current.get(p.id);
+      return !have || have.getLatLng().lat !== p.lat || have.getLatLng().lng !== p.lng;
+    });
+    if (changed) {
+      group.clearLayers(); // pins are detached now, so they can be changed freely
+      const keep = new Set(unique.map(p => p.id));
+      pins.current.forEach((_m, id) => { if (!keep.has(id)) { pins.current.delete(id); pinState.current.delete(id); } });
+    }
+    unique.forEach(p => {
       const glyph = (categories[p.category] ?? fallbackCategory()).icon;
       const have = pins.current.get(p.id), meta = pinState.current.get(p.id);
       if (have) {
-        const ll = have.getLatLng();
-        if (ll.lat !== p.lat || ll.lng !== p.lng) have.setLatLng([p.lat, p.lng]);
+        if (have.getLatLng().lat !== p.lat || have.getLatLng().lng !== p.lng) have.setLatLng([p.lat, p.lng]);
         if (meta && meta.glyph !== glyph) { have.setIcon(pinIcon(glyph, meta.state)); meta.glyph = glyph; }
         return;
       }
       const m = L.marker([p.lat, p.lng], { icon: pinIcon(glyph, "plain"), keyboard: false });
       m.on("click", () => onSelectRef.current(p.id));
-      group.addLayer(m);
       pins.current.set(p.id, m);
       pinState.current.set(p.id, { glyph, state: "plain" });
     });
+    if (changed) group.addLayers(unique.map(p => pins.current.get(p.id)!));
     paint();
     // Re-zoom only when the set of places really changed (a filter, a search), after typing pauses, and never while a place is selected.
     const signature = places.map(p => p.id).sort().join("|");
@@ -243,12 +276,12 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     pins.current.forEach((m, id) => {
       const meta = pinState.current.get(id);
       if (!meta) return;
-      const state: PinState = id === selectedRef.current ? "selected" : visitedIds.has(id) ? "visited" : "plain";
+      const state: PinState = id === selectedRef.current ? "selected" : closedIds?.has(id) ? "closed" : visitedIds.has(id) ? "visited" : "plain";
       if (meta.state !== state) { m.setIcon(pinIcon(meta.glyph, state)); meta.state = state; }
       m.setZIndexOffset(state === "selected" ? 1000 : 0);
     });
   };
-  useEffect(paint, [selectedId, visitedIds]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(paint, [selectedId, visitedIds, closedIds, places]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "You are here": a blue dot, like Google Maps. The map can always show you,
   // even when you are far outside the region: its limits are widened to take you in.
@@ -318,7 +351,7 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
     const to = m.getLatLng();
     const dist = distanceKm(me, { lat: to.lat, lng: to.lng });
     meLine.current = L.polyline([[me.lat, me.lng], to], { color: token("--text"), weight: 2, dashArray: "6 6", interactive: false })
-      .bindTooltip(formatKm(dist), { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
+      .bindTooltip(formatDistance(dist), { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
   }, [me, selectedId, ready]);
 
   // Selecting a place flies to it, placing the pin in the part of the map the panels don't cover
@@ -344,13 +377,19 @@ export function MapView({ state, places, categories, selectedId, focusTick, visi
           </button>
         </div>
       )}
-      <div className="map-style">
+      <div className="map-style" ref={menuRef}>
         <button type="button" className="map-layers" aria-label="Map layers" aria-expanded={menu} onClick={() => setMenu(v => !v)}><Icon name="layers" /></button>
         {menu && (
           <div className="map-style-menu" role="group" aria-label="Map layers">
-            <button className="chip" aria-pressed={style === "detailed"} onClick={() => choose("detailed")}>Streets</button>
-            <button className="chip" aria-pressed={style === "simple"} onClick={() => choose("simple")}>Simple</button>
-            <button className="chip" aria-pressed={showDistricts} onClick={() => { setShowDistricts(v => !v); store.set("map-districts", showDistricts ? "off" : "on"); }}>Districts</button>
+            <p className="mm-h" id="mm-base">Map style</p>
+            <div className="mm-row" role="radiogroup" aria-labelledby="mm-base">
+              <button type="button" className="chip" role="radio" aria-checked={style === "detailed"} onClick={() => choose("detailed")}>Streets</button>
+              <button type="button" className="chip" role="radio" aria-checked={style === "simple"} onClick={() => choose("simple")}>Simple</button>
+            </div>
+            <p className="mm-h">Show</p>
+            <button type="button" className="chip" aria-pressed={showDistricts} onClick={() => { setShowDistricts(v => !v); store.set("map-districts", showDistricts ? "off" : "on"); }}>
+              {showDistricts && <Icon name="check" size={16} />} District borders
+            </button>
           </div>
         )}
       </div>

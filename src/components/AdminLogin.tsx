@@ -5,7 +5,8 @@ import { supabase } from "../lib/supabase";
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 declare global { interface Window { turnstile?: { render: (el: HTMLElement, o: Record<string, unknown>) => string; reset: (id?: string) => void } } }
 
-// Not linked from anywhere: the admin opens the secret address (see VITE_ADMIN_ROUTE) to get the sign-in box.
+// The sign-in box opens at #/admin (also linked quietly from the footer) and at VITE_ADMIN_ROUTE if set. That address is not a secret:
+// protection comes from Supabase rate limits and, when VITE_TURNSTILE_SITE_KEY is set, the CAPTCHA below.
 // Anyone with a session can sign out; people who aren't approved members are told so.
 export function AdminLogin({ hasSession, isMember, show, onClose }: { hasSession: boolean; isMember: boolean; show: boolean; onClose: () => void }) {
   const dlg = useRef<HTMLDialogElement>(null);

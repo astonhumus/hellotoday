@@ -2,8 +2,1298 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://hellotoday.astonhumus.workers.dev/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/places-in/manipur/</loc>
+    <lastmod>2026-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangla-fort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/shree-govindajee-temple/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ima-keithel-mothers-market/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/manipur-state-museum/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/imphal-war-cemetery/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/marjing-polo-statue/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sekta-archaeological-living-museum/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/andro-village/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hiyangthang-lairembi-temple/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/langthabal-konung/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangchup-hills/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/singda-dam/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lamphelpat/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khonghampat-orchidarium/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/loktak-lake/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/keibul-lamjao-national-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sendra-island/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/takmu-water-sports-complex/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/phubala-lake-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sendra-park-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ina-memorial-moirang/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thangjing-hill/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/bishnupur-vishnu-temple/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/leimaram-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/red-hill-lokpaching/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/waithou-lake/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ikop-lake/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khongjom-war-memorial/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kaina/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kakching-garden/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/pumlen-pat/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/shirui-kashung-hills/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khangkhui-cave/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/dz-ko-valley/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sadu-chiru-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/tharon-cave/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/zeilad-lake/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/barak-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khuga-dam/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/tribal-museum-churachandpur/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moreh/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangla-museum/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/archaeological-museum-imphal/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/manipur-science-centre/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/rkcs-art-gallery-and-museum/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/three-mothers-art-gallery/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/mapal-kangjeibung-polo-ground/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/pakhangba-temple/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sanamahi-kiyong/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ebudhou-thangjing-temple-moirang/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/gopinath-temple-ningthoukhong/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/st-joseph-s-cathedral/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/bihu-loukon/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/manipur-zoological-garden/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/koubru-peak/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/mount-iso-tenipu/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/nongmaiching-hill/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ithai-barrage/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/jiri-makru-wildlife-sanctuary/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/bunning-wildlife-sanctuary/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kailam-wildlife-sanctuary/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/yangoupokpi-lokchao-wildlife-sanctuary/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/langol-hills/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/bir-tikendrajit-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/olympian-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thangapat/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/dolaithabi-barrage/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/maphou-dam/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kanto-dam/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ireng-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/konsakhul-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/waroi-garden/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/agape-garden/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/menjor-unity-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khoupum-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khoupum-dam/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/leishabithol-waterfalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/tiluelue-khayang-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/shaheed-minar/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/nupi-lal-memorial-complex/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/mutua-museum/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hapta-kangjeibung/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/shri-radha-raman-temple-kanchipur/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/samban-lei-sekpil/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/maram-khullen/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/tonglon-cave/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sirarakhong/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/nillai-tea-estate/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kachouphung-lake/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/santhei-natural-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sekmai-picnic-park-sekmai-turel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kanglatongbi-dam/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/omba-nurathel-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/loukoipat-eco-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thanga-island/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ngaloi-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/halang-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/eco-park-jessami/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ramrei-eco-tourism-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/liabi-waterfall/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/taphou-waterfalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/panam-eco-park/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ngariyan/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sandangsenba/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sawombung/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/paona-bazar-street-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/paona-bazar-momo-chowmein-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thangal-bazar-pakora-corner/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thangal-bazar-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ima-keithel-food-lane/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ima-keithel-singju-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khwairamband-bazar-eromba-corner/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangla-west-gate-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangla-evening-chat-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/polo-ground-evening-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/singjamei-chat-corner/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/singjamei-chingamathak-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khuyathong-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lamphel-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lamphelpat-tea-pakora-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sagolband-snack-lane/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/keishampat-junction-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thangmeiband-chat-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/uripok-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/uripok-momo-corner/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lamlong-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/langjing-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/patsoi-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/naoremthong-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/canchipur-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sangaithel-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moirangkhom-chat-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/wangkhei-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/wangkhei-ningthem-pukhri-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kakwa-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khurai-lamlong-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khurai-bazar-pakora-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/porompat-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/heingang-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/heingang-hill-viewpoint-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sanjenthong-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/chingmeirong-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/mantripukhri-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lamsang-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sekmai-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/marjing-polo-statue-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sekta-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/andro-village-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/yairipok-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ithai-barrage-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sendra-island-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/loktak-karang-boat-landing-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thanga-lakeside-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moirang-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moirang-ina-memorial-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/nambol-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/bishnupur-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/bishnupur-vishnu-temple-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ningthoukhong-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thoubal-bazar-snack-lane/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thoubal-ningthem-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lilong-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kakching-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kakching-garden-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/wabagai-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/churachandpur-main-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/churachandpur-tuibong-momo-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lamka-roadside-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/churachandpur-zoute-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ukhrul-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/ukhrul-hill-viewpoint-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/shirui-road-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/senapati-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/mao-gate-market-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/mao-roadside-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/maram-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangpokpi-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kangpokpi-highway-pit-stop-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/saikul-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/tamenglong-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/noney-highway-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khongsang-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/jiribam-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/jiribam-railway-station-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moreh-border-market-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moreh-bazar-tea-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/tengnoupal-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/chandel-bazar-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/chakpikarong-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kamjong-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/pherzawl-bazar-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/imphal-airport-road-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khuman-lampak-sports-complex-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/rims-road-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/manipur-university-gate-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sangai-festival-food-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/dolaithabi-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/koirengei-snack-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/takyelpat-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/pangei-roadside-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kwakeithel-chat-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/thangal-bazar-sweet-jalebi-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/khoyathong-evening-stalls/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/classic-grande/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-nightingale/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/phou-oi-bee-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-imphal/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/the-classic-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/north-east-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sangai-continental/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/nirmala-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/avenue-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/manipur-house/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/saikul-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lemlei-hotel-loktak/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sanajaoba-home-stay/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lac-view-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-elegance-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/the-cascade-retreat/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/woods-and-earth-retreat/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/geljang-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/green-hills/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/lhaang-kim-hotel-euntteps-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/de-khunai-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/neelraj-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/kakching-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/elora-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-malem/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-star/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-helena/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-joyram/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-leibaklei/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/fancy-lodging/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/apollo-inn/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sangaithel-park-resort/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/youth-hostel-imphal/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sanajaoba-home-stay-1/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sandy-shores/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/maipakchao-homestay/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/loktak-homestay-budha-house/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sangai-lodge/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/aurora-boutique-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/the-padma/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-millennium/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-yaiphaba/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-o-the-thangal/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-anand-continental/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-prince/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-kristina/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/hotel-bheigo/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/the-pi-hotel/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/shalom-farmhouse-by-the-hillside/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/sendra-tourist-home/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/moirang-tourist-lodge/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/u-mw6b6lyk/</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>  <url>
+    <loc>https://hellotoday.astonhumus.workers.dev/place/u-mw7f5lzh/</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

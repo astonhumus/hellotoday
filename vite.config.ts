@@ -30,9 +30,10 @@ export default defineConfig(({ mode }) => {
       workbox: {
         // Everything the app needs (code, map borders, bundled places/songs/checklist) is cached on first visit.
         globPatterns: ["**/*.{js,css,html,svg,png,json,woff2}"],
-        globIgnores: ["data/regions/**"], // 7 MB of borders for every country: fetched (and then cached) only for the countries someone opens
+        globIgnores: ["data/regions/**", "place/**", "places-in/**"], // place/** = the static pages for search engines (scripts/build-seo.mjs): fetched from the network, not precached // 7 MB of borders for every country: fetched (and then cached) only for the countries someone opens
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/(place|places-in)\//], // these are real pages, not the app
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         runtimeCaching: [{

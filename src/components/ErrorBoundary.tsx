@@ -4,6 +4,11 @@ import { Component, type ReactNode } from "react";
 export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
+  // Following any link inside the app gives it another try, instead of staying on the error page.
+  private retry = () => { if (this.state.failed) this.setState({ failed: false }); };
+  componentDidMount() { addEventListener("hashchange", this.retry); }
+  componentWillUnmount() { removeEventListener("hashchange", this.retry); }
+
   static getDerivedStateFromError() { return { failed: true }; }
 
   componentDidCatch(error: unknown) { console.error("App crashed:", error); }

@@ -2,15 +2,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./supabase";
 import { cacheGet, cacheSet } from "./cache";
 import { explainError, notify } from "./ui";
+import { fetchAll } from "./fetchAll";
 
 type Row = Record<string, unknown>;
 
 interface Spec<T> {
   table: string;
   kind: "place" | "song" | "category";
-  columns: string;                           // explicit list: the public may not read every column (see supabase/hardening.sql)
+  columns: string;
+  fallbackColumns?: string;                  // used when the database does not have the newest columns yet (a migration not run)
   propose?: boolean;                         // contributor without auto-approve: edits to live items become proposals
-  scope?: { column: string; value: string }; // e.g. only the current state's places
+  scope?: { column: string; value: string }; // e.g. only the current state's places (leave out to load every region)
+  fixed?: { column: string; value: string };  // always written with saved rows, even when the load is not scoped
   toRow: (item: Omit<T, "id">, id: string) => Row;
   fromRow: (row: Row) => T;
 }
@@ -25,18 +28,27 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
   const [rows, setRows] = useState<T[] | null>(null);
   const [loading, setLoading] = useState(false);
   const table = spec?.table, scopeCol = spec?.scope?.column, scopeVal = spec?.scope?.value;
-  const cacheKey = `rows:${table}:${scopeVal ?? ""}`;
+  const cacheKey = `rows:${table}:${scopeVal ?? "*"}`;
   const lastSig = useRef("");
+  const loadSeq = useRef(0);
+  const soon = useRef<number | undefined>(undefined);
 
   const load = async () => {
     if (!supabase || !spec) return;
+    const seq = ++loadSeq.current;
     setLoading(true);
-    let q = supabase.from(spec.table).select(spec.columns).limit(5000);
-    if (spec.scope) q = q.eq(spec.scope.column, spec.scope.value);
-    const { data, error } = await q;
+    // Paged: the server hands out at most 1000 rows per request, so a bigger table would be silently cut off.
+    const read = (columns: string) => fetchAll<Row>((from, to) => {
+      let q = supabase!.from(spec.table).select(columns).order("id").range(from, to);
+      if (spec.scope) q = q.eq(spec.scope.column, spec.scope.value);
+      return q as unknown as PromiseLike<{ data: Row[] | null; error: { message: string } | null }>;
+    });
+    let { data, error } = await read(spec.columns);
+    if (error && spec.fallbackColumns && /column|schema/i.test(error.message)) ({ data, error } = await read(spec.fallbackColumns));
+    if (seq !== loadSeq.current) return; // a newer load is under way: don't let this older answer overwrite it
     setLoading(false);
     if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return; } // keep whatever is showing (cached copy)
-    const mapped = (data as unknown as Row[]).map(spec.fromRow);
+    const mapped = data.map(spec.fromRow);
     // Keep the same array when nothing changed, so the map and the list don't redraw after a background refresh.
     const sig = JSON.stringify(mapped);
     if (sig !== lastSig.current) { lastSig.current = sig; setRows(mapped); }
@@ -54,8 +66,12 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
     return () => { live = false; };
   }, [table, scopeCol, scopeVal]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // After a change, reload once things go quiet (a burst of saves, e.g. reordering categories, becomes one reload).
+  const loadSoon = () => { window.clearTimeout(soon.current); soon.current = window.setTimeout(() => void load(), 300); };
+  useEffect(() => () => window.clearTimeout(soon.current), []);
+
   const items = rows ?? fallback;
-  const scoped = (r: Row): Row => (spec?.scope ? { ...r, [spec.scope.column]: spec.scope.value } : r);
+  const scoped = (r: Row): Row => { const w = spec?.fixed ?? spec?.scope; return w ? { ...r, [w.column]: w.value } : r; };
 
   const save = async (item: Omit<T, "id">, id?: string) => {
     if (!supabase || !spec) return;
@@ -65,31 +81,37 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
       const { error } = await supabase.rpc("propose_revision", {
         p_kind: spec.kind, p_target: id, p_data: spec.toRow(item, id), p_base: existing.updatedAt ?? null
       });
-      return error ? void fail(error.message) : void notify("Thanks! Your change was sent to the admin for approval.");
+      return error ? void fail(error.message) : void notify("Thanks! Your change was sent to the admin for approval. The live version stays as it is until then.");
     }
+    const before = items;
     const newId = id ?? "u-" + Date.now().toString(36);
     const next = { ...item, id: newId } as T;
     setRows(cur => { const base = cur ?? fallback; return base.some(x => x.id === newId) ? base.map(x => (x.id === newId ? next : x)) : [...base, next]; });
     const { error } = await supabase.from(spec.table).upsert(scoped(spec.toRow(item, newId)));
-    if (error) void fail(error.message);
-    void load();
+    if (error) { void fail(error.message); setRows(before); } // put the screen back: the change was NOT stored (also when offline)
+    else if (!id && spec.propose) void notify("Thanks! Your submission is waiting for admin approval. Only you can see it until then.");
+    loadSoon();
   };
 
   const remove = async (id: string) => {
     if (!supabase || !spec) return;
+    const before = items;
     setRows(cur => (cur ?? fallback).filter(x => x.id !== id));
     const { error } = await supabase.from(spec.table).delete().eq("id", id);
-    if (error) void fail(error.message);
-    void load();
+    if (error) { void fail(error.message); setRows(before); }
+    loadSoon();
   };
 
   /** Resolves true when every item was stored. */
   const addMany = async (more: T[]) => {
     if (!supabase || !spec || !more.length) return true;
-    const { error } = await supabase.from(spec.table).upsert(more.map(({ id, ...rest }) => scoped(spec.toRow(rest, id))));
-    if (error) void fail(error.message);
-    void load();
-    return !error;
+    // In chunks, so one huge import is not a single giant request.
+    for (let i = 0; i < more.length; i += 200) {
+      const { error } = await supabase.from(spec.table).upsert(more.slice(i, i + 200).map(({ id, ...rest }) => scoped(spec.toRow(rest, id))));
+      if (error) { void fail(error.message); loadSoon(); return false; }
+    }
+    loadSoon();
+    return true;
   };
 
   return { items, loading, reload: load, localIds: useMemo(() => new Set<string>(), []), save, remove, addMany };

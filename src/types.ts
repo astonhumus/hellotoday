@@ -37,6 +37,10 @@ export interface Place {
   approx?: boolean;
   visited?: string; // YYYY-MM-DD, set when you have been there
   notes?: string;   // personal tips, e.g. what to order, who to ask for
+  closure?: "temporary" | "permanent" | null; // temporarily closed (still listed) or permanently closed = archived (hidden from the public)
+  closureNote?: string;                // the reason
+  closedOn?: string;                   // YYYY-MM-DD, when it was closed
+  regionId?: string; // the state/province it belongs to (from the database)
   status?: Status;  // moderation state; only 'approved' rows are public
   reviewNote?: string;
   updatedAt?: string; // lets an edit proposal detect that the item changed meanwhile

@@ -23,7 +23,7 @@ export function FooterLinks({ report }: { report?: { subject: string } }) {
 }
 
 export function AboutPage() {
-  usePageMeta("About and privacy", "What Explore India is, where its map and place information comes from, how song lyrics and copyright are handled, and how your data is kept.");
+  usePageMeta("About and privacy", "What Explore Hack is, where its map and place information comes from, how song lyrics and copyright are handled, and how your data is kept.");
   return (
     <div className="page about">
       <PageHeader title="About Explore Hack" onBack={() => goBack("#/")} />
@@ -47,6 +47,8 @@ export function AboutPage() {
       <p>
         There are no advertisements or tracking cookies. Your checklist, map choices and app settings are saved only on your own device.
         The site loads map pictures from OpenStreetMap, which sees your device's address like any website would.
+        The "search lyrics" button opens a Google search in a new tab, and the sign-in box (only for contributors) may load a Cloudflare bot check.
+        Your recent searches are also saved on your device; "Clear saved data" in Settings removes them.
         Signed-in contributors have an email address and password stored with our data provider (Supabase) so they can sign in.
       </p>
 

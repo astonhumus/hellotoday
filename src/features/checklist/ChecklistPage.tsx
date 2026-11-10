@@ -29,7 +29,8 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 function load(): Saved {
   try {
     const v = JSON.parse(store.get(KEY) ?? "{}");
-    return { sel: v.sel ?? [], packed: v.packed ?? [], custom: v.custom ?? [], presets: v.presets ?? {} };
+    const list = (x: unknown) => (Array.isArray(x) ? x : []);
+    return { sel: list(v.sel), packed: list(v.packed), custom: list(v.custom), presets: v.presets && typeof v.presets === "object" && !Array.isArray(v.presets) ? v.presets : {} };
   } catch { return { sel: [], packed: [], custom: [], presets: {} }; }
 }
 
@@ -45,9 +46,10 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
 
   const [dialog, setDialog] = useState<{ editing: Item | null } | null>(null);
   const cats = useMemo(() => catalog?.categories ?? [], [catalog]);
-  const baseItems = useMemo<Item[]>(() => cats.flatMap(c => c.items.map(raw => {
+  const baseItems = useMemo<Item[]>(() => cats.flatMap(c => c.items.map((raw, n) => {
     const [name, trips = ""] = raw.split("|").map(s => s.trim());
-    return { id: `${c.id}:${slug(name)}`, name, cat: c.id, trips: trips.split(/\s+/).filter(Boolean) };
+    // A name with no Latin letters (Hindi, Meitei…) has an empty slug: fall back to its position so ids never collide.
+    return { id: `${c.id}:${slug(name) || "item-" + n}`, name, cat: c.id, trips: trips.split(/\s+/).filter(Boolean) };
   })), [cats]);
   // Admin changes to the shared catalog (add / edit / delete); see supabase/schema.sql.
   const catalogItems = useOverlay<Item>("checklist", baseItems);
@@ -308,7 +310,7 @@ function ItemDialog({ editing, cats, onSave, onClose }: DialogProps) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) onSave({ name: name.trim(), cat, trips: [] }, editing?.id);
+    if (name.trim()) onSave({ name: name.trim(), cat, trips: editing?.trips ?? [] }, editing?.id);
   };
 
   return (

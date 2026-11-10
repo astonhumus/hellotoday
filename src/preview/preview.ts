@@ -38,7 +38,7 @@ const panel = (theme: "light" | "dark") => `
 
   <div class="pv-block"><h3>App bar and navigation</h3>
     <header class="pv-bar">
-      <p class="site-name"><a href="#" class="brand">Explore India</a></p>
+      <p class="site-name"><a href="#" class="brand">Explore Hack</a></p>
       <nav class="tabs" aria-label="Sample menu">
         <a href="#" aria-current="page">${ic("home", 22)} Home</a><a href="#">${ic("map", 22)} Places</a><a href="#">${ic("music", 22)} Music</a><a href="#">${ic("checklist", 22)} Checklist</a>
       </nav>
