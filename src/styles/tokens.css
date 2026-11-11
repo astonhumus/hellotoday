@@ -50,7 +50,7 @@
   /* shape: one corner radius; circles only for round things */
   --radius: 12px;
   --radius-sm: 8px;    /* only for a control nested inside a 12px container (segmented buttons, tick boxes) */
-  --radius-full: 50%;
+  --radius-full: 999px; /* a length, not 50%: a wide button becomes a pill, a square one a circle (50% made wide buttons oval) */
 
   /* depth: nothing rests on a shadow; only what floats over content has one */
   --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.08);

@@ -302,7 +302,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
       {phone ? (
         <>
           <div className="pl-float" ref={floatRef}>{filterBar}</div>
-          <Sheet snap={snap} onSnap={setSnap} head={title} topGap={filterH} onHeight={setSheetH} label="Places">
+          <Sheet snap={snap} onSnap={setSnap} head={title} topGap={filterH} onHeight={setSheetH} label="Places" openLabel={selected ? "Details" : "List"}>
             {details ?? list}
           </Sheet>
         </>

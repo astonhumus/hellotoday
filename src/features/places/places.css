@@ -162,5 +162,6 @@
 .map-style-menu .mm-row { display: flex; gap: var(--s-2); }
 .map-style-menu .chip { justify-content: center; gap: var(--s-1); }
 .map-style-menu .chip[aria-checked="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--accent); }
-/* credits at the corner of the map are easier to hit on touch screens */
-@media (pointer: coarse) { .leaflet-control-attribution a { display: inline-block; padding: var(--s-2) var(--s-1); } }
+/* credits at the corner of the map: always one short line, never wrapping onto a second row */
+.leaflet-container .leaflet-control-attribution { max-width: 100vw; box-sizing: border-box; margin: 0; padding: 0 var(--s-2); font-size: 10px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.leaflet-control-attribution svg { display: none !important; } /* the small flag before "Leaflet" */

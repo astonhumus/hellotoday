@@ -7,7 +7,7 @@ declare global { interface Window { turnstile?: { render: (el: HTMLElement, o: R
 
 // The sign-in box opens at #/admin (also linked quietly from the footer) and at VITE_ADMIN_ROUTE if set. That address is not a secret:
 // protection comes from Supabase rate limits and, when VITE_TURNSTILE_SITE_KEY is set, the CAPTCHA below.
-// Anyone with a session can sign out; people who aren't approved members are told so.
+// Anyone with a session can sign out (in Settings); people who aren't approved members are told so.
 export function AdminLogin({ hasSession, isMember, show, onClose }: { hasSession: boolean; isMember: boolean; show: boolean; onClose: () => void }) {
   const dlg = useRef<HTMLDialogElement>(null);
   const captcha = useRef<HTMLDivElement>(null);
@@ -33,14 +33,8 @@ export function AdminLogin({ hasSession, isMember, show, onClose }: { hasSession
 
   if (!supabase) return null;
 
-  if (hasSession) {
-    return (
-      <>
-        {!isMember && <span className="meta" role="status">This account isn't approved.</span>}
-        <button className="btn" onClick={() => supabase!.auth.signOut()}>Sign out</button>
-      </>
-    );
-  }
+  // Signing out lives in Settings (Account), so the header stays on one row.
+  if (hasSession) return isMember ? null : <span className="meta" role="status">This account isn't approved. Sign out in Settings.</span>;
   if (!open) return null;
 
   const submit = async (e: React.FormEvent) => {

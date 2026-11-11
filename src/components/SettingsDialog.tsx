@@ -16,12 +16,13 @@ interface Props {
   onChangeRegion: () => void;
   onClose: () => void;
   review?: { pending: number }; // admins only: a way to the review page
+  account?: { approved: boolean; onSignOut: () => void }; // set only while someone is signed in
 }
 
 const THEMES: { id: Theme; label: string }[] = [{ id: "system", label: "Auto" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }];
 
 /** App settings: the colour theme, and a shortcut to the country and state/province setting. */
-export function SettingsDialog({ country, state, onChangeRegion, onClose, review }: Props) {
+export function SettingsDialog({ country, state, onChangeRegion, onClose, review, account }: Props) {
   const dlg = useRef<HTMLDialogElement>(null);
   const inst = useInstall();
   const prefs = usePrefs();
@@ -80,6 +81,13 @@ export function SettingsDialog({ country, state, onChangeRegion, onClose, review
           location.reload(); // screens still hold the old lists in memory and would write them straight back
         }}>Clear saved data</Button>
       </section>
+      {account && (
+        <section className="set-row" aria-labelledby="set-account">
+          <h3 id="set-account">Account</h3>
+          <p className="set-value">{account.approved ? "You are signed in." : "You are signed in, but this account isn't approved yet."}</p>
+          <Button onClick={() => { dlg.current?.close(); account.onSignOut(); }}>Sign out</Button>
+        </section>
+      )}
       <div className="actions">
         <Button variant="primary" onClick={() => dlg.current?.close()}>Done</Button>
       </div>

@@ -301,7 +301,8 @@ export default function App() {
         <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) go("#/places"); }} />
       </header>
       <PwaBar showInstall={page === "home"} />
-      {settingsOpen && <SettingsDialog review={supabase && IS_ADMIN ? { pending } : undefined} country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
+      {settingsOpen && <SettingsDialog review={supabase && IS_ADMIN ? { pending } : undefined}
+        account={supabase && hasSession ? { approved: signedIn, onSignOut: () => { void supabase!.auth.signOut(); } } : undefined} country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
       <main id="main" tabIndex={-1}>
         <Suspense fallback={<SkeletonPage />}>
         {error && (
