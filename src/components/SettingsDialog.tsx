@@ -9,6 +9,9 @@ import { usePrefs, setUnits, setTextSize, type Units, type TextSize } from "../l
 import { clearFavorites } from "../lib/favorites";
 import { confirmAsk } from "../lib/ui";
 import { go } from "../lib/nav";
+import { kindName } from "../lib/format";
+import { exportSaved, importSaved } from "../lib/backup";
+import { notify } from "../lib/ui";
 
 interface Props {
   country?: CountryInfo;
@@ -34,13 +37,14 @@ export function SettingsDialog({ country, state, onChangeRegion, onClose, review
       <h2>Settings</h2>
       <section className="set-row" aria-labelledby="set-theme">
         <h3 id="set-theme">Theme</h3>
-        <Segmented label="Theme" value={theme} options={THEMES} onChange={t => { setThemeState(t); setTheme(t); }} />
+        <Segmented label="Theme" value={theme} options={THEMES} onChange={next => { setThemeState(next); setTheme(next); }} />
         <p className="hint">Auto follows your phone's light or dark setting.</p>
       </section>
       <section className="set-row" aria-labelledby="set-text">
         <h3 id="set-text">Text size</h3>
         <Segmented<TextSize> label="Text size" value={prefs.text} onChange={setTextSize}
           options={[{ id: "normal", label: "Normal" }, { id: "large", label: "Large" }, { id: "xlarge", label: "Extra large" }]} />
+        <p className="hint">This adds to your phone's own text size setting.</p>
       </section>
       <section className="set-row" aria-labelledby="set-units">
         <h3 id="set-units">Distance</h3>
@@ -49,7 +53,7 @@ export function SettingsDialog({ country, state, onChangeRegion, onClose, review
       <section className="set-row" aria-labelledby="set-region">
         <h3 id="set-region">Region</h3>
         <p className="set-value">{state?.name ?? "…"}{country ? `, ${country.name}` : ""}</p>
-        <Button onClick={() => { dlg.current?.close(); onChangeRegion(); }}>Change country or {country?.kind.toLowerCase() ?? "state"}</Button>
+        <Button onClick={() => { dlg.current?.close(); onChangeRegion(); }}>Change country or {kindName(country?.kind).toLowerCase()}</Button>
       </section>
       <section className="set-row" aria-labelledby="set-install">
         <h3 id="set-install">Install app</h3>
@@ -68,15 +72,32 @@ export function SettingsDialog({ country, state, onChangeRegion, onClose, review
           <Button onClick={() => { dlg.current?.close(); go("#/review"); }}>Review submissions{review.pending ? ` (${review.pending})` : ""}</Button>
         </section>
       )}
+      <section className="set-row" aria-labelledby="set-offline">
+        <h3 id="set-offline">Offline</h3>
+        <p className="hint">After your first visit the places, songs and checklist work without internet. For the map pictures, open the layers button on the map and choose “Save this view” while you are online.</p>
+      </section>
       <section className="set-row" aria-labelledby="set-data">
         <h3 id="set-data">Saved on this device</h3>
-        <p className="hint">Favourites, visited places, your checklist and recent searches never leave this browser.</p>
+        <p className="hint">Favourites, visited places, your trip, your checklist and recent searches never leave this browser. Make a backup file to move them to another phone or keep a copy.</p>
+        <div className="set-pair">
+          <Button icon="download" onClick={exportSaved}>Back up my saved data</Button>
+          <label className="btn file">Restore from a file
+            <input type="file" accept=".json,application/json" hidden onChange={async e => {
+              const f = e.target.files?.[0]; e.target.value = "";
+              if (!f) return;
+              const n = await importSaved(f);
+              if (n === null) return;
+              void notify(`Restored ${n} saved ${n === 1 ? "item" : "items"}. Reloading…`);
+              setTimeout(() => location.reload(), 1200); // screens still hold the old lists in memory
+            }} />
+          </label>
+        </div>
         <Button variant="danger" icon="trash" onClick={async () => {
-          if (!(await confirmAsk("Delete your favourites, visited places and checklist from this device?", { yes: "Delete", danger: true }))) return;
+          if (!(await confirmAsk("Delete your favourites, visited places, trip and checklist from this device?", { yes: "Delete", danger: true }))) return;
           clearFavorites();
           try {
             // Also the remembered searches. Settings (theme, text size, units, region) are kept.
-            Object.keys(localStorage).filter(k => k === "my-visited" || k === "checklist" || k === "seen-rejected" || k.startsWith("recent:")).forEach(k => localStorage.removeItem(k));
+            Object.keys(localStorage).filter(k => k === "my-visited" || k === "checklist" || k === "checklist-mode" || k === "trip-places" || k === "seen-rejected" || k.startsWith("recent:")).forEach(k => localStorage.removeItem(k));
           } catch { /* ignore */ }
           location.reload(); // screens still hold the old lists in memory and would write them straight back
         }}>Clear saved data</Button>

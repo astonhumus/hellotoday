@@ -3,7 +3,10 @@ import type { Category, Place } from "../../types";
 import { formatCoords, parseCoords } from "../../lib/coords";
 import { notify } from "../../lib/ui";
 import { LocationPicker } from "./LocationPicker";
+import { PhotoField } from "./PhotoField";
+import { supabase } from "../../lib/supabase";
 import { useDirtyClose } from "../../lib/useDirtyClose";
+import { LIMITS } from "../../lib/limits";
 
 interface Props {
   categories: Category[];
@@ -31,11 +34,16 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
   const [approx, setApprox] = useState(editing?.approx ?? false);
   const [visited, setVisited] = useState(editing?.visited ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
+  const [photo, setPhoto] = useState(editing?.photo ?? "");
+  const [hours, setHours] = useState(editing?.hours ?? "");
+  const [fee, setFee] = useState(editing?.fee ?? "");
+  const [season, setSeason] = useState(editing?.season ?? "");
 
   useEffect(() => { dlg.current?.showModal(); }, []);
   const dirty = name !== (editing?.name ?? "") || district !== (editing?.district ?? "") || desc !== (editing?.desc ?? "") || phone !== (editing?.phone ?? "")
     || website !== (editing?.website ?? "") || notes !== (editing?.notes ?? "") || visited !== (editing?.visited ?? "") || category !== (editing?.category ?? categories[0]?.id ?? "")
-    || coordText !== (editing ? formatCoords(editing.lat, editing.lng) : "") || approx !== (editing?.approx ?? false);
+    || coordText !== (editing ? formatCoords(editing.lat, editing.lng) : "") || approx !== (editing?.approx ?? false)
+    || photo !== (editing?.photo ?? "") || hours !== (editing?.hours ?? "") || fee !== (editing?.fee ?? "") || season !== (editing?.season ?? "");
   const cancel = useDirtyClose(dlg, dirty);
   const parsed = parseCoords(coordText);
   const [locating, setLocating] = useState(false);
@@ -64,11 +72,13 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
     e.preventDefault();
     if (!parsed || !name.trim()) return;
     if (website.trim() && !safeUrl(website.trim())) return void notify("The website must start with http:// or https://", "error");
+    if (photo.trim() && !/^https:\/\//i.test(photo.trim())) return void notify("The picture address must start with https://", "error");
     onSave({
       name: name.trim(), category, district: district.trim() || undefined, lat: parsed.lat, lng: parsed.lng,
       desc: desc.trim() || undefined, phone: phone.trim() || undefined,
       website: safeUrl(website.trim()) || undefined, approx: approx || undefined,
       visited: visited || undefined, notes: notes.trim() || undefined,
+      photo: photo.trim() || undefined, hours: hours.trim() || undefined, fee: fee.trim() || undefined, season: season.trim() || undefined,
       // An edit keeps the place's closure as it is (the form does not change it).
       ...(editing ? { closure: editing.closure, closureNote: editing.closureNote, closedOn: editing.closedOn } : {})
     }, editing?.id);
@@ -105,9 +115,15 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
         </label>
         <p className={"hint" + (coordText && !parsed ? " bad" : "")}>{hint}</p>
         <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={1000} /></label>
-        <details className="more" open={!!(editing && (editing.visited || editing.notes || editing.phone || editing.website || editing.approx))}>
+        <details className="more" open={!!(editing && (editing.visited || editing.notes || editing.phone || editing.website || editing.approx || editing.photo || editing.hours || editing.fee || editing.season))}>
           <summary>More details</summary>
           <div className="more-body">
+            <div className="row">
+              <label>Opening hours<input value={hours} onChange={e => setHours(e.target.value)} maxLength={LIMITS.hours} placeholder="Mon-Sat 9am-6pm" /></label>
+              <label>Entry fee or price<input value={fee} onChange={e => setFee(e.target.value)} maxLength={LIMITS.fee} placeholder="Free, or Rs 20 per person" /></label>
+            </div>
+            <label>Best time to visit<input value={season} onChange={e => setSeason(e.target.value)} maxLength={LIMITS.season} placeholder="October to March" /></label>
+            {supabase && <PhotoField value={photo} onChange={setPhoto} />}
             <div className="row">
               <label>Date last checked (shown publicly)<input type="date" value={visited} onChange={e => setVisited(e.target.value)} max={today()} /></label>
             </div>

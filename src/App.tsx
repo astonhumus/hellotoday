@@ -16,7 +16,9 @@ import { notify } from "./lib/ui";
 import { LIMITS } from "./lib/limits";
 import { SkeletonPage } from "./ui/States";
 import { Icon } from "./ui/Icon";
-import { go, trackHistory } from "./lib/nav";
+import { go, goBack, trackHistory } from "./lib/nav";
+import { SuggestDialog } from "./components/SuggestDialog";
+import { useBackdropClose } from "./lib/useBackdropClose";
 import { safeDecode } from "./lib/fetchAll";
 
 // Heavy screens load only when opened, so the home page stays fast. (The map library lives in the Places chunk.)
@@ -43,6 +45,8 @@ const ADMIN_ROUTE = import.meta.env.VITE_ADMIN_ROUTE || "admin";
 const isAdminRoute = (route: string) => route === "admin" || route === ADMIN_ROUTE; // #/admin always works; the old secret word too
 
 const MAX_IMPORT = 2000;
+// Not countries people travel to: military bases, uninhabited islands and disputed zones in the border dataset.
+const HIDDEN_COUNTRIES = new Set(["ATC", "CSI", "CLP", "KAB", "KAS", "PGA", "USG", "ESB", "WSB", "HMD", "ATA", "ATF", "SGS", "UMI"]);
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 function useHash() {
@@ -96,7 +100,11 @@ export default function App() {
   const [stateId, setStateId] = useState(() => store.get("state") ?? "manipur");
   const [base, setBase] = useState<Place[]>([]);
   const [checklist, setChecklist] = useState<Catalog | null>(null);
-  const [error, setError] = useState("");
+  // Load problems are tracked by source, so one that later succeeds clears its own message.
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const failed = (key: string, message: string) => setErrors(e => (e[key] === message ? e : { ...e, [key]: message }));
+  const loaded = (key: string) => setErrors(e => { if (!(key in e)) return e; const { [key]: _gone, ...rest } = e; return rest; });
+  const error = Object.values(errors)[0] ?? "";
   const [dataReady, setDataReady] = useState(false);    // the shared lists (states, categories, songs, checklist) have arrived or failed
   const [placesReady, setPlacesReady] = useState(false); // this state's places have arrived or failed
 
@@ -106,8 +114,8 @@ export default function App() {
       loadJson<Category[]>("categories.json"),
       loadJson<Song[]>("songs.json").catch(() => [] as Song[]),
       loadJson<Catalog>("checklist.json").catch(() => null)
-    ]).then(([s, c, m, k]) => { setCountries(s); setBaseCategories(c); setBaseSongs(m); setChecklist(k); })
-      .catch(e => setError(e.message))
+    ]).then(([s, c, m, k]) => { setCountries(s.filter(x => !HIDDEN_COUNTRIES.has(x.id))); setBaseCategories(c); setBaseSongs(m); setChecklist(k); loaded("data"); })
+      .catch(e => failed("data", e.message))
       .finally(() => setDataReady(true));
   }, []);
 
@@ -117,8 +125,8 @@ export default function App() {
     let live = true;
     setStates([]); // until this country's list arrives, don't show (or save) a region from the previous country
     loadJson<{ features: { properties: StateInfo }[] }>(`regions/${countryId}.json`)
-      .then(g => { if (live) setStates(g.features.map(f => ({ ...f.properties, country: countryId }))); })
-      .catch(e => { if (live) setError(e.message); });
+      .then(g => { if (live) { setStates(g.features.map(f => ({ ...f.properties, country: countryId }))); loaded("regions"); } })
+      .catch(e => { if (live) failed("regions", e.message); });
     return () => { live = false; };
   }, [countryId]);
   const country = countries.find(c => c.id === countryId);
@@ -131,12 +139,14 @@ export default function App() {
   };
   // Links like #/places/kangla-fort?region=manipur&country=IND (the search-engine pages, the region browser) switch the region first,
   // then the extra parameters are removed from the address.
+  // The choice is only saved once the region turns out to exist (see below), so a mistyped link can't replace the saved region.
   const linkRegion = params.get("region"), linkCountry = params.get("country");
+  const fromLink = useRef(false);
   useEffect(() => {
     if (!linkRegion) return;
-    store.set("state", linkRegion);
+    fromLink.current = true;
     setStateId(linkRegion);
-    if (linkCountry) { store.set("country", linkCountry); setCountryId(linkCountry); }
+    if (linkCountry) setCountryId(linkCountry);
     const rest = new URLSearchParams(query);
     rest.delete("region"); rest.delete("country");
     history.replaceState(history.state, "", `#/${path}${rest.size ? "?" + rest : ""}`);
@@ -149,30 +159,47 @@ export default function App() {
   const [regionOpen, setRegionOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const state = states.find(s => s.id === stateId) ?? states[0];
+  // The chosen region isn't in this country's list (an old or mistyped link): go back to the saved one and say so.
+  useEffect(() => {
+    if (!states.length || states.some(s => s.id === stateId)) return;
+    if (fromLink.current) {
+      fromLink.current = false;
+      void notify("That region wasn't found, so the previous one is still shown.", "error");
+      const c = store.get("country") ?? "IND", r = store.get("state") ?? "manipur";
+      setCountryId(c); setStateId(r);
+    }
+  }, [states, stateId]);
   const regionNames = useMemo(() => Object.fromEntries(states.map(s => [s.id, s.name])), [states]);
 
   useEffect(() => {
     if (!state) return;
-    store.set("state", state.id);
+    if (state.id === stateId) { store.set("state", state.id); store.set("country", countryId); fromLink.current = false; } // remembered only once it is known to exist
     setBase([]);
     setPlacesReady(false);
     // Only the original region (Manipur) ships places in the app; every other region starts empty and fills from the database.
-    loadJson<Place[]>(`${state.id}/places.json`).then(setBase).catch(e => { setBase([]); if (state.id === "manipur") setError(e.message); }).finally(() => setPlacesReady(true));
+    loadJson<Place[]>(`${state.id}/places.json`).then(setBase).then(() => loaded("places")).catch(e => { setBase([]); if (state.id === "manipur") failed("places", e.message); }).finally(() => setPlacesReady(true));
   }, [state?.id]);
 
   // With Supabase, places and songs are rows in their own tables; without it, edits are kept in this browser.
   const nul = <T,>(v: T | null | undefined) => v ?? undefined;
   const dbPlaces = useRows<Place>(supabase && state ? {
-    table: "places", kind: "place", columns: "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,status,review_note,updated_at",
-    fallbackColumns: "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,status,review_note,updated_at", propose: !!member && !member.auto_approve, scope: allRegions ? undefined : { column: "state_id", value: state.id }, fixed: { column: "state_id", value: state.id },
+    table: "places", kind: "place", columns: "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
+    // Older databases miss the newest columns until supabase/extras.sql (then archive.sql) has been run: try the shorter lists in turn.
+    fallbackColumns: [
+      "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,status,review_note,updated_at",
+      "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,status,review_note,updated_at"
+    ], propose: !!member && !member.auto_approve, scope: allRegions ? undefined : { column: "state_id", value: state.id }, fixed: { column: "state_id", value: state.id },
     toRow: (p, id) => ({ id, name: p.name, category_id: p.category, district: p.district ?? null, lat: p.lat, lng: p.lng,
       description: p.desc ?? null, phone: p.phone ?? null, website: p.website ?? null, approx: !!p.approx,
       visited: p.visited ?? null, notes: p.notes ?? null,
+      // The picture and the practical details are sent only when set, so a database that hasn't got the columns yet still saves places.
+      ...(p.photo ? { photo: p.photo } : {}), ...(p.hours ? { hours: p.hours } : {}), ...(p.fee ? { fee: p.fee } : {}), ...(p.season ? { season: p.season } : {}),
       // Only when the change is about closing/reopening (the key is present, null = reopen): an ordinary edit must not touch it.
       ...("closure" in p ? { closure: p.closure ?? null, closure_note: p.closure ? p.closureNote ?? null : null, closed_on: p.closure ? p.closedOn ?? null : null } : {}) }),
     fromRow: r => ({ id: r.id as string, name: r.name as string, category: r.category_id as string, district: nul(r.district as string),
       regionId: r.state_id as string, lat: r.lat as number, lng: r.lng as number, desc: nul(r.description as string), phone: nul(r.phone as string),
       website: nul(r.website as string), approx: r.approx ? true : undefined, visited: nul(r.visited as string), notes: nul(r.notes as string),
+      photo: nul(r.photo as string), hours: nul(r.hours as string), fee: nul(r.fee as string), season: nul(r.season as string),
       closure: (r.closure as Place["closure"]) ?? undefined, closureNote: nul(r.closure_note as string), closedOn: nul(r.closed_on as string),
       status: r.status as Place["status"], reviewNote: nul(r.review_note as string), updatedAt: nul(r.updated_at as string) })
   } : null, base);
@@ -218,8 +245,9 @@ export default function App() {
   const [pending, setPending] = useState(0);
   useEffect(() => {
     if (!supabase || !IS_ADMIN) return setPending(0);
-    Promise.all(["places", "songs", "revisions"].map(t =>
-      supabase!.from(t).select("id", { count: "exact", head: true }).eq("status", "pending")))
+    Promise.all([...["places", "songs", "revisions"].map(tbl =>
+      supabase!.from(tbl).select("id", { count: "exact", head: true }).eq("status", "pending")),
+      supabase!.from("suggestions").select("id", { count: "exact", head: true }).eq("status", "new")]) // visitor messages (the table may not exist yet: counts as 0)
       .then(rs => setPending(rs.reduce((n, r) => n + (r.count ?? 0), 0)));
   }, [IS_ADMIN, page]); // when moving between pages, not on every address change (each run is 3 database queries)
 
@@ -275,7 +303,9 @@ export default function App() {
         id: `local-${Date.now().toString(36)}${i}`, name, category: r.category, lat, lng,
         district: str(r.district, LIMITS.district), desc: str(r.desc, LIMITS.desc), phone: str(r.phone, LIMITS.phone), notes: str(r.notes, LIMITS.notes),
         visited: /^\d{4}-\d{2}-\d{2}$/.test(r.visited) ? r.visited : undefined,
-        website: /^https?:\/\//i.test(r.website ?? "") ? String(r.website).slice(0, LIMITS.website) : undefined, approx: r.approx === true || r.approx === "true" ? true : undefined
+        website: /^https?:\/\//i.test(r.website ?? "") ? String(r.website).slice(0, LIMITS.website) : undefined, approx: r.approx === true || r.approx === "true" ? true : undefined,
+        photo: /^https:\/\//i.test(r.photo ?? "") ? String(r.photo).slice(0, LIMITS.photo) : undefined,
+        hours: str(r.hours, LIMITS.hours), fee: str(r.fee, LIMITS.fee), season: str(r.season, LIMITS.season)
       });
     });
     const ok = await placeStore.addMany(added);
@@ -284,6 +314,9 @@ export default function App() {
     void notify(`Imported ${added.length} of ${rows.length} places${extra ? ` (skipped: ${extra})` : ""}.`);
   };
 
+  useBackdropClose(); // tapping outside a dialog closes it (asking first when something typed would be lost)
+  const canEdit = supabase ? signedIn : false;
+
   return (
     <div className="app">
       <a className="skip-link" href="#main" onClick={e => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to content</a>
@@ -291,16 +324,17 @@ export default function App() {
         <p className="site-name"><a href="#/" className="brand">Explore Hack</a></p>
         <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion}
           open={regionOpen} onOpen={() => setRegionOpen(true)} onClose={() => setRegionOpen(false)} />
-        <button type="button" className="icon-btn header-settings" aria-label={pending ? `Settings (${pending} to review)` : "Settings"} title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>
         <nav className="tabs" aria-label="Main menu">
           <a href="#/" aria-current={page === "home" ? "page" : undefined}><Icon name="home" size={22} /> Home</a>
           <a href="#/places" aria-current={page === "places" ? "page" : undefined}><Icon name="map" size={22} /> Places</a>
-          <a href="#/music" aria-current={page === "music" ? "page" : undefined}><Icon name="music" size={22} /> Music</a>
+          <a href="#/music" aria-current={page === "music" ? "page" : undefined}><Icon name="music" size={22} /> Songs</a>
           <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><Icon name="checklist" size={22} /> Checklist</a>
         </nav>
-        <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) go("#/places"); }} />
+        {/* After the menu in the markup so it sits at the far right on wide screens; on phones the menu is a bottom bar and this stays at the right edge */}
+        <button type="button" className="icon-btn header-settings" aria-label={pending ? `Settings (${pending} to review)` : "Settings"} title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>
+        <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) goBack("#/"); }} />
       </header>
-      <PwaBar showInstall={page === "home"} />
+      <PwaBar showInstall={page === "home"} canEdit={canEdit} />
       {settingsOpen && <SettingsDialog review={supabase && IS_ADMIN ? { pending } : undefined}
         account={supabase && hasSession ? { approved: signedIn, onSignOut: () => { void supabase!.auth.signOut(); } } : undefined} country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
       <main id="main" tabIndex={-1}>
@@ -313,7 +347,7 @@ export default function App() {
         )}
         {page === "places" && !state && !error && <SkeletonPage />}
         {page === "places" && state && (
-          <PlacesPage key={state.id} placeId={arg ? safeDecode(arg) : null} onOpenPlace={openPlace} queryKey={query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1", fav: params.get("fav") === "1", district: params.get("district") }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSaveCategory={IS_ADMIN ? categoryStore.save : undefined} onDeleteCategory={categoryStore.remove} categoryUsage={categoryUsage} allRegions={allRegions} onAllRegions={supabase ? () => setAllRegions(v => !v) : undefined} regionNames={regionNames} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
+          <PlacesPage key={state.id} placeId={arg ? safeDecode(arg) : null} onOpenPlace={openPlace} queryKey={query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1", fav: params.get("fav") === "1", trip: params.get("trip") === "1", district: params.get("district") }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSaveCategory={IS_ADMIN ? categoryStore.save : undefined} onDeleteCategory={categoryStore.remove} categoryUsage={categoryUsage} allRegions={allRegions} onAllRegions={supabase ? () => setAllRegions(v => !v) : undefined} regionNames={regionNames} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
             onSavePlace={placeStore.save} onDeletePlace={placeStore.remove} exportCount={exportRows.length} onExport={exportPlaces} onImport={importPlaces} />
         )}
         {page === "home" && <HomePage onChangeRegion={() => setRegionOpen(true)} state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
@@ -326,6 +360,7 @@ export default function App() {
         )}
         </Suspense>
       </main>
+      <SuggestDialog regionName={state?.name} />
       <DialogHost />
     </div>
   );

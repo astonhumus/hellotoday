@@ -8,7 +8,15 @@ type Listener = (queue: UiRequest[]) => void;
 let queue: UiRequest[] = [];
 const listeners = new Set<Listener>();
 
-const push = (r: UiRequest) => { queue = [...queue, r]; listeners.forEach(l => l(queue)); };
+const MAX_TOASTS = 2; // a burst of notices never piles up over the page: the oldest one gives way
+const push = (r: UiRequest) => {
+  queue = [...queue, r];
+  if (r.kind === "notice") {
+    const notices = queue.filter(x => x.kind === "notice");
+    notices.slice(0, Math.max(0, notices.length - MAX_TOASTS)).forEach(old => { old.resolve(); queue = queue.filter(x => x !== old); });
+  }
+  listeners.forEach(l => l(queue));
+};
 export const dismiss = (r: UiRequest) => { queue = queue.filter(x => x !== r); listeners.forEach(l => l(queue)); };
 export const subscribe = (l: Listener) => { listeners.add(l); l(queue); return () => { listeners.delete(l); }; };
 

@@ -9,12 +9,20 @@ import { PageHeader } from "../../ui/PageHeader";
 import { goBack } from "../../lib/nav";
 import { fetchAll } from "../../lib/fetchAll";
 import { Segmented } from "../../ui/Segmented";
+import { Skeleton } from "../../ui/States";
 import "./review.css";
 
 type Row = Record<string, any>;
 interface Member { user_id: string; email: string; role: "admin" | "contributor"; auto_approve: boolean }
 
-const PLACE_FIELDS = ["name", "category_id", "district", "lat", "lng", "description", "phone", "website", "approx", "visited", "notes", "closure", "closure_note"];
+const PLACE_FIELDS = ["name", "category_id", "district", "lat", "lng", "description", "phone", "website", "approx", "visited", "notes", "photo", "hours", "fee", "season", "closure", "closure_note"];
+// What the reviewer reads instead of the database column names
+const FIELD_LABELS: Record<string, string> = {
+  name: "Name", category_id: "Category", district: "District", lat: "Latitude", lng: "Longitude", description: "Description", phone: "Phone", website: "Website",
+  approx: "Location is approximate", visited: "Date last checked", notes: "Tips", photo: "Picture", hours: "Opening hours", fee: "Entry fee or price", season: "Best time to visit",
+  closure: "Closed", closure_note: "Reason for closing", title: "Title", artist: "Artist", language: "Language", lyrics: "Lyrics", credit: "Credit / source"
+};
+const osmLink = (lat: number, lng: number) => `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
 const SONG_FIELDS = ["title", "artist", "language", "lyrics", "credit"];
 const same = (v: unknown) => (v === false || v === "" || v === undefined ? null : v); // "no value" is the same however it is stored
 
@@ -35,18 +43,23 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
   const [email, setEmail] = useState("");
   const [auto, setAuto] = useState(false);
   const [window3or6, setWindow] = useState<Window>("3");
+  const [sugs, setSugs] = useState<Row[]>([]);
+  const [loaded, setLoaded] = useState(false); // until the first answer arrives the page says so, instead of claiming nothing is waiting
 
   const who = (id: string | null) => members.find(m => m.user_id === id)?.email ?? "unknown";
   const catLabel = (id: string) => categories.find(c => c.id === id)?.label ?? id;
 
   const load = useCallback(async () => {
     if (!supabase) return;
-    const [p, s, r, m] = await Promise.all([
+    const [p, s, r, m, g] = await Promise.all([
       supabase.from("places").select("*").eq("status", "pending").order("created_at"),
       supabase.from("songs").select("*").eq("status", "pending").order("created_at"),
       supabase.from("revisions").select("*").eq("status", "pending").order("created_at"),
-      supabase.rpc("list_members")
+      supabase.rpc("list_members"),
+      supabase.from("suggestions").select("*").eq("status", "new").order("created_at") // absent until supabase/suggestions.sql has been run: then simply empty
     ]);
+    setSugs(g.data ?? []);
+    setLoaded(true);
     setPlaces(p.data ?? []); setSongs(s.data ?? []); setRevs(r.data ?? []); setMembers((m.data as Member[]) ?? []);
     const t: Record<string, Row> = {};
     for (const [kind, table] of [["place", "places"], ["song", "songs"]] as const) {
@@ -105,12 +118,21 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
     void notify(`Backup saved: ${p.data.length} places, ${s.data.length} songs, ${i.data.length} checklist edits changed in the last ${months} months.`);
   };
 
-  const nothing = !places.length && !songs.length && !revs.length;
+  const nothing = loaded && !places.length && !songs.length && !revs.length;
+  const showValue = (f: string, v: unknown): string => {
+    if (v === null || v === undefined || v === "") return "empty";
+    if (f === "category_id") return catLabel(String(v));
+    if (typeof v === "boolean") return v ? "Yes" : "No";
+    return String(v);
+  };
+  const markDone = (id: string) => run(() => supabase!.from("suggestions").update({ status: "done" }).eq("id", id));
+  const dropSuggestion = async (id: string) => { if (await confirmAsk("Delete this message?", { yes: "Delete", danger: true })) await run(() => supabase!.from("suggestions").delete().eq("id", id)); };
   const waiting = places.length + songs.length + revs.length;
 
   return (
     <div className="page review">
-      <PageHeader title="Review" onBack={() => goBack("#/places")} sub={waiting ? `${waiting} waiting for your decision` : "Nothing waiting for approval"} />
+      <PageHeader title="Review" onBack={() => goBack("#/places")} sub={!loaded ? "Loading…" : waiting ? `${waiting} waiting for your decision` : "Nothing waiting for approval"} />
+      {!loaded && <Skeleton rows={3} kind="card" label="Loading submissions" />}
       {nothing && (
         <div className="card rv-empty">
           <span className="rv-empty-ic" aria-hidden="true"><Icon name="party-popper" size={40} /></span>
@@ -132,6 +154,10 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
                 <span className="tag">by {who(p.owner_id)}</span>
               </div>
               {p.description && <p className="rv-body">{p.description}</p>}
+              {[["Opening hours", p.hours], ["Entry fee or price", p.fee], ["Best time to visit", p.season], ["Tips", p.notes], ["Picture", p.photo]].filter(([, v]) => v).map(([k, v]) => (
+                <p className="rv-body rv-line" key={String(k)}><b>{k}:</b> {String(v)}</p>
+              ))}
+              <a className="rv-map" href={osmLink(p.lat, p.lng)} target="_blank" rel="noopener noreferrer">Check the position on OpenStreetMap (opens a new tab)</a>
               <Actions busy={busy} onApprove={() => review("places", p.id, true)} onReject={() => review("places", p.id, false)} />
             </article>
           ))}
@@ -171,15 +197,40 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
                 {changed.length === 0 && <p className="rv-body">No visible changes.</p>}
                 {changed.map(f => (
                   <div className="diff" key={f}>
-                    <b>{f}</b>
-                    <del>{String(current?.[f] ?? "empty").slice(0, 200)}</del>
-                    <ins>{String(r.data?.[f] ?? "empty").slice(0, 200)}</ins>
+                    <b>{FIELD_LABELS[f] ?? f}</b>
+                    <del>{showValue(f, current?.[f])}</del>
+                    <ins>{showValue(f, r.data?.[f])}</ins>
                   </div>
                 ))}
+                {r.kind === "place" && (changed.includes("lat") || changed.includes("lng")) && r.data?.lat != null && r.data?.lng != null && (
+                  <a className="rv-map" href={osmLink(r.data.lat, r.data.lng)} target="_blank" rel="noopener noreferrer">Check the new position on OpenStreetMap (opens a new tab)</a>
+                )}
                 <Actions busy={busy || !current} onApprove={() => review("revisions", r.id, true)} onReject={() => review("revisions", r.id, false)} />
               </article>
             );
           })}
+        </section>
+      )}
+
+      {sugs.length > 0 && (
+        <section className="rv-section">
+          <h2>Messages from visitors <span className="rv-n">{sugs.length}</span></h2>
+          {sugs.map(g => (
+            <article className="card rv-card" key={g.id}>
+              <h3 className="rv-title">{g.kind === "place" ? "Suggested place" : g.kind === "problem" ? "Reported problem" : "Message"}{g.about ? `: ${g.about}` : ""}</h3>
+              <div className="rv-tags">
+                {g.region && <span className="tag">{g.region}</span>}
+                <span className="tag">{new Date(g.created_at).toLocaleDateString()}</span>
+                {g.contact && <span className="tag">Reply to: {g.contact}</span>}
+              </div>
+              <p className="rv-body rv-line">{g.message}</p>
+              {g.page && /^https?:\/\//i.test(g.page) && <a className="rv-map" href={g.page} target="_blank" rel="noopener noreferrer">Open the page it was sent from</a>}
+              <div className="rv-actions">
+                <Button disabled={busy} onClick={() => dropSuggestion(g.id)}>Delete</Button>
+                <Button variant="primary" icon="check" disabled={busy} onClick={() => markDone(g.id)}>Mark as done</Button>
+              </div>
+            </article>
+          ))}
         </section>
       )}
 

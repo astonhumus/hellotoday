@@ -8,7 +8,7 @@ let updateTimer: number | undefined; // one hourly update check, however often t
 
 
 // A thin strip under the header: new-version notice, offline notice, and an "Install app" offer.
-export function PwaBar({ showInstall = true }: { showInstall?: boolean }) {
+export function PwaBar({ showInstall = true, canEdit = false }: { showInstall?: boolean; canEdit?: boolean }) {
   const [online, setOnline] = useState(navigator.onLine);
   const inst = useInstall();
   const [dismissed, setDismissed] = useState(() => store.get("install-dismissed") === "1");
@@ -49,7 +49,7 @@ export function PwaBar({ showInstall = true }: { showInstall?: boolean }) {
           }}>Reload</button>
         </div>
       )}
-      {!online && <div className="bar offline" role="status">You're offline. Showing saved data; editing resumes when you're back online.</div>}
+      {!online && <div className="bar offline" role="status">You're offline. Showing saved data.{canEdit ? " Editing resumes when you're back online." : ""}</div>}
       {showInstall && engaged && online && !dismissed && !inst.installed && (inst.canPrompt || inst.ios) && (
         <div className="bar install" role="status">
           <span>{inst.canPrompt ? "Install this app for quick access and offline use." : "Install: tap the Share button, then “Add to Home Screen”."}</span>

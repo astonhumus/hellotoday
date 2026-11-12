@@ -1,8 +1,7 @@
 /* Places: map with a search bar, a list/detail panel (side panel on desktop, bottom sheet on phones). */
+/* (the dark look of the street tiles is set near the end of this file, for "Auto" and for "Dark" only) */
 @media (prefers-color-scheme: dark) {
-  .leaflet-container { background: var(--bg) !important; }
-  /* the street tiles are light-only, so they are inverted and dimmed to sit in the dark UI */
-  .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.7); }
+  :root:not([data-theme="light"]) .leaflet-container { background: var(--bg) !important; }
 }
 
 .places { flex: 1; min-height: 0; position: relative; display: flex; }
@@ -39,15 +38,21 @@
 .pc-main:hover { background: var(--hover); }
 .pc-main:active { background: var(--pressed); }
 .pc-main:focus-visible { outline-offset: -2px; }
-.pc-icon { width: var(--tap); height: var(--tap); flex-shrink: 0; display: grid; place-items: center; border-radius: var(--radius); background: var(--surface-2); color: var(--text-2); }
+.pc-icon { position: relative; width: var(--tap); height: var(--tap); flex-shrink: 0; display: grid; place-items: center; border-radius: var(--radius); background: var(--surface-2); color: var(--text-2); }
+/* a category shows its own colour; a place with a picture shows the picture */
+.pc-icon[style*="--cat"] { background: color-mix(in srgb, var(--cat) 14%, var(--surface)); color: color-mix(in srgb, var(--cat) 80%, var(--text)); }
+.pc-icon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.pc-stop { position: absolute; top: -6px; left: -6px; min-width: 20px; height: 20px; padding: 0 4px; display: grid; place-items: center; border-radius: var(--radius-full); background: var(--accent); color: var(--accent-ink); font-size: var(--text-xs); font-weight: var(--w-semibold); border: 2px solid var(--surface); }
 .pc-text { display: grid; gap: var(--s-1); min-width: 0; align-content: start; }
 .pc-name { font-weight: var(--w-semibold); font-size: var(--text-md); }
 .pc-meta { font-size: var(--text-sm); color: var(--text-2); }
 .pc-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--text-sm); }
-.pc-check { width: var(--ctl-xl); flex-shrink: 0; display: grid; place-items: center; border: 0; background: none; color: var(--text-2); cursor: pointer; }
+.pc-check { width: var(--ctl-xl); flex-shrink: 0; display: grid; place-items: center; align-content: center; gap: 2px; border: 0; background: none; color: var(--text-2); cursor: pointer; }
+.pc-fav { align-content: center; gap: 2px; }
+.pc-cap { font-size: var(--text-xs); line-height: 1; }
 .pc-check:hover { background: var(--hover); }
 .pc-check:focus-visible { outline-offset: -2px; }
-.pc-check .icon { width: var(--s-6); height: var(--s-6); padding: var(--s-1) var(--s-2); border: 1.5px solid var(--border-strong); border-radius: var(--radius-full); }
+.pc-check .icon { width: var(--s-5); height: var(--s-5); padding: var(--s-1); border: 1.5px solid var(--border-strong); border-radius: var(--radius-full); }
 .pc-check.on { color: var(--accent-ink); }
 .pc-check.on .icon { background: var(--accent); border-color: var(--accent); }
 .pl-list .badge { grid-column: auto; margin-top: var(--s-1); }
@@ -80,9 +85,9 @@
 .map-style-menu .chip { justify-content: center; white-space: nowrap; }
 /* ── place pins: neutral, with the category glyph ── */
 .pin-wrap { background: none; border: 0; }
-.pin { box-sizing: border-box; display: grid; place-items: center; width: 100%; height: 100%; border: 2px solid var(--text-2); border-radius: var(--radius-full); background: var(--surface); color: var(--text); box-shadow: var(--shadow-float); }
-.pin.visited { border-color: var(--accent); color: var(--accent); }
-.pin.selected { border-color: var(--surface); background: var(--accent); color: var(--accent-ink); }
+.pin { box-sizing: border-box; display: grid; place-items: center; width: calc(100% - 10px); height: calc(100% - 10px); margin: 5px; border: 2px solid var(--cat, var(--text-2)); border-radius: var(--radius-full); background: var(--surface); color: var(--cat, var(--text)); box-shadow: var(--shadow-float); }
+.pin.visited { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-wash), var(--shadow-float); }
+.pin.selected { border-color: var(--surface); background: var(--cat, var(--accent)); color: #fff; }
 .district-label { background: none; border: none; box-shadow: none; padding: 0; color: var(--text); font: var(--w-semibold) var(--text-xs)/1.1 var(--font); text-shadow: 0 0 3px var(--surface), 0 0 3px var(--surface), 0 0 2px var(--surface); pointer-events: none; }
 .district-label::before { display: none; }
 .hide-district-labels .district-label { display: none; }
@@ -137,16 +142,39 @@
 .leaflet-bar a { background-color: var(--surface); color: var(--text); border-color: var(--border); }
 .leaflet-bar a:hover { background-color: var(--surface-2); }
 :root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.75); }
+:root[data-theme="dark"] .leaflet-container { background: var(--surface-2); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.75); } }
 
-/* details: the heart sits beside Directions; it turns red and fills when on */
-.pd .pd-actions { grid-template-columns: 1fr auto; }
-.pd-actions .btn.fav-btn { min-width: var(--ctl-lg); padding: 0 var(--s-4); }
+/* details: Directions on its own row, then labelled buttons that wrap evenly; the heart turns red and fills when on */
+.pd .pd-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
+.pd-go { display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); text-decoration: none; }
+.pd-row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.pd-row > .btn { flex: 1 1 8.5rem; min-width: 0; padding: 0 var(--s-3); text-decoration: none; white-space: normal; text-align: center; }
 .pd-actions .btn.fav-btn.on { color: var(--danger); border-color: var(--danger); background: var(--danger-wash); }
+.pd-photo { width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+.pd-tag[style*="--cat"] { background: color-mix(in srgb, var(--cat) 14%, var(--surface)); color: color-mix(in srgb, var(--cat) 80%, var(--text)); }
+.pd-facts { display: grid; gap: var(--s-2); margin: 0; padding: var(--s-3); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+.pd-facts > div { display: grid; grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr); gap: var(--s-2); }
+.pd-facts dt { display: flex; align-items: center; gap: var(--s-1); color: var(--text-2); font-size: var(--text-sm); }
+.pd-facts dd { margin: 0; font-size: var(--text-sm); }
+.pd-report { padding-left: 0; text-align: left; }
+@media (max-width: 420px) { .pd-facts > div { grid-template-columns: 1fr; gap: 0; } }
+
+.photo-field { display: grid; gap: var(--s-2); }
+.photo-label { font-size: var(--text-sm); color: var(--text-2); }
+.photo-preview { width: 100%; max-height: 180px; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+.photo-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+/* sort control above the list, and the trip summary */
+.pl-sort { display: flex; justify-content: flex-end; padding: var(--s-2) var(--s-4) 0; }
+.pl-sort label { display: inline-flex; align-items: center; gap: var(--s-2); color: var(--text-2); font-size: var(--text-sm); }
+.trip-panel { display: grid; gap: var(--s-2); margin: var(--s-3) var(--s-4) 0; padding: var(--s-3); border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-wash); }
+.trip-panel p { margin: 0; }
+.trip-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.trip-actions .btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .pl-more { display: flex; justify-content: center; padding: var(--s-3) var(--s-4); }
 
 /* closed / archived places */
-.pin.closed { opacity: 0.55; border-style: dashed; color: var(--text-2); }
+.pin.closed { opacity: 0.55; border-style: dashed; border-color: var(--text-2); color: var(--text-2); }
 .badge.closed { background: var(--surface-2); color: var(--text-2); }
 .badge.closed.permanent { background: var(--danger-wash); color: var(--danger); border-color: transparent; }
 .pd-closed { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-3) var(--s-4); border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--surface-2); }

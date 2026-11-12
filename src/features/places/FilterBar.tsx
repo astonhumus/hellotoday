@@ -22,6 +22,10 @@ interface Props {
   closedOnly?: boolean;                   // admin / contributor: only closed and archived places
   onClosedOnly?: () => void;              // undefined = not available (visitors)
   closedCount?: number;
+  tripOnly: boolean;                      // only the places in "My trip"
+  onTripOnly: () => void;
+  tripCount: number;
+  onSearchFocus?: () => void;             // phones: the list rises so results stay above the keyboard
   favOnly: boolean;
   onFavOnly: () => void;
   favCount: number;
@@ -41,26 +45,28 @@ interface Props {
  */
 export function FilterBar(p: Props) {
   const [open, setOpen] = useState(false);
-  const extra = (p.district !== "all" ? 1 : 0) + (p.visitedOnly ? 1 : 0) + (p.near ? 1 : 0) + (p.allRegions ? 1 : 0) + (p.closedOnly ? 1 : 0);
+  const extra = (p.district !== "all" ? 1 : 0) + (p.visitedOnly ? 1 : 0) + (p.near ? 1 : 0) + (p.allRegions ? 1 : 0) + (p.closedOnly ? 1 : 0) + (p.tripOnly ? 1 : 0);
   return (
     <div className="fb">
-      <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places or areas" recentKey="places"
+      <SearchField className="fb-search" value={p.q} onChange={p.onQuery} placeholder="Search places or areas" recentKey="places" onFocus={p.onSearchFocus}
         suggestions={[...p.categories.map(c => c.label), ...p.districts]} />
       {!p.compact && <div className="fb-chips" role="group" aria-label="Categories">
+        {/* Reset comes first so it is never lost off the end of a scrolling row */}
+        {p.filtering && <Chip pressed={false} icon="x" className="reset-chip" onClick={p.onReset}>Reset</Chip>}
         <Chip pressed={open || extra > 0} icon="sliders" count={extra || undefined} aria-expanded={open} aria-controls="fb-more" onClick={() => setOpen(o => !o)}>Filters</Chip>
         <Chip pressed={p.favOnly} icon="heart" className="fav-chip" count={p.favCount || undefined} onClick={p.onFavOnly} title="Show only your favourites" aria-label="Favourites only"><span className="sr-only">Favourites</span></Chip>
         <Chip pressed={p.allOn} onClick={p.onAll} title="Show every place on the map">All</Chip>
         {p.categories.map(c => (
-          <Chip key={c.id} pressed={p.picked.has(c.id)} icon={c.icon} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
+          <Chip key={c.id} pressed={p.picked.has(c.id)} icon={c.icon} iconColor={c.color} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}
         {p.onManageCategories && <Chip pressed={false} icon="edit" onClick={p.onManageCategories} title="Add, rename, reorder or delete categories">Manage categories</Chip>}
-        {p.filtering && <Chip pressed={false} icon="x" className="reset-chip" onClick={p.onReset}>Reset</Chip>}
       </div>}
       {open && !p.compact && (
         <div className="fb-more" id="fb-more">
           {p.onAllRegions && <Chip pressed={!!p.allRegions} icon="map" onClick={p.onAllRegions} title="Show places from every country and state, not just the chosen region">All regions</Chip>}
           {p.onClosedOnly && <Chip pressed={!!p.closedOnly} icon="circle-x" count={p.closedCount || undefined} onClick={p.onClosedOnly} title="Only closed and archived places, so you can review or reopen them">Closed / archived</Chip>}
           <Chip pressed={p.near} icon="pin" onClick={p.onNear} title="Sort by distance from where you are">Near me</Chip>
+          <Chip pressed={p.tripOnly} count={p.tripCount || undefined} icon="route" onClick={p.onTripOnly} title="Only the places you picked for your trip">My trip</Chip>
           <Chip pressed={p.visitedOnly} count={p.visitedCount || undefined} icon="check" onClick={p.onVisitedOnly}>My visited</Chip>
           <select className="pill-select" value={p.district} onChange={e => p.onDistrict(e.target.value)} aria-label="Filter by district" data-active={p.district !== "all"}>
             <option value="all">All districts</option>

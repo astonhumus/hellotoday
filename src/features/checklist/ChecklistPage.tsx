@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { store } from "../../lib/data";
 import { useOverlay } from "../../lib/overlay";
-import { confirmAsk, notify } from "../../lib/ui";
+import { confirmAsk, notify, promptAsk, toastAction } from "../../lib/ui";
+import { plural } from "../../lib/format";
 import { FooterLinks } from "../../components/AboutPage";
 import { usePageMeta } from "../../lib/pageMeta";
 import { Button, IconButton } from "../../ui/Button";
@@ -17,7 +18,9 @@ export interface Catalog {
   categories: { id: string; label: string; icon: string; emoji?: string; items: string[] }[]; // items: "Name | trip trip"
 }
 interface Item { id: string; name: string; cat: string; trips: string[] }
-interface Saved { sel: string[]; packed: string[]; custom: { id: string; name: string; cat: string }[]; presets: Record<string, string[]> } // presets: the user's own item list per trip type
+interface Saved { sel: string[]; packed: string[]; custom: { id: string; name: string; cat: string }[]; presets: Record<string, string[]>; named: Record<string, string[]> } // presets: the user's own item list per trip type; named: lists saved under a name
+type Mode = "choose" | "list";
+const MAX_NAMED = 20;
 
 const KEY = "checklist";
 
@@ -30,14 +33,18 @@ function load(): Saved {
   try {
     const v = JSON.parse(store.get(KEY) ?? "{}");
     const list = (x: unknown) => (Array.isArray(x) ? x : []);
-    return { sel: list(v.sel), packed: list(v.packed), custom: list(v.custom), presets: v.presets && typeof v.presets === "object" && !Array.isArray(v.presets) ? v.presets : {} };
-  } catch { return { sel: [], packed: [], custom: [], presets: {} }; }
+    const map = (x: unknown) => (x && typeof x === "object" && !Array.isArray(x) ? x as Record<string, string[]> : {});
+    return { sel: list(v.sel), packed: list(v.packed), custom: list(v.custom), presets: map(v.presets), named: map(v.named) };
+  } catch { return { sel: [], packed: [], custom: [], presets: {}, named: {} }; }
 }
 
 export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catalog | null; admin: boolean; ready?: boolean }) {
   usePageMeta("Trip packing checklist for picnics, camping and treks", "Tick what to bring for a picnic, camping, trek, road trip or day trip: food, utensils, tents, clothing, health and more. Share or print your list.");
   const [saved, setSaved] = useState<Saved>(load);
-  const [mode, setMode] = useState<"choose" | "list">("choose");
+  // Reopens on the step you left (your list, if you were packing), not always on step 1.
+  const [mode, setModeState] = useState<Mode>(() => (store.get("checklist-mode") === "list" && saved.sel.length > 0 ? "list" : "choose"));
+  const setMode = (m: Mode) => { setModeState(m); store.set("checklist-mode", m); };
+  const [openCats, setOpenCats] = useState<Set<string>>(new Set()); // categories the person opened by hand
   const [q, setQ] = useState("");
   const [newName, setNewName] = useState("");
   const [newCat, setNewCat] = useState("");
@@ -73,6 +80,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
 
   const update = (f: (s: Saved) => Saved) => setSaved(f);
   const presetIds = (tripId: string) => (saved.presets[tripId] ?? []).filter(id => items.some(i => i.id === id));
+  const namedIds = (name: string) => (saved.named[name] ?? []).filter(id => items.some(i => i.id === id));
   const savePreset = (tripId: string) => update(s => ({ ...s, presets: { ...s.presets, [tripId]: s.sel } }));
   const toggleSel = (ids: string[], on: boolean) => update(s => {
     const set = new Set(s.sel);
@@ -86,12 +94,32 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
     const name = newName.trim();
     if (!name) return;
     const id = "custom:" + Date.now().toString(36);
-    update(s => ({ ...s, custom: [...s.custom, { id, name, cat: newCat || cats[0]?.id || "" }], sel: [...s.sel, id] }));
+    const cat = newCat || cats[0]?.id || "";
+    update(s => ({ ...s, custom: [...s.custom, { id, name, cat }], sel: [...s.sel, id] }));
+    setOpenCats(o => new Set(o).add(cat)); // show it where it landed
+    void notify(`Added "${name}" to ${cats.find(c => c.id === cat)?.label ?? "your list"} and ticked it.`);
     setNewName("");
   };
   const removeCustom = (id: string) => update(s => ({
     ...s, custom: s.custom.filter(c => c.id !== id), sel: s.sel.filter(x => x !== id), packed: s.packed.filter(x => x !== id)
   }));
+
+  const dropFromList = (i: Item) => {
+    const wasPacked = packed.has(i.id);
+    toggleSel([i.id], false);
+    toastAction(`Removed "${i.name}" from your list`, "Undo", () => {
+      update(s => ({ ...s, sel: s.sel.includes(i.id) ? s.sel : [...s.sel, i.id], packed: wasPacked && !s.packed.includes(i.id) ? [...s.packed, i.id] : s.packed }));
+    });
+  };
+  const saveNamed = async () => {
+    const raw = await promptAsk(`Name for this list of ${plural(saved.sel.length, "item")} (for example "Loktak weekend"):`);
+    const name = raw?.trim().slice(0, 40);
+    if (!name) return;
+    if (!(name in saved.named) && Object.keys(saved.named).length >= MAX_NAMED) return void notify(`You can keep up to ${MAX_NAMED} lists. Delete one first.`, "error");
+    if (name in saved.named && !(await confirmAsk(`Replace your list "${name}"?`, { yes: "Replace" }))) return;
+    update(s => ({ ...s, named: { ...s.named, [name]: s.sel } }));
+    void notify(`Saved "${name}".`);
+  };
 
   const asText = () => cats.map(c => {
     const rows = chosen.filter(i => i.cat === c.id);
@@ -120,9 +148,9 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
   // One tap saves what is ticked as that trip's list (in this browser). Asks first when it would replace a list.
   const saveAs = async (t: Catalog["trips"][number]) => {
     const had = presetIds(t.id).length;
-    if (had && !(await confirmAsk(`Replace your ${had} saved items for ${t.label} with the ${saved.sel.length} ticked now?`, { yes: "Replace" }))) return;
+    if (had && !(await confirmAsk(`Replace your ${plural(had, "saved item")} for ${t.label} with the ${saved.sel.length} ticked now?`, { yes: "Replace" }))) return;
     savePreset(t.id);
-    void notify(`Saved ${saved.sel.length} items to ${t.label}.`);
+    void notify(`Saved ${plural(saved.sel.length, "item")} to ${t.label}.`);
   };
   const presetSaver = saved.sel.length > 0 ? (
     <div className="ck-save" role="group" aria-label="Save ticked items to a trip">
@@ -160,15 +188,15 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                   const ids = presetIds(t.id);
                   if (!ids.length) return void notify(`${t.label} is empty. Tick items below, then save them to ${t.label}.`);
                   toggleSel(ids, true);
-                  void notify(`Ticked ${ids.length} items for ${t.label}.`);
+                  void notify(`Ticked ${plural(ids.length, "item")} for ${t.label}.`);
                 }}>
                   <span className="trip-emoji" aria-hidden="true"><Glyph emoji={t.emoji} icon={t.icon} size={30} /></span>
                   <span className="trip-name">{t.label}</span>
-                  <span className="trip-n">{presetIds(t.id).length} items</span>
+                  <span className="trip-n">{plural(presetIds(t.id).length, "item")}</span>
                 </button>
                 {presetIds(t.id).length > 0 && (
                   <IconButton className="sm trip-clear" icon="trash" label={`Clear my saved ${t.label} list`}
-                    onClick={async () => { if (await confirmAsk(`Clear your ${presetIds(t.id).length} saved items for ${t.label}? Your ticks stay.`, { yes: "Clear list", danger: true })) update(s => { const { [t.id]: _gone, ...rest } = s.presets; return { ...s, presets: rest }; }); }} />
+                    onClick={async () => { if (await confirmAsk(`Clear your ${plural(presetIds(t.id).length, "saved item")} for ${t.label}? Your ticks stay.`, { yes: "Clear list", danger: true })) update(s => { const { [t.id]: _gone, ...rest } = s.presets; return { ...s, presets: rest }; }); }} />
                 )}
                 </div>
               ))}
@@ -179,6 +207,23 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
               </button>
             </div>
             {presetSaver}
+            {(saved.sel.length > 0 || Object.keys(saved.named).length > 0) && (
+              <div className="ck-save" role="group" aria-label="My saved lists">
+                <p className="ck-save-h"><strong>My lists</strong>: keep as many as you like, under any name.</p>
+                <div className="ck-save-chips">
+                  {Object.keys(saved.named).map(name => (
+                    <span key={name} className="ck-named">
+                      <button type="button" className="chip" onClick={() => { const ids = namedIds(name); toggleSel(ids, true); void notify(`Ticked ${plural(ids.length, "item")} from "${name}".`); }}>
+                        {name} <span className="chip-n">{namedIds(name).length}</span>
+                      </button>
+                      <IconButton className="sm" icon="trash" label={`Delete the list ${name}`}
+                        onClick={async () => { if (await confirmAsk(`Delete your list "${name}"? Your ticks stay.`, { yes: "Delete", danger: true })) update(s => { const { [name]: _gone, ...rest } = s.named; return { ...s, named: rest }; }); }} />
+                    </span>
+                  ))}
+                  {saved.sel.length > 0 && <button type="button" className="chip" onClick={saveNamed}><Icon name="plus" size={16} /> Save ticked items as a list</button>}
+                </div>
+              </div>
+            )}
             {anyPreset && (
               <button type="button" className="link ck-reset" onClick={async () => { if (await confirmAsk("Remove all your saved trip lists? Your ticks stay.", { yes: "Remove lists", danger: true })) update(s => ({ ...s, presets: {} })); }}>Reset my saved trip lists</button>
             )}
@@ -192,7 +237,12 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
             if (!rows.length) return null;
             const n = rows.filter(i => sel.has(i.id)).length;
             return (
-              <details key={c.id} open={!!needle || undefined} className="ck-card">
+              <details key={c.id} open={!!needle || openCats.has(c.id)} className="ck-card"
+                onToggle={e => {
+                  if (needle) return; // a search opens every match; that isn't the person's own choice
+                  const isOpen = (e.currentTarget as HTMLDetailsElement).open;
+                  setOpenCats(o => { if (o.has(c.id) === isOpen) return o; const n = new Set(o); if (isOpen) n.add(c.id); else n.delete(c.id); return n; });
+                }}>
                 <summary>
                   <span className="ck-ic" aria-hidden="true"><Glyph emoji={c.emoji} icon={c.icon} size={22} /></span>
                   <span className="ck-name">{c.label}</span>
@@ -276,7 +326,7 @@ export function ChecklistPage({ catalog, admin, ready = true }: { catalog: Catal
                       {rows.map(i => (
                         <li key={i.id} className={"ck-row" + (packed.has(i.id) ? " done" : "")}>
                           <label className="ck-check"><input type="checkbox" checked={packed.has(i.id)} onChange={() => togglePacked(i.id)} /><span>{i.name}</span></label>
-                          <IconButton className="sm" icon="x" label={`Remove ${i.name} from my list`} onClick={() => toggleSel([i.id], false)} />
+                          <IconButton className="sm" icon="x" label={`Remove ${i.name} from my list`} onClick={() => dropFromList(i)} />
                         </li>
                       ))}
                     </ul>

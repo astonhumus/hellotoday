@@ -92,8 +92,13 @@
 .ck-save-chips .chip { min-height: var(--tap); }
 .ck-reset { justify-self: start; min-height: var(--tap); }
 
+/* A grid item can only stick inside its own row, so this page lays out as a column: the search then stays in reach for the whole scroll */
+.page.checklist { display: flex; flex-direction: column; --pad-top: var(--s-5); }
+@media (max-width: 760px) { .page.checklist { --pad-top: var(--s-4); } } /* the page padding on phones (see styles.css): the search box pins flush to the top, not below it */
+.page.checklist > * { flex-shrink: 0; }
+.ck-named { display: inline-flex; align-items: center; }
 /* search stays in reach while scrolling a long list */
-.ck-search { position: sticky; top: 0; z-index: 4; margin: 0 calc(-1 * var(--s-3)); padding: var(--s-2) var(--s-3); background: var(--bg); }
+.ck-search { position: sticky; top: calc(-1 * var(--pad-top, var(--s-5))); z-index: 4; margin: 0 calc(-1 * var(--s-3)); padding: var(--s-2) var(--s-3); background: var(--bg); }
 
 /* categories: bigger rows, tinted emoji badge */
 .ck-ic { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-wash); }

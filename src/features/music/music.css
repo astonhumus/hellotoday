@@ -19,8 +19,13 @@
 
 /* ── reading view ── */
 .lyrics-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.lyr-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-1); padding: var(--s-2); background: var(--surface); border-bottom: 1px solid var(--border); }
-.lyr-tools { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-1); margin-left: auto; }
+.lyr-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-1) var(--s-2); padding: var(--s-2); background: var(--surface); border-bottom: 1px solid var(--border); }
+.lyr-act { display: flex; align-items: center; gap: var(--s-1); margin-left: auto; }
+.lyr-read { display: flex; align-items: center; gap: var(--s-1); flex-wrap: nowrap; min-width: 0; }
+.lyr-speed { display: inline-flex; align-items: center; }
+.lyr-speed-n { min-width: 4.5em; text-align: center; font-size: var(--text-sm); color: var(--text-2); }
+/* on a narrow phone the reading tools take their own row, always the same one */
+@media (max-width: 600px) { .lyr-read { order: 3; flex: 1 0 100%; justify-content: space-between; } }
 .tool-btn { min-width: var(--tap); height: var(--tap); padding: 0 var(--s-2); border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); font: inherit; font-weight: var(--w-semibold); cursor: pointer; transition: background var(--dur-fast) var(--ease); }
 .tool-btn:hover:not(:disabled) { background: var(--surface-2); }
 .tool-btn:active:not(:disabled) { background: var(--pressed); }
@@ -33,6 +38,12 @@
 .lyrics .credit { margin-top: 2em; }
 .lyrics .soon { font-size: 0.7em; margin: 1.2em 0; }
 
-.sc-search { margin-right: var(--s-1); color: var(--text-2); flex: none; text-decoration: none; display: inline-grid; place-items: center; }
+.find-online { flex: none; display: inline-flex; align-items: center; gap: var(--s-1); min-height: var(--tap); padding: 0 var(--s-3); margin-right: var(--s-1); border-radius: var(--radius); color: var(--accent); font-size: var(--text-sm); font-weight: var(--w-medium); text-decoration: none; white-space: nowrap; }
+.find-online:hover { background: var(--accent-wash); }
+.lyrics .find-online { padding-left: 0; font-size: 1em; }
+.soon-group { display: grid; gap: var(--s-3); }
+.soon-group > summary { display: flex; align-items: center; gap: var(--s-2); min-height: var(--tap); cursor: pointer; font-weight: var(--w-semibold); }
+.soon-group[open] > summary { margin-bottom: var(--s-2); }
+.soon-group > .ph-sub { margin: 0 0 var(--s-3); }
 /* narrow phones: give the title and artist the room the chevron took */
-@media (max-width: 480px) { .sc-main > .icon:last-child { display: none; } }
+@media (max-width: 480px) { .sc-main > .icon:last-child { display: none; } .find-online { padding: 0 var(--s-2); } }

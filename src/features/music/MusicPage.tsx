@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Song } from "../../types";
 import { store } from "../../lib/data";
 import { confirmAsk } from "../../lib/ui";
@@ -8,6 +8,7 @@ import { useChipFilter } from "../../ui/useChipFilter";
 import { useFavorites } from "../../lib/favorites";
 import { FooterLinks, reportLink } from "../../components/AboutPage";
 import { usePageMeta } from "../../lib/pageMeta";
+import { plural } from "../../lib/format";
 import { Button, IconButton } from "../../ui/Button";
 import { Chip } from "../../ui/Chip";
 import { Icon } from "../../ui/Icon";
@@ -34,11 +35,11 @@ const uniq = (xs: (string | undefined)[]) => [...new Set(xs.filter(Boolean) as s
 /** A web search for the song's lyrics, opened in a new tab. */
 const lyricsSearchUrl = (s: Song) => `https://www.google.com/search?q=${encodeURIComponent([s.title, s.artist, "lyrics"].filter(Boolean).join(" "))}`;
 
-function SearchLink({ song, className = "" }: { song: Song; className?: string }) {
-  const label = `Search the web for lyrics of ${song.title} (opens a new tab)`;
+/** "Find online": says what it does in words, and that it leaves the app. */
+function FindOnline({ song, className = "" }: { song: Song; className?: string }) {
   return (
-    <a className={`icon-btn ${className}`} href={lyricsSearchUrl(song)} target="_blank" rel="noopener noreferrer" aria-label={label} title="Search lyrics on the web">
-      <Icon name="search" size={20} />
+    <a className={`find-online ${className}`} href={lyricsSearchUrl(song)} target="_blank" rel="noopener noreferrer" aria-label={`Find the lyrics of ${song.title} on the web (opens a new tab)`}>
+      <Icon name="globe" size={16} /> Find online
     </a>
   );
 }
@@ -52,11 +53,17 @@ export function MusicPage({ songs, localIds, admin, canDelete, ready = true, son
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
   const onEdit = (s: Song) => setDialog({ editing: s });
   const onRemove = async (s: Song) => { if (await confirmAsk(`Delete "${s.title}"?`, { yes: "Delete", danger: true })) { onDelete(s.id); open(null); } };
+  const missing = !!songId && !song && ready;
   return (
     <>
-      {song
-        ? <Lyrics song={song} admin={admin} canDelete={canDelete} onBack={() => open(null)} onEdit={onEdit} onDelete={onRemove} />
-        : <SongList ready={ready} songs={songs} localIds={localIds} admin={admin} canDelete={canDelete} open={open} onAdd={() => setDialog({ editing: null })} onEdit={onEdit} onDelete={onRemove} />}
+      {/* The list stays mounted while a song is open, so Back finds your search, filters and place in the list as you left them */}
+      <SongList hidden={!!songId} ready={ready} songs={songs} localIds={localIds} admin={admin} canDelete={canDelete} onAdd={() => setDialog({ editing: null })} onEdit={onEdit} onDelete={onRemove} />
+      {song && <Lyrics song={song} admin={admin} canDelete={canDelete} onBack={() => open(null)} onEdit={onEdit} onDelete={onRemove} />}
+      {missing && (
+        <div className="page">
+          <EmptyState title="We couldn't find that song" hint="It may have been removed, or the link is incomplete." action={{ label: "See all songs", onClick: () => open(null) }} />
+        </div>
+      )}
       {dialog && (
         <SongDialog editing={dialog.editing} languages={languages} artists={artists}
           onSave={(s, id) => { onSave(s, id); setDialog(null); }} onClose={() => setDialog(null)} />
@@ -66,36 +73,71 @@ export function MusicPage({ songs, localIds, admin, canDelete, ready = true, son
 }
 
 interface ListProps {
+  hidden: boolean;
   ready: boolean;
   songs: Song[]; localIds: Set<string>; admin: boolean; canDelete: boolean;
-  open: (id: string) => void; onAdd: () => void; onEdit: (s: Song) => void; onDelete: (s: Song) => void;
+  onAdd: () => void; onEdit: (s: Song) => void; onDelete: (s: Song) => void;
 }
 
-function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }: ListProps) {
+function SongList({ hidden, ready, songs, localIds, admin, canDelete, onAdd, onEdit, onDelete }: ListProps) {
   const [q, setQ] = useState("");
   const { picked, toggle, clear } = useChipFilter(); // languages: tap several to combine
   const [artist, setArtist] = useState("all");
   const [favOnly, setFavOnly] = useState(false);
   const favs = useFavorites("song");
+  const root = useRef<HTMLDivElement>(null);
+  const top = useRef(0);
+  // A hidden page loses its scroll position, so it is saved while visible and put back when the list returns.
+  useLayoutEffect(() => { if (!hidden && root.current) root.current.scrollTop = top.current; }, [hidden]);
   const langs = useMemo(() => uniq(songs.map(s => s.language)), [songs]);
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
   const count = (key: "language" | "artist", v: string) => songs.filter(s => s[key] === v).length;
   const withLyrics = songs.filter(s => s.lyrics.trim()).length;
+  const filtering = !!q.trim() || picked.size > 0 || artist !== "all" || favOnly;
   const shown = useMemo(() => {
     const n = q.trim().toLowerCase();
     return songs
       .filter(s => (!picked.size || (!!s.language && picked.has(s.language))) && (artist === "all" || s.artist === artist) && (!favOnly || favs.has(s.id)) &&
-        (!n || [s.title, s.artist, s.language].join(" ").toLowerCase().includes(n)))
-      // songs with lyrics first, so the first things you tap open something to read
-      .sort((a, b) => Number(!!b.lyrics.trim()) - Number(!!a.lyrics.trim()) || a.title.localeCompare(b.title));
-  }, [songs, q, picked, artist, favOnly, favs.ids]);
+        (!n || [s.title, s.artist, s.language, s.lyrics].join(" ").toLowerCase().includes(n))) // the words of the lyrics are searched too
+      .sort((a, b) => a.title.localeCompare(b.title));
+  }, [songs, q, picked, artist, favOnly, favs.ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  const readable = shown.filter(s => s.lyrics.trim());
+  const soon = shown.filter(s => !s.lyrics.trim());
   const clearFilters = () => { setQ(""); clear(); setArtist("all"); setFavOnly(false); };
 
+  const card = (s: Song) => (
+    <li key={s.id} className="song-card">
+      <a className="sc-main" href={`#/music/${encodeURIComponent(s.id)}`}>
+        <span className="sc-icon" aria-hidden="true"><Icon name="music" size={22} /></span>
+        <span className="sc-text">
+          <span className="sc-title">{s.title}</span>
+          <span className="sc-meta">{[s.artist, s.language].filter(Boolean).join(" · ")}{localIds.has(s.id) ? " · edited/added" : ""}</span>
+          {s.status && s.status !== "approved" && (
+            <span className="sc-tags">
+              {s.status === "pending" && <span className="badge pending"><Icon name="clock" size={14} /> Waiting for approval</span>}
+              {s.status === "rejected" && <span className="badge rejected"><Icon name="circle-x" size={14} /> Rejected{s.reviewNote ? `: ${s.reviewNote}` : ""}</span>}
+            </span>
+          )}
+        </span>
+        <Icon name="chevron" size={18} />
+      </a>
+      <IconButton className={"sm sc-fav" + (favs.has(s.id) ? " on" : "")} icon="heart" pressed={favs.has(s.id)}
+        label={favs.has(s.id) ? `Remove ${s.title} from favourites` : `Add ${s.title} to favourites`} onClick={() => favs.toggle(s.id)} />
+      {!s.lyrics.trim() && <FindOnline song={s} />}
+      {admin && (
+        <span className="sc-admin">
+          <IconButton className="sm" icon="edit" label={`Edit ${s.title}`} onClick={() => onEdit(s)} />
+          {canDelete && <IconButton className="sm danger" icon="trash" label={`Delete ${s.title}`} onClick={() => onDelete(s)} />}
+        </span>
+      )}
+    </li>
+  );
+
   return (
-    <div className="page music">
-      <PageHeader title="Songs" sub={ready ? `${songs.length} song${songs.length === 1 ? "" : "s"} · ${withLyrics} with lyrics` : undefined}
+    <div className="page music" hidden={hidden} ref={root} onScroll={e => { if (!hidden) top.current = e.currentTarget.scrollTop; }}>
+      <PageHeader title="Songs" sub={ready ? `${plural(songs.length, "song")} · ${withLyrics} with lyrics` : undefined}
         actions={admin && <Button variant="primary" icon="plus" onClick={onAdd}>Add song</Button>} />
-      <SearchField value={q} onChange={setQ} placeholder="Search songs" recentKey="songs" />
+      <SearchField value={q} onChange={setQ} placeholder={`Search songs or lyrics`} recentKey="songs" />
       <div className="chip-row" role="group" aria-label="Filter by language">
         <Chip pressed={favOnly} icon="heart" className="fav-chip" count={favs.count || undefined} onClick={() => setFavOnly(v => !v)} aria-label="Favourite songs only" title="Show only your favourite songs"><span className="sr-only">Favourites</span></Chip>
         <Chip pressed={picked.size === 0} onClick={clear}>All languages</Chip>
@@ -108,47 +150,20 @@ function SongList({ ready, songs, localIds, admin, canDelete, onAdd, onEdit, onD
         )}
       </div>
 
-      <ul className="song-list">
-        {!ready && <li><Skeleton rows={5} label="Loading songs" /></li>}
-        {ready && shown.length === 0 && (
-          <li>
-            {songs.length === 0
-              ? <EmptyState title="No songs yet" />
-              : <EmptyState title="No songs match" hint="Try a different search or remove a filter." action={{ label: "Clear filters", onClick: clearFilters }} />}
-          </li>
-        )}
-        {shown.map(s => {
-          const soon = !s.lyrics.trim();
-          return (
-            <li key={s.id} className="song-card">
-              <a className="sc-main" href={`#/music/${encodeURIComponent(s.id)}`}>
-                <span className="sc-icon" aria-hidden="true"><Icon name="music" size={22} /></span>
-                <span className="sc-text">
-                  <span className="sc-title">{s.title}</span>
-                  <span className="sc-meta">{[s.artist, s.language].filter(Boolean).join(" · ")}{localIds.has(s.id) ? " · edited/added" : ""}</span>
-                  {(soon || (s.status && s.status !== "approved")) && (
-                    <span className="sc-tags">
-                      {soon && <span className="tag">Lyrics coming soon</span>}
-                      {s.status === "pending" && <span className="badge pending"><Icon name="clock" size={14} /> Waiting for approval</span>}
-                      {s.status === "rejected" && <span className="badge rejected"><Icon name="circle-x" size={14} /> Rejected{s.reviewNote ? `: ${s.reviewNote}` : ""}</span>}
-                    </span>
-                  )}
-                </span>
-                <Icon name="chevron" size={18} />
-              </a>
-              <IconButton className={"sm sc-fav" + (favs.has(s.id) ? " on" : "")} icon="heart" pressed={favs.has(s.id)}
-                label={favs.has(s.id) ? `Remove ${s.title} from favourites` : `Add ${s.title} to favourites`} onClick={() => favs.toggle(s.id)} />
-              <SearchLink song={s} className="sm sc-search" />
-              {admin && (
-                <span className="sc-admin">
-                  <IconButton className="sm" icon="edit" label={`Edit ${s.title}`} onClick={() => onEdit(s)} />
-                  {canDelete && <IconButton className="sm danger" icon="trash" label={`Delete ${s.title}`} onClick={() => onDelete(s)} />}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {!ready && <Skeleton rows={5} label="Loading songs" />}
+      {ready && shown.length === 0 && (
+        songs.length === 0
+          ? <EmptyState title="No songs yet" />
+          : <EmptyState title="No songs match" hint="Try a different search or remove a filter." action={{ label: "Clear filters", onClick: clearFilters }} />
+      )}
+      {readable.length > 0 && <ul className="song-list" aria-label="Songs with lyrics">{readable.map(card)}</ul>}
+      {soon.length > 0 && (
+        <details className="soon-group" open={filtering || readable.length === 0}>
+          <summary>Lyrics coming soon <span className="rv-n">{soon.length}</span></summary>
+          <p className="ph-sub">These songs are listed but their lyrics haven't been added yet. You can look them up online.</p>
+          <ul className="song-list">{soon.map(card)}</ul>
+        </details>
+      )}
       <FooterLinks />
     </div>
   );
@@ -221,11 +236,11 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
   useEffect(() => {
     if (!scrolling) return;
     let raf = 0, last = performance.now(), acc = 0;
-    const tick = (t: number) => {
+    const tick = (now: number) => {
       const b = box.current;
       if (!b) return;
-      acc += ((t - last) / 1000) * speed;
-      last = t;
+      acc += ((now - last) / 1000) * speed;
+      last = now;
       if (acc >= 1) { b.scrollTop += Math.floor(acc); acc -= Math.floor(acc); }
       if (b.scrollTop + b.clientHeight >= b.scrollHeight - 1) return setScrolling(false);
       raf = requestAnimationFrame(tick);
@@ -234,30 +249,40 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
     return () => cancelAnimationFrame(raf);
   }, [scrolling, speed]);
 
+  // Keep the screen awake while the lyrics scroll by themselves (a phone would otherwise lock in the middle of a song).
+  useEffect(() => {
+    if (!scrolling || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | null = null, gone = false;
+    navigator.wakeLock.request("screen").then(l => { if (gone) void l.release(); else lock = l; }).catch(() => { /* not allowed (low battery, background tab): fine */ });
+    return () => { gone = true; void lock?.release(); };
+  }, [scrolling]);
+
   return (
     <div className="lyrics-page">
       <div className="lyr-bar">
         <IconButton icon="back" label="Back to songs" onClick={onBack} />
-        <div className="lyr-tools" role="group" aria-label="Reading tools">
-          <button type="button" className="tool-btn" onClick={() => setSize(s => Math.max(14, s - 2))} aria-label="Smaller text">A<small>−</small></button>
-          <button type="button" className="tool-btn" onClick={() => setSize(s => Math.min(48, s + 2))} aria-label="Larger text">A<small>+</small></button>
-          {scrolling && (
-            <>
-              <IconButton className="sm" icon="minus" label="Scroll slower" onClick={() => setSpeed(s => Math.max(10, s - 10))} />
-              <IconButton className="sm" icon="plus" label="Scroll faster" onClick={() => setSpeed(s => Math.min(120, s + 10))} />
-            </>
-          )}
-          <Button variant={scrolling ? "primary" : "secondary"} icon={scrolling ? "pause" : "play"} onClick={() => setScrolling(v => !v)}>{scrolling ? "Pause" : "Auto-scroll"}</Button>
+        <div className="lyr-act" role="group" aria-label="Song actions">
           <IconButton className={"sm sc-fav" + (fav ? " on" : "")} icon="heart" pressed={fav} label={fav ? "Remove from favourites" : "Add to favourites"} onClick={() => favs.toggle(song.id)} />
-          <SearchLink song={song} className="sm" />
           {admin && <IconButton className="sm" icon="edit" label="Edit this song" onClick={() => onEdit(song)} />}
           {canDelete && <IconButton className="sm danger" icon="trash" label="Delete this song" onClick={() => onDelete(song)} />}
+        </div>
+        {/* These controls never come and go, so nothing shifts when auto-scroll starts */}
+        <div className="lyr-read" role="group" aria-label="Reading tools">
+          <button type="button" className="tool-btn" onClick={() => setSize(s => Math.max(14, s - 2))} aria-label="Smaller text">A<small>−</small></button>
+          <button type="button" className="tool-btn" onClick={() => setSize(s => Math.min(48, s + 2))} aria-label="Larger text">A<small>+</small></button>
+          <Button variant={scrolling ? "primary" : "secondary"} icon={scrolling ? "pause" : "play"} onClick={() => setScrolling(v => !v)}>{scrolling ? "Pause" : "Auto-scroll"}</Button>
+          <span className="lyr-speed" role="group" aria-label="Scroll speed">
+            <IconButton className="sm" icon="minus" label="Scroll slower" disabled={!scrolling || speed <= 10} onClick={() => setSpeed(s => Math.max(10, s - 10))} />
+            <span className="lyr-speed-n" aria-live="polite">Speed {speed / 10}</span>
+            <IconButton className="sm" icon="plus" label="Scroll faster" disabled={!scrolling || speed >= 120} onClick={() => setSpeed(s => Math.min(120, s + 10))} />
+          </span>
         </div>
       </div>
       <div className="lyrics" ref={box} style={{ fontSize: size }} onTouchStart={() => setScrolling(false)} onWheel={() => setScrolling(false)}>
         <h1>{song.title}</h1>
         <p className="meta">{[song.artist, song.language].filter(Boolean).join(" · ")}</p>
         {song.lyrics.trim() ? <pre>{song.lyrics}</pre> : <p className="meta soon">Lyrics for this song will be added soon.</p>}
+        <p className="meta"><FindOnline song={song} /></p>
         {song.credit && <p className="meta credit">{song.credit}</p>}
         {reportLink("x") && <p className="meta"><a href={reportLink(`Report song: ${song.title}`)}>Report this song</a></p>}
       </div>

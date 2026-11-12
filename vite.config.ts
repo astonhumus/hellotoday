@@ -73,7 +73,7 @@ export default defineConfig(({ mode }) => {
         shortcuts: [
           { name: "Home", url: "./", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
           { name: "Places", url: "./#/places", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
-          { name: "Music", url: "./#/music", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
+          { name: "Songs", url: "./#/music", icons: [{ src: "icon-192.png", sizes: "192x192" }] },
           { name: "Checklist", url: "./#/checklist", icons: [{ src: "icon-192.png", sizes: "192x192" }] }
         ]
       }

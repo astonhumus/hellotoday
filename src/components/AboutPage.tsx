@@ -3,6 +3,7 @@ import { useHasSession } from "../lib/auth";
 import { usePageMeta } from "../lib/pageMeta";
 import { goBack } from "../lib/nav";
 import { PageHeader } from "../ui/PageHeader";
+import { canSuggest, openSuggest } from "../lib/suggest";
 
 const CONTACT = import.meta.env.VITE_CONTACT_EMAIL;
 
@@ -14,8 +15,10 @@ export function FooterLinks({ report }: { report?: { subject: string } }) {
   const signedIn = useHasSession();
   return (
     <div className="footer-links">
-      <a href="#/about">About &amp; privacy</a>
-      {href && <a href={href}>Report a problem</a>}
+      <a href="#/about">About & privacy</a>
+      {canSuggest
+        ? <button type="button" className="footer-btn" onClick={() => openSuggest({ kind: "place" })}>Suggest a place or report a problem</button>
+        : href && <a href={href}>Report a problem</a>}
       {/* Deliberately quiet: small, grey, last. Only shown when the site has an admin backend and nobody is signed in. */}
       {supabase && !signedIn && <a href="#/admin" className="admin-link">Admin sign in</a>}
     </div>

@@ -42,3 +42,9 @@ export function useFavorites(kind: FavKind) {
   const ids = useSyncExternalStore(subscribe, () => cache[kind]);
   return { ids, set: new Set(ids), has: (id: string) => ids.includes(id), count: ids.length, toggle: (id: string) => toggleFavorite(kind, id) };
 }
+
+/** Re-reads both lists from storage (after a restore from a backup file). */
+export function reloadFavorites() {
+  (Object.keys(KEYS) as FavKind[]).forEach(k => { cache[k] = read(k); });
+  emit();
+}

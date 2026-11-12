@@ -1,7 +1,7 @@
 // The one icon set (Lucide). Only the icons the app uses are imported, so the bundle stays small.
 // Data files (categories.json, checklist.json) name their icons with these keys.
 import {
-  Apple, ArrowLeft, Backpack, Bandage, BedDouble, Car, CarFront, Carrot, Check, ChevronDown, ChevronRight, ChevronUp, CircleX,
+  Apple, ArrowLeft, ArrowDownUp, ArrowDown, ArrowUp, CloudDownload, Languages, Route as RouteIcon, Camera, Clock3, Ticket, CalendarDays, ImageOff, Backpack, Bandage, BedDouble, Car, CarFront, Carrot, Check, ChevronDown, ChevronRight, ChevronUp, CircleX,
   Clock, ClipboardCheck, Coffee, CookingPot, Copy, Dices, Download, Droplets, Drumstick, Flashlight, Flag, Footprints, Globe, Heart, House, IdCard,
   Landmark, Layers, Link2, LocateFixed, ListFilter, Map as MapIcon, MapPin, Minus, Music, Navigation, Pause, Pencil, Phone, PartyPopper, Play, Plus,
   Printer, Search, Settings, Share2, Shirt, ShoppingBasket, SlidersHorizontal, SquareCheck, Sunrise, Tent, Trash2, TreePalm, TreePine, Undo2, User, Utensils,
@@ -13,7 +13,7 @@ export const ICONS = {
   search: Search, x: X, "chevron-up": ChevronUp, "chevron-down": ChevronDown, chevron: ChevronRight, check: Check,
   directions: Navigation, copy: Copy, phone: Phone, globe: Globe, edit: Pencil, trash: Trash2, plus: Plus, filter: ListFilter,
   locate: LocateFixed, settings: Settings, back: ArrowLeft, layers: Layers, play: Play, pause: Pause, minus: Minus, share: Share2, print: Printer, undo: Undo2, heart: Heart, flag: Flag, link: Link2, sliders: SlidersHorizontal,
-  download: Download, user: User, pin: MapPin, clock: Clock, "circle-x": CircleX, "square-check": SquareCheck, "party-popper": PartyPopper,
+  download: Download, user: User, route: RouteIcon, sort: ArrowDownUp, up: ArrowUp, down: ArrowDown, offline: CloudDownload, language: Languages, camera: Camera, hours: Clock3, ticket: Ticket, calendar: CalendarDays, "no-image": ImageOff, pin: MapPin, clock: Clock, "circle-x": CircleX, "square-check": SquareCheck, "party-popper": PartyPopper,
   // navigation and features
   home: House, map: MapIcon, music: Music, checklist: ClipboardCheck, backpack: Backpack,
   // place categories

@@ -16,3 +16,15 @@ describe("formatKm", () => {
   it("keeps one decimal under 10 km", () => expect(formatKm(3.44)).toBe("3.4 km"));
   it("rounds above 10 km", () => expect(formatKm(127.3)).toBe("127 km"));
 });
+
+import { pathKm, routeOrder } from "./geo";
+describe("routeOrder", () => {
+  const a = { lat: 0, lng: 0 }, b = { lat: 0, lng: 1 }, c = { lat: 0, lng: 3 };
+  it("visits the nearest stop next, starting at the first stop", () => expect(routeOrder([c, a, b])).toEqual([c, b, a]));
+  it("starts from the given position", () => expect(routeOrder([c, b, a], { lat: 0, lng: -1 })).toEqual([a, b, c]));
+  it("handles an empty list", () => expect(routeOrder([])).toEqual([]));
+});
+describe("pathKm", () => {
+  it("is zero for fewer than two points", () => expect(pathKm([{ lat: 1, lng: 1 }])).toBe(0));
+  it("adds the legs", () => expect(pathKm([{ lat: 0, lng: 0 }, { lat: 1, lng: 0 }, { lat: 2, lng: 0 }])).toBeCloseTo(222.4, 0));
+});

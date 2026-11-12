@@ -7,6 +7,7 @@ import { Icon } from "../../ui/Icon";
 import { iconSvg } from "../../ui/icons";
 import { distanceKm } from "../../lib/geo";
 import { formatDistance } from "../../lib/prefs";
+import { notify } from "../../lib/ui";
 import { useTheme } from "../../lib/theme";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -14,8 +15,14 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 // Street map: roads, localities and landmarks from OpenStreetMap. Viewed tiles are cached for offline use (see vite.config.ts).
 // Set VITE_TILE_URL to use another provider (e.g. MapTiler) if traffic grows; OpenStreetMap's free servers are for modest use.
 const TILES = import.meta.env.VITE_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const MAX_OFFLINE_TILES = 150;
+const lon2tile = (lon: number, z: number) => Math.floor(((lon + 180) / 360) * 2 ** z);
+const lat2tile = (lat: number, z: number) => Math.floor(((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * 2 ** z);
 const LABEL_MIN_ZOOM = 10; // district names appear from this zoom, so they don't pile up over Imphal
 type MapStyle = "detailed" | "simple";
+
+/** The visitor's GPS position. `intent` says why it was asked for; `far` means they are nowhere near the region shown. */
+export interface Me { lat: number; lng: number; accuracy?: number; intent?: "map" | "fit" | "near" | "quiet"; at?: number; far?: boolean }
 
 interface Props {
   state: StateInfo;
@@ -24,7 +31,8 @@ interface Props {
   selectedId: string | null;
   visitedIds: Set<string>;
   closedIds?: Set<string>; // closed places: drawn faded
-  me?: { lat: number; lng: number; accuracy?: number; intent?: "map" | "fit" | "near"; at?: number } | null; // the visitor's own GPS position (intent: why it was asked for)
+  me?: Me | null; // the visitor's own GPS position
+  route?: { lat: number; lng: number }[]; // "My trip": a line through the stops, in visiting order
   insets: { top: number; bottom: number }; // screen covered by the search bar and the bottom sheet (phones)
   free?: boolean;      // not limited to one region: places from several regions are shown, so the map may go anywhere
   focusTick?: number; // changes when the same place is tapped again, so the map re-centres on it
@@ -57,9 +65,12 @@ const fallbackCategory = (): Category => ({ id: "", label: "Place", color: "", i
 
 // A place is a neutral round pin with its category glyph; the selected one fills with the accent, visited ones get an accent ring.
 type PinState = "plain" | "visited" | "selected" | "closed";
-const pinIcon = (glyph: string, state: PinState) => {
-  const size = state === "selected" ? 38 : 26;
-  return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}">${iconSvg(glyph, state === "selected" ? 20 : 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+const safeColor = (c?: string) => (c && /^#[0-9a-f]{3,8}$/i.test(c) ? c : ""); // goes into markup: only a plain hex colour
+// The circle you see is 26px (38px selected); the tappable area around it is 10px wider, so a finger finds it more easily.
+const PIN_PAD = 10;
+const pinIcon = (glyph: string, state: PinState, color?: string) => {
+  const size = (state === "selected" ? 38 : 26) + PIN_PAD, col = safeColor(color);
+  return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}"${col ? ` style="--cat:${col}"` : ""}>${iconSvg(glyph, state === "selected" ? 20 : 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...kids: (Node | string)[]) {
@@ -68,11 +79,11 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
-export function MapView({ state, places, categories, selectedId, free = false, focusTick, visitedIds, closedIds, me, insets, onSelect, onLocate, locating }: Props) {
+export function MapView({ state, places, categories, selectedId, free = false, focusTick, visitedIds, closedIds, me, route, insets, onSelect, onLocate, locating }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.Marker>());
-  const pinState = useRef(new Map<string, { glyph: string; state: PinState }>());
+  const pinState = useRef(new Map<string, { glyph: string; color: string; state: PinState }>());
   const pinLayer = useRef<L.MarkerClusterGroup | null>(null);
   const theme = useTheme(); // the map reads its colours when it is built, so a theme change rebuilds it
   const onSelectRef = useRef(onSelect);
@@ -243,17 +254,18 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       pins.current.forEach((_m, id) => { if (!keep.has(id)) { pins.current.delete(id); pinState.current.delete(id); } });
     }
     unique.forEach(p => {
-      const glyph = (categories[p.category] ?? fallbackCategory()).icon;
+      const cat = categories[p.category] ?? fallbackCategory();
+      const glyph = cat.icon, color = cat.color;
       const have = pins.current.get(p.id), meta = pinState.current.get(p.id);
       if (have) {
         if (have.getLatLng().lat !== p.lat || have.getLatLng().lng !== p.lng) have.setLatLng([p.lat, p.lng]);
-        if (meta && meta.glyph !== glyph) { have.setIcon(pinIcon(glyph, meta.state)); meta.glyph = glyph; }
+        if (meta && (meta.glyph !== glyph || meta.color !== color)) { have.setIcon(pinIcon(glyph, meta.state, color)); meta.glyph = glyph; meta.color = color; }
         return;
       }
-      const m = L.marker([p.lat, p.lng], { icon: pinIcon(glyph, "plain"), keyboard: false });
+      const m = L.marker([p.lat, p.lng], { icon: pinIcon(glyph, "plain", color), keyboard: false });
       m.on("click", () => onSelectRef.current(p.id));
       pins.current.set(p.id, m);
-      pinState.current.set(p.id, { glyph, state: "plain" });
+      pinState.current.set(p.id, { glyph, color, state: "plain" });
     });
     if (changed) group.addLayers(unique.map(p => pins.current.get(p.id)!));
     paint();
@@ -277,7 +289,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       const meta = pinState.current.get(id);
       if (!meta) return;
       const state: PinState = id === selectedRef.current ? "selected" : closedIds?.has(id) ? "closed" : visitedIds.has(id) ? "visited" : "plain";
-      if (meta.state !== state) { m.setIcon(pinIcon(meta.glyph, state)); meta.state = state; }
+      if (meta.state !== state) { m.setIcon(pinIcon(meta.glyph, state, meta.color)); meta.state = state; }
       m.setZIndexOffset(state === "selected" ? 1000 : 0);
     });
   };
@@ -297,6 +309,8 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     const map = mapRef.current;
     meMarker.current?.remove(); meMarker.current = null;
     if (!map || !me) return;
+    // "Near me" from far away (planning a trip from home): the list sorts by distance, but the map stays on the region.
+    if (me.far && me.intent === "near") return;
     const at: L.LatLngTuple = [me.lat, me.lng];
     const b = stateBounds.current;
     if (b && !b.contains(at)) {
@@ -312,6 +326,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       map.flyToBounds(L.latLngBounds([at, chosen.getLatLng()]), { paddingTopLeft: [40, top + 24], paddingBottomRight: [40, bottom + 24], maxZoom: 16, duration: 0.6 });
       return;
     }
+    if (me.intent === "quiet") return; // only the blue dot: the map stays where it is
     if (me.intent === "near") return void zoomIn(map, at, 13);
     // The GPS button: glide in to you at a modest zoom. The next tap on the button glides back out (see toggleLocate).
     zoomIn(map, at, Math.max(map.getZoom(), 15));
@@ -365,6 +380,72 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     map.once("moveend", () => { const g = pinLayer.current; if (g && g.hasLayer(m) && g.getVisibleParent(m) !== m) g.zoomToShowLayer(m, () => {}); });
   }, [selectedId, focusTick]);
 
+  // When a place is opened from an address, the list sheet rises a moment after the map has already flown to the pin, so the pin can end up
+  // under the sheet. Once everything has settled, nudge the map (without animation: nothing else is moving) if the pin is not in view.
+  useEffect(() => {
+    if (!selectedId) return;
+    const timer = window.setTimeout(() => {
+      const map = mapRef.current, m = pins.current.get(selectedId);
+      if (!map || !m) return;
+      try {
+        const { top, bottom } = insetsRef.current, size = map.getSize();
+        const at = map.latLngToContainerPoint(m.getLatLng());
+        if (at.y > top + 24 && at.y < size.y - bottom - 24 && at.x > 0 && at.x < size.x) return; // already in the visible part
+        const zoom = map.getZoom();
+        map.panTo(map.unproject(map.project(m.getLatLng(), zoom).add([0, (bottom - top) / 2]), zoom), { animate: false });
+      } catch { /* the map was being rebuilt: nothing to move */ }
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [selectedId, insets.top, insets.bottom]);
+
+  // "My trip": a line through the stops in visiting order
+  const routeLine = useRef<L.Polyline | null>(null);
+  const routeKey = route?.map(r => `${r.lat},${r.lng}`).join("|") ?? "";
+  useEffect(() => {
+    const map = mapRef.current;
+    routeLine.current?.remove();
+    routeLine.current = null;
+    if (!map || !route || route.length < 2) return;
+    routeLine.current = L.polyline(route.map(r => [r.lat, r.lng] as L.LatLngTuple), { color: token("--accent"), weight: 4, opacity: 0.85, dashArray: "2 8", lineCap: "round", interactive: false }).addTo(map);
+    return () => { routeLine.current?.remove(); routeLine.current = null; };
+  }, [routeKey, ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The layers menu never grows taller than the part of the map the list and filters leave free
+  const [menuMax, setMenuMax] = useState(260);
+  useEffect(() => {
+    if (!menu) return;
+    const h = host.current?.clientHeight ?? 0;
+    setMenuMax(Math.max(120, h - insets.top - insets.bottom - 80));
+  }, [menu, insets.top, insets.bottom]);
+
+  // Saves the tiles of the map as it is now (and a little closer in) for offline use. A few dozen pictures, like panning around would load;
+  // OpenStreetMap's rules rule out downloading a whole region at once.
+  const [saving, setSaving] = useState(false);
+  const saveView = async () => {
+    const map = mapRef.current;
+    if (!map || style !== "detailed" || saving) return;
+    if (!navigator.onLine) return void notify("You're offline. Open this area while connected to save it.", "error");
+    const b = map.getBounds(), z0 = Math.round(map.getZoom());
+    const urls: string[] = [];
+    for (const z of [z0, z0 + 1, z0 + 2]) {
+      if (z > 18) break;
+      const x0 = lon2tile(b.getWest(), z), x1 = lon2tile(b.getEast(), z), y0 = lat2tile(b.getNorth(), z), y1 = lat2tile(b.getSouth(), z);
+      if (urls.length && urls.length + (x1 - x0 + 1) * (y1 - y0 + 1) > MAX_OFFLINE_TILES) break;
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) urls.push(TILES.replace("{z}", String(z)).replace("{x}", String(x)).replace("{y}", String(y)).replace("{s}", "a").replace("{r}", ""));
+    }
+    if (urls.length > MAX_OFFLINE_TILES) return void notify("Zoom in a little first: this view is too wide to save.", "error");
+    setSaving(true);
+    let saved = 0;
+    const queue = [...urls];
+    await Promise.all(Array.from({ length: 4 }, async () => {
+      for (let u = queue.shift(); u; u = queue.shift()) {
+        try { const r = await fetch(u, { mode: "cors", credentials: "omit" }); if (r.ok) saved++; } catch { /* a tile that fails is just not saved */ }
+      }
+    }));
+    setSaving(false);
+    void notify(saved ? `Saved ${saved} map pieces for offline use on this device.` : "Couldn't save the map. Check your connection.", saved ? "info" : "error");
+  };
+
   const choose = (s: MapStyle) => { setStyle(s); store.set("map-style", s); };
 
   return (
@@ -380,7 +461,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       <div className="map-style" ref={menuRef}>
         <button type="button" className="map-layers" aria-label="Map layers" aria-expanded={menu} onClick={() => setMenu(v => !v)}><Icon name="layers" /></button>
         {menu && (
-          <div className="map-style-menu" role="group" aria-label="Map layers">
+          <div className="map-style-menu" role="group" aria-label="Map layers" style={{ maxHeight: menuMax }}>
             <p className="mm-h" id="mm-base">Map style</p>
             <div className="mm-row" role="radiogroup" aria-labelledby="mm-base">
               <button type="button" className="chip" role="radio" aria-checked={style === "detailed"} onClick={() => choose("detailed")}>Streets</button>
@@ -389,6 +470,10 @@ export function MapView({ state, places, categories, selectedId, free = false, f
             <p className="mm-h">Show</p>
             <button type="button" className="chip" aria-pressed={showDistricts} onClick={() => { setShowDistricts(v => !v); store.set("map-districts", showDistricts ? "off" : "on"); }}>
               {showDistricts && <Icon name="check" size={16} />} District borders
+            </button>
+            <p className="mm-h">Offline</p>
+            <button type="button" className="chip" disabled={saving || style !== "detailed"} onClick={() => void saveView()} title={style === "detailed" ? "Keeps the map you see now, and a little closer in, on this device" : "Switch to Streets to save map pictures"}>
+              <Icon name="offline" size={16} /> {saving ? "Saving…" : "Save this view"}
             </button>
           </div>
         )}

@@ -10,7 +10,7 @@ interface Spec<T> {
   table: string;
   kind: "place" | "song" | "category";
   columns: string;
-  fallbackColumns?: string;                  // used when the database does not have the newest columns yet (a migration not run)
+  fallbackColumns?: string | string[];       // tried in turn when the database does not have the newest columns yet (a migration not run)
   propose?: boolean;                         // contributor without auto-approve: edits to live items become proposals
   scope?: { column: string; value: string }; // e.g. only the current state's places (leave out to load every region)
   fixed?: { column: string; value: string };  // always written with saved rows, even when the load is not scoped
@@ -44,7 +44,10 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
       return q as unknown as PromiseLike<{ data: Row[] | null; error: { message: string } | null }>;
     });
     let { data, error } = await read(spec.columns);
-    if (error && spec.fallbackColumns && /column|schema/i.test(error.message)) ({ data, error } = await read(spec.fallbackColumns));
+    for (const cols of [spec.fallbackColumns ?? []].flat()) {
+      if (!error || !/column|schema/i.test(error.message)) break;
+      ({ data, error } = await read(cols));
+    }
     if (seq !== loadSeq.current) return; // a newer load is under way: don't let this older answer overwrite it
     setLoading(false);
     if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return; } // keep whatever is showing (cached copy)

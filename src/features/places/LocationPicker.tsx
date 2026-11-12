@@ -7,7 +7,7 @@ import { iconSvg } from "../../ui/icons";
 const TILES = import.meta.env.VITE_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 // The app's own pin (not Leaflet's default image, which can fail to load in a bundled build).
-const pinIcon = L.divIcon({ className: "pin-wrap", html: `<span class="pin selected">${iconSvg("pin", 20)}</span>`, iconSize: [38, 38], iconAnchor: [19, 19] });
+const pinIcon = L.divIcon({ className: "pin-wrap", html: `<span class="pin selected">${iconSvg("pin", 20)}</span>`, iconSize: [48, 48], iconAnchor: [24, 24] });
 
 interface Props {
   point: LatLng | null;

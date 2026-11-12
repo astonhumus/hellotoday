@@ -4,6 +4,7 @@ import { loadJson } from "../../lib/data";
 import { supabase } from "../../lib/supabase";
 import { fetchAll } from "../../lib/fetchAll";
 import { goBack } from "../../lib/nav";
+import { kindName, kindPlural, plural } from "../../lib/format";
 import { usePageMeta } from "../../lib/pageMeta";
 import { FooterLinks } from "../../components/AboutPage";
 import { Icon } from "../../ui/Icon";
@@ -70,13 +71,13 @@ export function RegionsPage({ countries, countryId: initialCountry, stateId }: P
 
   return (
     <div className="page regions">
-      <PageHeader title="Browse all regions" onBack={() => goBack("#/")} sub={country ? `${country.name} · ${regions?.length ?? country.regions} ${country.kind.toLowerCase()}s` : undefined} />
+      <PageHeader title="Browse all regions" onBack={() => goBack("#/")} sub={country ? `${country.name} · ${regions?.length ?? country.regions} ${(regions?.length ?? country.regions) === 1 ? kindName(country.kind).toLowerCase() : kindPlural(country.kind).toLowerCase()}` : undefined} />
       <label className="rg-country">Country
         <select value={countryId} onChange={e => { setCountryId(e.target.value); setQ(""); }}>
           {countries.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </label>
-      <SearchField value={q} onChange={setQ} placeholder={`Search ${country?.kind.toLowerCase() ?? "state"}s`} />
+      <SearchField value={q} onChange={setQ} placeholder={`Search ${kindPlural(country?.kind).toLowerCase()}`} />
       {supabase && (
         <label className="rg-only check"><input type="checkbox" checked={onlyWithPlaces} onChange={e => setOnlyWithPlaces(e.target.checked)} /> Only those with places</label>
       )}
@@ -92,12 +93,12 @@ export function RegionsPage({ countries, countryId: initialCountry, stateId }: P
             <li key={r.id} className={"rg-item" + (r.id === stateId ? " current" : "")}>
               <a className="rg-main" href={link(r.id)}>
                 <span className="rg-name">{r.name}</span>
-                <span className="rg-n">{counts ? (r.c?.total ? `${r.c.total} place${r.c.total === 1 ? "" : "s"}` : "No places yet") : ""}</span>
+                <span className="rg-n">{counts ? (r.c?.total ? plural(r.c.total, "place") : "No places yet") : ""}</span>
                 <Icon name="chevron" size={18} />
               </a>
               {districts.length > 0 && (
                 <details className="rg-districts">
-                  <summary>{districts.length} district{districts.length === 1 ? "" : "s"}</summary>
+                  <summary>{plural(districts.length, "district")}</summary>
                   <ul>
                     {districts.map(([d, n]) => <li key={d}><a href={link(r.id, d)}>{d} <span className="rg-n">{n}</span></a></li>)}
                   </ul>

@@ -30,12 +30,13 @@
   --w-medium: 500;
   --w-semibold: 600;
 
-  --text-xs: 12px;     --lh-xs: 16px;
-  --text-sm: 14px;     --lh-sm: 20px;
-  --text-md: 16px;     --lh-md: 24px;
-  --text-lg: 20px;     --lh-lg: 28px;
-  --text-xl: 28px;     --lh-xl: 34px;
-  --text-display: 40px; --lh-display: 44px;
+  /* in rem, so the phone's or browser's own text-size setting scales the whole app (1rem = 16px by default) */
+  --text-xs: 0.75rem;     --lh-xs: 1rem;
+  --text-sm: 0.875rem;    --lh-sm: 1.25rem;
+  --text-md: 1rem;        --lh-md: 1.5rem;
+  --text-lg: 1.25rem;     --lh-lg: 1.75rem;
+  --text-xl: 1.75rem;     --lh-xl: 2.125rem;
+  --text-display: 2.5rem; --lh-display: 2.75rem;
 
   /* space: 4/8 scale */
   --s-1: 4px;

@@ -37,6 +37,10 @@ export interface Place {
   approx?: boolean;
   visited?: string; // YYYY-MM-DD, set when you have been there
   notes?: string;   // personal tips, e.g. what to order, who to ask for
+  photo?: string;   // https address of a picture (Supabase storage or Wikimedia Commons: the only hosts the page may load images from)
+  hours?: string;   // opening hours, free text: "Mon-Sat 9am-6pm"
+  fee?: string;     // entry fee or typical price, free text
+  season?: string;  // best time to visit, free text
   closure?: "temporary" | "permanent" | null; // temporarily closed (still listed) or permanently closed = archived (hidden from the public)
   closureNote?: string;                // the reason
   closedOn?: string;                   // YYYY-MM-DD, when it was closed
