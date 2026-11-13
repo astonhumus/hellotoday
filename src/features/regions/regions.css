@@ -14,3 +14,13 @@
 .regions .rg-only { min-height: var(--tap); }
 .regions .rg-only input { width: 1.25rem; min-height: 0; height: 1.25rem; flex: none; }
 .rg-districts summary { display: flex; align-items: center; min-height: var(--tap); }
+/* A region with a districts list: the name row and the "N districts" toggle read as one block, without a gap between them */
+.rg-item:has(.rg-districts) .rg-main { min-height: 0; padding-bottom: var(--s-1); }
+.rg-districts { padding-bottom: var(--s-2); }
+.rg-districts summary { min-height: var(--tap); padding: 0; }
+/* "16 districts" opens a list: a small chevron says so, and turns when open */
+.rg-districts summary { gap: var(--s-1); list-style: none; }
+.rg-districts summary::-webkit-details-marker { display: none; }
+.rg-districts summary::after { content: ""; width: 7px; height: 7px; margin-left: var(--s-1); border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform var(--dur-fast) var(--ease); }
+.rg-districts[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.rg-list { margin-top: 0; } .regions .rg-only { margin-bottom: 0; } /* the page already spaces its blocks */

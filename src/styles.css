@@ -132,7 +132,8 @@ dialog label.check input { width: auto; }
 .actions { display: flex; justify-content: flex-end; gap: var(--s-2); }
 
 /* ── pages ── */
-.page { width: min(var(--page-w), 100%); margin: 0 auto; grid-template-columns: minmax(0, 1fr); padding: var(--s-5) var(--s-4); display: grid; grid-auto-rows: max-content; gap: var(--s-3); align-content: start; overflow-y: auto; flex: 1; }
+/* The page spans the full width so its scrollbar sits at the window edge; the side padding keeps the content in a centred column of --w */
+.page { --w: var(--page-w); width: 100%; margin: 0; grid-template-columns: minmax(0, 1fr); padding: var(--s-5) max(var(--s-4), calc((100% - var(--w)) / 2 + var(--s-4))); display: grid; grid-auto-rows: max-content; gap: var(--s-3); align-content: start; overflow-y: auto; flex: 1; }
 .page h1 { margin: 0; font-size: var(--text-xl); line-height: var(--lh-xl); font-weight: var(--w-semibold); letter-spacing: -0.01em; }
 .page h2 { margin: 0; font-size: var(--text-lg); font-weight: var(--w-semibold); }
 
@@ -288,3 +289,14 @@ main:focus { outline: none; }
 .tile-more { cursor: pointer; font: inherit; text-align: left; border-style: dashed; }
 .visit-progress .ckp-bar { height: var(--s-2); border-radius: var(--radius-full); background: var(--border); overflow: hidden; }
 .visit-progress .ckp-bar div { height: 100%; background: var(--accent); transition: width var(--dur-base) var(--ease); }
+
+/* Very narrow phones (and large text): the region name gets the room, the app name gets smaller */
+@media (max-width: 380px) {
+  header { gap: var(--s-1); padding-left: var(--s-3); padding-right: var(--s-2); }
+  .site-name { font-size: var(--text-sm); }
+  .region-btn { padding: 0 var(--s-2); }
+}
+
+/* "This account isn't approved": its own line under the app bar, never squeezed in beside the region and settings */
+header .account-note { order: 99; flex: 1 0 100%; margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--radius); background: var(--surface-2); color: var(--text-2); font-size: var(--text-sm); }
+@media (max-width: 760px) { header:has(.account-note) { flex-wrap: wrap; row-gap: var(--s-2); } }

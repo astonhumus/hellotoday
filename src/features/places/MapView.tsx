@@ -52,10 +52,12 @@ if (!(canvasProto as { _guarded?: boolean })._guarded) {
 }
 
 // The same goes for a zoom animation that finishes after its map was removed.
-const mapProto = L.Map.prototype as unknown as { _onZoomTransitionEnd: () => void; _mapPane?: unknown; _zoomGuarded?: boolean };
+// And for a pan animation (seen on tablets: a pan started while the map was being rebuilt ends after the old map is gone).
+const mapProto = L.Map.prototype as unknown as { _onZoomTransitionEnd: () => void; _onPanTransitionEnd: () => void; _mapPane?: unknown; _zoomGuarded?: boolean };
 if (!mapProto._zoomGuarded) {
-  const done = mapProto._onZoomTransitionEnd;
+  const done = mapProto._onZoomTransitionEnd, panDone = mapProto._onPanTransitionEnd;
   mapProto._onZoomTransitionEnd = function (this: typeof mapProto) { if (!this._mapPane) return; done.call(this); };
+  mapProto._onPanTransitionEnd = function (this: typeof mapProto) { if (!this._mapPane) return; panDone.call(this); };
   mapProto._zoomGuarded = true;
 }
 
@@ -69,8 +71,10 @@ const safeColor = (c?: string) => (c && /^#[0-9a-f]{3,8}$/i.test(c) ? c : ""); /
 // The circle you see is 26px (38px selected); the tappable area around it is 10px wider, so a finger finds it more easily.
 const PIN_PAD = 10;
 const pinIcon = (glyph: string, state: PinState, color?: string) => {
-  const size = (state === "selected" ? 38 : 26) + PIN_PAD, col = safeColor(color);
-  return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}"${col ? ` style="--cat:${col}"` : ""}>${iconSvg(glyph, state === "selected" ? 20 : 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+  const size = 26 + PIN_PAD, col = safeColor(color);
+  // The selected place is drawn by its own marker above everything (see selectedIcon); its pin in the cluster layer stays as an empty spot.
+  if (state === "selected") return L.divIcon({ className: "pin-wrap pin-ghost", html: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+  return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}"${col ? ` style="--cat:${col}"` : ""}>${iconSvg(glyph, 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...kids: (Node | string)[]) {
@@ -79,12 +83,48 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLEl
   return node;
 }
 
+/**
+ * The open place, like a dropped pin in Google Maps: a large teardrop in the category's colour with its glyph, its tip exactly on the spot,
+ * a soft pulse around the tip and the place's name beside it. It drops in when a place is chosen.
+ */
+const SEL_W = 48, SEL_H = 64, SEL_TIP = 58; // the tip sits 58px down the 64px box; the rest is room for the pulse below it
+const selectedIcon = (glyph: string, color: string | undefined, name: string, closed: boolean) => {
+  const col = safeColor(color);
+  const glyphEl = el("span", { className: "sel-glyph" });
+  glyphEl.innerHTML = iconSvg(glyph, 20); // the app's own icon markup
+  const root = el("div", { className: "sel-pin" + (closed ? " closed" : "") },
+    el("span", { className: "sel-shadow" }), el("span", { className: "sel-pulse" }),
+    el("span", { className: "sel-body" }, el("span", { className: "sel-head" }, glyphEl), el("span", { className: "sel-label" }, name)));
+  if (col) root.style.setProperty("--cat", col);
+  return L.divIcon({ className: "sel-wrap", html: root, iconSize: [SEL_W, SEL_H], iconAnchor: [SEL_W / 2, SEL_TIP] });
+};
+
+/** A group of pins: the number of places in it, ringed in their categories' colours (one colour when they are all of one category). */
+const esc = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const clusterIcon = (byCat: Map<string, number>, total: number, cats: Record<string, Category>) => {
+  const parts = [...byCat].sort((a, b) => b[1] - a[1]);
+  const colorOf = (id: string) => safeColor(cats[id]?.color) || "var(--text-2)";
+  let at = 0;
+  const ring = parts.map(([id, n]) => { const from = at; at += (n / total) * 100; return `${colorOf(id)} ${from.toFixed(2)}% ${at.toFixed(2)}%`; }).join(", ");
+  const one = parts.length === 1 ? parts[0][0] : null;
+  const size = total < 10 ? 36 : total < 100 ? 42 : 48;
+  const what = one ? `${total} ${cats[one]?.label ?? "places"}` : `${total} places in ${parts.length} categories`;
+  const style = `--ring: conic-gradient(${ring});${one ? ` --cat: ${colorOf(one)};` : ""} width:${size}px; height:${size}px`;
+  return L.divIcon({
+    className: "cluster-wrap", iconSize: [size, size],
+    html: `<span class="cluster${one ? " one" : ""}" style="${style}" title="${esc(what)}. Tap to zoom in"><b>${total}</b></span>`
+  });
+};
+
 export function MapView({ state, places, categories, selectedId, free = false, focusTick, visitedIds, closedIds, me, route, insets, onSelect, onLocate, locating }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const pins = useRef(new Map<string, L.Marker>());
   const pinState = useRef(new Map<string, { glyph: string; color: string; state: PinState }>());
   const pinLayer = useRef<L.MarkerClusterGroup | null>(null);
+  const catOf = useRef(new WeakMap<L.Marker, string>()); // each pin's category, so a group of pins can show what it holds
+  const catsRef = useRef(categories);
+  catsRef.current = categories;
   const theme = useTheme(); // the map reads its colours when it is built, so a theme change rebuilds it
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
@@ -104,7 +144,13 @@ export function MapView({ state, places, categories, selectedId, free = false, f
   const haveDistrictOutline = useRef(false);
   const stateBounds = useRef<L.LatLngBounds | null>(null);
   const lastFit = useRef("");            // which set of places the map was last fitted to, so a data refresh doesn't move the map
-  const fitMinZoom = (map: L.Map) => { if (stateBounds.current) map.setMinZoom(Math.max(0, map.getBoundsZoom(stateBounds.current) - 1)); };
+  // Without animation: an animated zoom that ends later would make Leaflet pull the view back inside its limits, cancelling a flight to a place.
+  const fitMinZoom = (map: L.Map) => {
+    if (!stateBounds.current) return;
+    const min = Math.max(0, map.getBoundsZoom(stateBounds.current) - 1);
+    if (map.getZoom() < min) map.setZoom(min, { animate: false });
+    map.setMinZoom(min);
+  };
   const [menu, setMenu] = useState(false); // the layers menu
   const menuRef = useRef<HTMLDivElement>(null);
   // The menu closes when you tap the map or press Escape.
@@ -125,6 +171,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       .setView(state.center, state.zoom);
     map.createPane("borders").style.zIndex = "150";   // under the tile pane (200)
     map.createPane("outline").style.zIndex = "250";   // over the tiles
+    map.createPane("selected").style.zIndex = "640";  // the open place's pin: over every other pin and group (markers are 600)
     mapRef.current = map;
     const host0 = host.current;
     const mark = () => { host0.dataset.zoom = String(map.getZoom()); }; // the current zoom, readable from outside (tests, debugging)
@@ -132,9 +179,14 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     prevView.current = null; zoomedRef.current = false; setZoomedToMe(false);
     setReady(n => n + 1);
     // Pins that overlap merge into a numbered circle (tap to zoom in), so a crowded town stays readable and fast.
+    // The number counts only the places shown (the chosen categories and filters), and the circle wears their categories' colours.
     pinLayer.current = L.markerClusterGroup({
       showCoverageOnHover: false, maxClusterRadius: 44, disableClusteringAtZoom: 16, // no chunkedLoading: removing pins while a chunked load is under way crashes the cluster layer
-      iconCreateFunction: c => L.divIcon({ html: `<span class="cluster">${c.getChildCount()}</span>`, className: "cluster-wrap", iconSize: [40, 40] })
+      iconCreateFunction: c => {
+        const byCat = new Map<string, number>();
+        c.getAllChildMarkers().forEach(m => { const id = catOf.current.get(m) ?? ""; byCat.set(id, (byCat.get(id) ?? 0) + 1); });
+        return clusterIcon(byCat, c.getChildCount(), catsRef.current);
+      }
     }).addTo(map);
     let cancelled = false;
 
@@ -147,7 +199,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       const [s, w, n, e] = state.bbox;
       const bounds = L.latLngBounds([s, w], [n, e]);
       stateBounds.current = bounds;
-      try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
+      try { map.fitBounds(bounds, { padding: [20, 20], animate: false }); } catch { /* container not measurable yet; the resize observer refits */ }
       fitMinZoom(map);
       if (!freeRef.current) map.setMaxBounds(bounds.pad(0.6));
     }
@@ -163,7 +215,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       if (mine.length && !state.bbox) {
         const bounds = outline.getBounds();
         stateBounds.current = bounds;
-        try { map.fitBounds(bounds, { padding: [20, 20] }); } catch { /* container not measurable yet; the resize observer refits */ }
+        try { map.fitBounds(bounds, { padding: [20, 20], animate: false }); } catch { /* container not measurable yet; the resize observer refits */ }
         fitMinZoom(map);
         if (!freeRef.current) map.setMaxBounds(bounds.pad(0.6));
       }
@@ -182,7 +234,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     if (!map) return;
     if (free) { map.setMaxBounds(null as unknown as L.LatLngBounds); map.setMinZoom(2); return; }
     const b = stateBounds.current;
-    if (b) { map.setMaxBounds(b.pad(0.6)); fitMinZoom(map); map.fitBounds(b, { padding: [20, 20] }); }
+    if (b) { map.setMaxBounds(b.pad(0.6)); fitMinZoom(map); if (!selectedRef.current) map.fitBounds(b, { padding: [20, 20] }); } // an open place keeps the map on it
   }, [free, ready]);
 
   // District boundaries (public/data/<state>/districts.json), drawn over the tiles with the district name in the middle.
@@ -257,6 +309,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       const cat = categories[p.category] ?? fallbackCategory();
       const glyph = cat.icon, color = cat.color;
       const have = pins.current.get(p.id), meta = pinState.current.get(p.id);
+      if (have) catOf.current.set(have, p.category);
       if (have) {
         if (have.getLatLng().lat !== p.lat || have.getLatLng().lng !== p.lng) have.setLatLng([p.lat, p.lng]);
         if (meta && (meta.glyph !== glyph || meta.color !== color)) { have.setIcon(pinIcon(glyph, meta.state, color)); meta.glyph = glyph; meta.color = color; }
@@ -264,10 +317,12 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       }
       const m = L.marker([p.lat, p.lng], { icon: pinIcon(glyph, "plain", color), keyboard: false });
       m.on("click", () => onSelectRef.current(p.id));
+      catOf.current.set(m, p.category);
       pins.current.set(p.id, m);
       pinState.current.set(p.id, { glyph, color, state: "plain" });
     });
     if (changed) group.addLayers(unique.map(p => pins.current.get(p.id)!));
+    else group.refreshClusters(); // same pins, but a category may have changed colour or a place its category
     paint();
     // Re-zoom only when the set of places really changed (a filter, a search), after typing pauses, and never while a place is selected.
     const signature = places.map(p => p.id).sort().join("|");
@@ -369,16 +424,32 @@ export function MapView({ state, places, categories, selectedId, free = false, f
       .bindTooltip(formatDistance(dist), { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
   }, [me, selectedId, ready]);
 
+  // The open place's own pin (see selectedIcon). It is rebuilt only when what it shows changes, so a data refresh doesn't replay the drop.
+  const selMarker = useRef<{ key: string; marker: L.Marker } | null>(null);
+  const selPlace = selectedId ? places.find(p => p.id === selectedId) : undefined;
+
   // Selecting a place flies to it, placing the pin in the part of the map the panels don't cover
   useEffect(() => {
     const map = mapRef.current, m = selectedId ? pins.current.get(selectedId) : null;
     if (!map || !m) return;
     const zoom = Math.max(map.getZoom(), 14), { top, bottom } = insetsRef.current;
     const centre = map.unproject(map.project(m.getLatLng(), zoom).add([0, (bottom - top) / 2]), zoom);
-    map.flyTo(centre, zoom, { duration: 0.6 });
-    // If the pin is still folded into a cluster after arriving, open the cluster
-    map.once("moveend", () => { const g = pinLayer.current; if (g && g.hasLayer(m) && g.getVisibleParent(m) !== m) g.zoomToShowLayer(m, () => {}); });
-  }, [selectedId, focusTick]);
+    map.flyTo(centre, zoom, { duration: 0.6 }); // the selected pin is drawn above any group, so there is no need to zoom further to open one
+  }, [selectedId, focusTick, !!selPlace, ready]); // eslint-disable-line react-hooks/exhaustive-deps -- a place opened from a link: fly once its pin and the map exist
+  const selCat = selPlace ? categories[selPlace.category] ?? fallbackCategory() : null;
+  const selKey = selPlace && selCat ? [selPlace.id, selPlace.lat, selPlace.lng, selPlace.name, selCat.icon, selCat.color, closedIds?.has(selPlace.id) ? 1 : 0, ready].join("|") : "";
+  useEffect(() => {
+    const map = mapRef.current;
+    if (selMarker.current?.key === selKey && map?.hasLayer(selMarker.current.marker)) return;
+    selMarker.current?.marker.remove();
+    selMarker.current = null;
+    if (!map || !selPlace || !selCat) return;
+    const id = selPlace.id;
+    const marker = L.marker([selPlace.lat, selPlace.lng], { icon: selectedIcon(selCat.icon, selCat.color, selPlace.name, !!closedIds?.has(id)), pane: "selected", keyboard: false, title: selPlace.name })
+      .on("click", () => onSelectRef.current(id)).addTo(map);
+    selMarker.current = { key: selKey, marker };
+  }, [selKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { selMarker.current?.marker.remove(); selMarker.current = null; }, []);
 
   // When a place is opened from an address, the list sheet rises a moment after the map has already flown to the pin, so the pin can end up
   // under the sheet. Once everything has settled, nudge the map (without animation: nothing else is moving) if the pin is not in view.

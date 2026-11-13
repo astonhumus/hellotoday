@@ -34,7 +34,7 @@ export function AdminLogin({ hasSession, isMember, show, onClose }: { hasSession
   if (!supabase) return null;
 
   // Signing out lives in Settings (Account), so the header stays on one row.
-  if (hasSession) return isMember ? null : <span className="meta" role="status">This account isn't approved. Sign out in Settings.</span>;
+  if (hasSession) return isMember ? null : <p className="account-note" role="status">This account isn't approved yet. You can sign out in Settings.</p>;
   if (!open) return null;
 
   const submit = async (e: React.FormEvent) => {

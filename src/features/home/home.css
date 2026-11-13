@@ -33,7 +33,7 @@
 .rc-text span { font-size: var(--text-sm); color: var(--text-2); }
 
 @media (min-width: 761px) {
-  .home { width: min(var(--page-w-wide), 100%); gap: var(--s-6); padding-top: var(--s-6); }
+  .home { --w: var(--page-w-wide); gap: var(--s-6); padding-top: var(--s-6); }
   .hero { padding: var(--s-6); }
   .home .hero-title { font-size: var(--text-display); line-height: var(--lh-display); }
   /* three across: the usual six categories make two even rows (five across left one tile alone) */
@@ -53,3 +53,11 @@
 .feat-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .feat-name { font-weight: var(--w-semibold); padding: 0 var(--s-1); }
 .feat-meta { font-size: var(--text-sm); color: var(--text-2); padding: 0 var(--s-1) var(--s-1); }
+
+/* Very narrow phones: the search box keeps room for the whole placeholder (the button already says Search) */
+@media (max-width: 380px) {
+  .hero { padding: var(--s-4) var(--s-3); }
+  .hero-search { padding-left: var(--s-3); }
+  .hero-search > .icon { display: none; }
+  .hero-search .btn { padding: 0 var(--s-3); }
+}

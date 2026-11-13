@@ -15,6 +15,7 @@ import { Icon } from "../../ui/Icon";
 import { PageHeader } from "../../ui/PageHeader";
 import { SearchField } from "../../ui/SearchField";
 import { EmptyState, Skeleton } from "../../ui/States";
+import { Menu, type MenuItem } from "../../ui/Menu";
 import "./music.css";
 
 interface Props {
@@ -101,16 +102,19 @@ function SongList({ hidden, ready, songs, localIds, admin, canDelete, onAdd, onE
         (!n || [s.title, s.artist, s.language, s.lyrics].join(" ").toLowerCase().includes(n))) // the words of the lyrics are searched too
       .sort((a, b) => a.title.localeCompare(b.title));
   }, [songs, q, picked, artist, favOnly, favs.ids]); // eslint-disable-line react-hooks/exhaustive-deps
-  const readable = shown.filter(s => s.lyrics.trim());
-  const soon = shown.filter(s => !s.lyrics.trim());
   const clearFilters = () => { setQ(""); clear(); setArtist("all"); setFavOnly(false); };
 
-  const card = (s: Song) => (
+  const card = (s: Song) => {
+    const has = !!s.lyrics.trim();
+    return (
     <li key={s.id} className="song-card">
       <a className="sc-main" href={`#/music/${encodeURIComponent(s.id)}`}>
-        <span className="sc-icon" aria-hidden="true"><Icon name="music" size={22} /></span>
+        <span className={"sc-icon" + (has ? " has" : "")} aria-hidden="true">
+          <Icon name="music" size={22} />
+          <span className="sc-dot" title={has ? "Has lyrics" : "No lyrics yet"} />
+        </span>
         <span className="sc-text">
-          <span className="sc-title">{s.title}</span>
+          <span className="sc-title">{s.title}<span className="sr-only">{has ? " (has lyrics)" : " (no lyrics yet)"}</span></span>
           <span className="sc-meta">{[s.artist, s.language].filter(Boolean).join(" · ")}{localIds.has(s.id) ? " · edited/added" : ""}</span>
           {s.status && s.status !== "approved" && (
             <span className="sc-tags">
@@ -123,15 +127,15 @@ function SongList({ hidden, ready, songs, localIds, admin, canDelete, onAdd, onE
       </a>
       <IconButton className={"sm sc-fav" + (favs.has(s.id) ? " on" : "")} icon="heart" pressed={favs.has(s.id)}
         label={favs.has(s.id) ? `Remove ${s.title} from favourites` : `Add ${s.title} to favourites`} onClick={() => favs.toggle(s.id)} />
-      {!s.lyrics.trim() && <FindOnline song={s} />}
       {admin && (
-        <span className="sc-admin">
-          <IconButton className="sm" icon="edit" label={`Edit ${s.title}`} onClick={() => onEdit(s)} />
-          {canDelete && <IconButton className="sm danger" icon="trash" label={`Delete ${s.title}`} onClick={() => onDelete(s)} />}
-        </span>
+        <Menu className="sm sc-more" label={`More actions for ${s.title}`} items={[
+          { label: "Edit song", icon: "edit", onClick: () => onEdit(s) },
+          ...(canDelete ? [{ label: "Delete song", icon: "trash" as const, danger: true, onClick: () => onDelete(s) }] : [])
+        ]} />
       )}
     </li>
-  );
+    );
+  };
 
   return (
     <div className="page music" hidden={hidden} ref={root} onScroll={e => { if (!hidden) top.current = e.currentTarget.scrollTop; }}>
@@ -156,14 +160,13 @@ function SongList({ hidden, ready, songs, localIds, admin, canDelete, onAdd, onE
           ? <EmptyState title="No songs yet" />
           : <EmptyState title="No songs match" hint="Try a different search or remove a filter." action={{ label: "Clear filters", onClick: clearFilters }} />
       )}
-      {readable.length > 0 && <ul className="song-list" aria-label="Songs with lyrics">{readable.map(card)}</ul>}
-      {soon.length > 0 && (
-        <details className="soon-group" open={filtering || readable.length === 0}>
-          <summary>Lyrics coming soon <span className="rv-n">{soon.length}</span></summary>
-          <p className="ph-sub">These songs are listed but their lyrics haven't been added yet. You can look them up online.</p>
-          <ul className="song-list">{soon.map(card)}</ul>
-        </details>
+      {ready && shown.length > 0 && (
+        <p className="sc-legend" aria-hidden="true">
+          <span><span className="sc-dot has" /> Lyrics</span>
+          <span><span className="sc-dot" /> No lyrics yet</span>
+        </p>
       )}
+      {shown.length > 0 && <ul className="song-list" aria-label={filtering ? "Matching songs" : "All songs"}>{shown.map(card)}</ul>}
       <FooterLinks />
     </div>
   );
@@ -230,6 +233,13 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
   const box = useRef<HTMLDivElement>(null);
   const favs = useFavorites("song");
   const fav = favs.has(song.id);
+  // Less-used actions stay out of sight behind "⋯": editing for admins, and reporting the song.
+  const report = reportLink(`Report song: ${song.title}`);
+  const more: MenuItem[] = [
+    ...(admin ? [{ label: "Edit song", icon: "edit" as const, onClick: () => onEdit(song) }] : []),
+    ...(canDelete ? [{ label: "Delete song", icon: "trash" as const, danger: true, onClick: () => onDelete(song) }] : []),
+    ...(report ? [{ label: "Report this song", icon: "flag" as const, href: report }] : [])
+  ];
 
   useEffect(() => { store.set("lyrics-size", String(size)); }, [size]);
 
@@ -263,8 +273,7 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
         <IconButton icon="back" label="Back to songs" onClick={onBack} />
         <div className="lyr-act" role="group" aria-label="Song actions">
           <IconButton className={"sm sc-fav" + (fav ? " on" : "")} icon="heart" pressed={fav} label={fav ? "Remove from favourites" : "Add to favourites"} onClick={() => favs.toggle(song.id)} />
-          {admin && <IconButton className="sm" icon="edit" label="Edit this song" onClick={() => onEdit(song)} />}
-          {canDelete && <IconButton className="sm danger" icon="trash" label="Delete this song" onClick={() => onDelete(song)} />}
+          {more.length > 0 && <Menu className="sm" label="More actions" items={more} />}
         </div>
         {/* These controls never come and go, so nothing shifts when auto-scroll starts */}
         <div className="lyr-read" role="group" aria-label="Reading tools">
@@ -284,7 +293,6 @@ function Lyrics({ song, admin, canDelete, onBack, onEdit, onDelete }: LyricsProp
         {song.lyrics.trim() ? <pre>{song.lyrics}</pre> : <p className="meta soon">Lyrics for this song will be added soon.</p>}
         <p className="meta"><FindOnline song={song} /></p>
         {song.credit && <p className="meta credit">{song.credit}</p>}
-        {reportLink("x") && <p className="meta"><a href={reportLink(`Report song: ${song.title}`)}>Report this song</a></p>}
       </div>
     </div>
   );

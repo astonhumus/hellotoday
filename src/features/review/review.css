@@ -32,3 +32,11 @@
 .rv-add { gap: var(--s-3); }
 
 @media (max-width: 520px) { .rv-member { flex-wrap: wrap; } .rv-actions .btn { flex: 1; } }
+
+/* Long words (emails, web addresses, long names) wrap inside the card instead of stretching it past the screen edge */
+.rv-section, .rv-card { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.rv-card, .rv-title, .rv-body, .rv-map, .diff del, .diff ins { overflow-wrap: anywhere; }
+.diff del, .diff ins { display: block; }
+.rv-map { width: auto; }
+/* who, where, what: small grey pills */
+.rv-tags .tag { display: inline-flex; align-items: center; max-width: 100%; padding: 2px var(--s-2); border-radius: var(--radius); background: var(--surface-2); color: var(--text-2); font-size: var(--text-xs); font-weight: var(--w-medium); overflow-wrap: anywhere; }

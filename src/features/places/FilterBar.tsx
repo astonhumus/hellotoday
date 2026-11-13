@@ -36,7 +36,6 @@ interface Props {
   onNear: () => void;
   filtering: boolean;                     // any filter or search is active
   onReset: () => void;
-  onManageCategories?: () => void;       // admin only
 }
 
 /**
@@ -59,7 +58,6 @@ export function FilterBar(p: Props) {
         {p.categories.map(c => (
           <Chip key={c.id} pressed={p.picked.has(c.id)} icon={c.icon} iconColor={c.color} count={p.counts[c.id]} onClick={() => p.onToggleCategory(c.id)}>{c.label}</Chip>
         ))}
-        {p.onManageCategories && <Chip pressed={false} icon="edit" onClick={p.onManageCategories} title="Add, rename, reorder or delete categories">Manage categories</Chip>}
       </div>}
       {open && !p.compact && (
         <div className="fb-more" id="fb-more">

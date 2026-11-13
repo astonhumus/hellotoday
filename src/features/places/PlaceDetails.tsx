@@ -9,6 +9,7 @@ import { canSuggest, openSuggest } from "../../lib/suggest";
 import { reportLink } from "../../components/AboutPage";
 import { Button } from "../../ui/Button";
 import { Icon } from "../../ui/Icon";
+import { Menu } from "../../ui/Menu";
 
 interface Props {
   place: Place;
@@ -123,9 +124,11 @@ export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorit
 
       {admin && (
         <div className="pd-admin">
-          <Button icon="edit" onClick={onEdit}>Edit</Button>
-          {onClosure && <Button icon="clock" onClick={onClosure}>{p.closure ? "Closure / reopen" : "Close or archive"}</Button>}
-          {canDelete && <Button variant="danger" icon="trash" onClick={onDelete}>Delete</Button>}
+          <Button icon="edit" onClick={onEdit}>Edit place</Button>
+          {(onClosure || canDelete) && <Menu label="More admin actions" items={[
+            ...(onClosure ? [{ label: p.closure ? "Change closure or reopen" : "Mark closed or archive", icon: "clock" as const, onClick: onClosure }] : []),
+            ...(canDelete ? [{ label: "Delete place", icon: "trash" as const, danger: true, onClick: onDelete }] : [])
+          ]} />}
         </div>
       )}
     </div>

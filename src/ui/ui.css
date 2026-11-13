@@ -46,6 +46,7 @@
 .search-field:hover { border-color: var(--text-2); }
 .search-field:focus-within { outline: var(--focus-ring); outline-offset: 0; border-color: var(--accent); color: var(--text); }
 .search-field input { flex: 1; min-width: 0; width: auto; min-height: 0; padding: var(--s-3) 0; border: 0; border-radius: 0; background: none; outline: none; -webkit-appearance: none; appearance: none; }
+.search-field input::-webkit-search-cancel-button, .search-field input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; } /* the field has its own clear button */
 .search-clear { width: var(--tap); height: var(--tap); border: 0; border-radius: var(--radius-full); background: transparent; color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
 .search-clear:hover { background: var(--hover); color: var(--text); }
 .search-clear:active { background: var(--pressed); }
@@ -92,3 +93,12 @@
 
 /* The step switch: the tab that isn't selected keeps a light background so it still reads as a button */
 .seg-btn:not([aria-pressed="true"]) { background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); }
+
+/* "⋯" menu: a short list of less-used actions, fixed to the screen so no card clips it */
+.menu { position: fixed; z-index: 2000; min-width: 12rem; max-width: calc(100vw - 16px); display: grid; padding: var(--s-1); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-float); }
+.menu.up { transform: translateY(-100%); }
+.menu-item { display: flex; align-items: center; gap: var(--s-3); min-height: var(--tap); padding: 0 var(--s-3); border: 0; border-radius: calc(var(--radius) - 2px); background: none; color: var(--text); font: inherit; font-size: var(--text-sm); text-align: left; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.menu-item .icon { color: var(--text-2); }
+.menu-item:hover, .menu-item:focus-visible { background: var(--hover); outline: none; }
+.menu-item:active { background: var(--pressed); }
+.menu-item.danger, .menu-item.danger .icon { color: var(--danger); }

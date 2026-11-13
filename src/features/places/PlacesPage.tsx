@@ -27,6 +27,7 @@ import { FilterBar } from "./FilterBar";
 import { PlaceCard } from "./PlaceCard";
 import { PlaceDetails } from "./PlaceDetails";
 import { EmptyState, Skeleton } from "../../ui/States";
+import { Menu } from "../../ui/Menu";
 import "./places.css";
 
 interface Props {
@@ -187,6 +188,16 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
 
   const filtering = picked.size > 0 || district !== "all" || !!q.trim() || visitedOnly || favOnly || closedOnly || tripOnly || sortNear;
   const pinsOn = showAll || filtering;
+  // The number on each category chip is how many places choosing it would show, given the other filters (district, favourites, …),
+  // so it matches the list and the numbers on the map.
+  const chipCounts = useMemo(() => {
+    const m: Record<string, number> = {};
+    places.forEach(p => {
+      if ((district === "all" || p.district === district) && (!visitedOnly || visitedIds.has(p.id)) && (!closedOnly || !!p.closure) && (!favOnly || favs.set.has(p.id)) && (!tripOnly || trip.set.has(p.id)))
+        m[p.category] = (m[p.category] ?? 0) + 1;
+    });
+    return m;
+  }, [places, district, visitedOnly, visitedIds, closedOnly, favOnly, favs.set, tripOnly, trip.set]);
   const pickedCat = picked.size === 1 ? categories.find(c => c.id === [...picked][0]) : undefined;
   const selected = selectedId ? places.find(p => p.id === selectedId) ?? null : null;
   const missing = !!selectedId && !selected && ready && !loading; // an address for a place that doesn't exist (any more)
@@ -241,15 +252,18 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
     if (await confirmAsk(`Delete "${p.name}"?`, { yes: "Delete", danger: true })) { onDeletePlace(p.id); closeDetails(); }
   };
 
+  // One main action; the rest (categories, export, import) sit behind "⋯" so the row never wraps.
+  const importInput = useRef<HTMLInputElement>(null);
   const adminTools = admin && (
     <div className="pl-tools">
       <Button variant="primary" icon="plus" onClick={() => setDialog({ editing: null })}>Add place</Button>
-      {onSaveCategory && <Button onClick={() => setCatDialog(true)}>Categories</Button>}
-      <Button onClick={onExport} disabled={!exportCount}>Export ({exportCount})</Button>
-      <label className="btn file">Import
-        <input type="file" accept=".json,application/json" hidden
-          onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onImport(f); }} />
-      </label>
+      <Menu label="More admin tools" items={[
+        ...(onSaveCategory ? [{ label: "Manage categories", icon: "edit" as const, onClick: () => setCatDialog(true) }] : []),
+        ...(exportCount ? [{ label: `Export places (${exportCount})`, icon: "download" as const, onClick: onExport }] : []),
+        { label: "Import places", icon: "up", onClick: () => importInput.current?.click() }
+      ]} />
+      <input ref={importInput} type="file" accept=".json,application/json" hidden
+        onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onImport(f); }} />
     </div>
   );
 
@@ -369,14 +383,14 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   ) : null;
 
   const filterBar = (
-    <FilterBar q={q} onQuery={setQ} categories={visibleCats} counts={counts} picked={picked} onToggleCategory={toggleCategory}
+    <FilterBar q={q} onQuery={setQ} categories={visibleCats} counts={chipCounts} picked={picked} onToggleCategory={toggleCategory}
       onAllCategories={clearCategories} allOn={showAll && !filtering} onAll={() => { clearFilters(); setShowAll(true); }} districts={districts} district={district} onDistrict={setDistrict}
       visitedOnly={visitedOnly} onVisitedOnly={() => setVisitedOnly(v => !v)} visitedCount={visitedHere}
       tripOnly={tripOnly} onTripOnly={() => setTripOnly(v => !v)} tripCount={tripHere}
       onSearchFocus={phone ? () => setSnap("full") : undefined}
       closedOnly={closedOnly} onClosedOnly={admin ? () => setClosedOnly(v => !v) : undefined} closedCount={closedIds.size}
       favOnly={favOnly} onFavOnly={() => setFavOnly(v => !v)} favCount={favHere} filtering={filtering} onReset={clearFilters}
-      compact={!phone && !!selected} near={sortNear} onNear={toggleNear} allRegions={allRegions} onAllRegions={onAllRegions} onManageCategories={onSaveCategory ? () => setCatDialog(true) : undefined} />
+      compact={!phone && !!selected} near={sortNear} onNear={toggleNear} allRegions={allRegions} onAllRegions={onAllRegions} />
   );
 
   const n = filtered.length;

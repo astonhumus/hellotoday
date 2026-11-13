@@ -3,6 +3,7 @@ import type { Category } from "../../types";
 import { confirmAsk, notify } from "../../lib/ui";
 import { Button, IconButton } from "../../ui/Button";
 import { Icon } from "../../ui/Icon";
+import { Menu } from "../../ui/Menu";
 
 const ICON_CHOICES = ["landmark", "tree-pine", "utensils", "bed-double", "tree-palm", "coffee", "pin", "music", "home", "backpack", "shirt", "car"];
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -65,10 +66,14 @@ export function CategoryManager({ categories, counts, usageOf, onSave, onDelete,
                 <li key={c.id} className="cat-row">
                   <span className="cat-dot" style={{ background: c.color }} aria-hidden="true"><Icon name={c.icon} size={16} /></span>
                   <span className="cat-name">{c.label} <small>({counts[c.id] ?? 0})</small></span>
-                  <IconButton className="sm" icon="chevron-up" label={`Move ${c.label} up`} onClick={() => move(i, -1)} disabled={i === 0} />
-                  <IconButton className="sm" icon="chevron-down" label={`Move ${c.label} down`} onClick={() => move(i, 1)} disabled={i === categories.length - 1} />
-                  <IconButton className="sm" icon="edit" label={`Edit ${c.label}`} onClick={() => start(c)} />
-                  <IconButton className="sm danger" icon="trash" label={`Delete ${c.label}`} onClick={() => remove(c)} />
+                  <span className="cat-ctl">
+                    <IconButton className="sm" icon="chevron-up" label={`Move ${c.label} up`} onClick={() => move(i, -1)} disabled={i === 0} />
+                    <IconButton className="sm" icon="chevron-down" label={`Move ${c.label} down`} onClick={() => move(i, 1)} disabled={i === categories.length - 1} />
+                    <Menu className="sm" label={`More actions for ${c.label}`} items={[
+                      { label: "Edit category", icon: "edit", onClick: () => start(c) },
+                      { label: "Delete category", icon: "trash", danger: true, onClick: () => remove(c) }
+                    ]} />
+                  </span>
                 </li>
               ))}
             </ul>
