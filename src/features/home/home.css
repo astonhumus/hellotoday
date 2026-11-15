@@ -61,3 +61,10 @@
   .hero-search > .icon { display: none; }
   .hero-search .btn { padding: 0 var(--s-3); }
 }
+
+/* featured places: chosen by an admin or contributor */
+.home-h-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); }
+.home-h-row .link { font-size: var(--text-sm); }
+.feat-hint { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-4); border: 1px dashed var(--border-strong); border-radius: var(--radius); background: var(--surface); }
+.feat-hint p { margin: var(--s-1) 0 var(--s-3); color: var(--text-2); font-size: var(--text-sm); }
+.feat-hint .btn { text-decoration: none; display: inline-flex; }

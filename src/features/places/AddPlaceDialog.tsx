@@ -39,6 +39,7 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
   const [hours, setHours] = useState(editing?.hours ?? "");
   const [fee, setFee] = useState(editing?.fee ?? "");
   const [season, setSeason] = useState(editing?.season ?? "");
+  const [featured, setFeatured] = useState(!!editing?.featured);
   // The address fills itself in from the map spot until someone types their own (then it is left alone).
   const [address, setAddress] = useState(editing?.address ?? "");
   const [addrAuto, setAddrAuto] = useState(!editing?.address);
@@ -49,7 +50,7 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
     || website !== (editing?.website ?? "") || notes !== (editing?.notes ?? "") || visited !== (editing?.visited ?? "") || category !== (editing?.category ?? categories[0]?.id ?? "")
     || coordText !== (editing ? formatCoords(editing.lat, editing.lng) : "") || approx !== (editing?.approx ?? false)
     || photo !== (editing?.photo ?? "") || hours !== (editing?.hours ?? "") || fee !== (editing?.fee ?? "") || season !== (editing?.season ?? "")
-    || (!addrAuto && address !== (editing?.address ?? ""));
+    || (!addrAuto && address !== (editing?.address ?? "")) || featured !== !!editing?.featured;
   const cancel = useDirtyClose(dlg, dirty);
   const parsed = parseCoords(coordText);
 
@@ -104,6 +105,7 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
       desc: desc.trim() || undefined, phone: phone.trim() || undefined,
       website: safeUrl(website.trim()) || undefined, approx: approx || undefined,
       visited: visited || undefined, notes: notes.trim() || undefined,
+      featured: featured || undefined,
       photo: photo.trim() || undefined, hours: hours.trim() || undefined, fee: fee.trim() || undefined, season: season.trim() || undefined,
       // An edit keeps the place's closure as it is (the form does not change it).
       ...(editing ? { closure: editing.closure, closureNote: editing.closureNote, closedOn: editing.closedOn } : {})
@@ -152,6 +154,10 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
             : <>Your own address is kept. <button type="button" className="link" onClick={() => { setAddrAuto(true); setAddress(""); void lookupAddress(parsed.lat, parsed.lng); }}>Fill in from the map instead</button></>}
         </p>
         <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={1000} /></label>
+        <label className="check feature-check">
+          <input type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)} />
+          <span><strong>Feature on the home page</strong><small>Shown to every visitor under “Featured places”. Pick the best few, ideally with a picture.</small></span>
+        </label>
         <details className="more" open={!!(editing && (editing.visited || editing.notes || editing.phone || editing.website || editing.approx || editing.photo || editing.hours || editing.fee || editing.season))}>
           <summary>More details</summary>
           <div className="more-body">

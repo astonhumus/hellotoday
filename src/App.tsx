@@ -183,9 +183,10 @@ export default function App() {
   // With Supabase, places and songs are rows in their own tables; without it, edits are kept in this browser.
   const nul = <T,>(v: T | null | undefined) => v ?? undefined;
   const dbPlaces = useRows<Place>(supabase && state ? {
-    table: "places", kind: "place", columns: "id,state_id,category_id,name,district,address,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
-    // Older databases miss the newest columns until supabase/extras.sql, archive.sql and address.sql have been run: try the shorter lists in turn.
+    table: "places", kind: "place", columns: "id,state_id,category_id,name,district,address,featured,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
+    // Older databases miss the newest columns until supabase/extras.sql, archive.sql, address.sql and featured.sql have been run: try the shorter lists in turn.
     fallbackColumns: [
+      "id,state_id,category_id,name,district,address,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
       "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
       "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,status,review_note,updated_at",
       "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,status,review_note,updated_at"
@@ -194,13 +195,13 @@ export default function App() {
       description: p.desc ?? null, phone: p.phone ?? null, website: p.website ?? null, approx: !!p.approx,
       visited: p.visited ?? null, notes: p.notes ?? null,
       // The picture and the practical details are sent only when set, so a database that hasn't got the columns yet still saves places.
-      ...(p.photo ? { photo: p.photo } : {}), ...(p.hours ? { hours: p.hours } : {}), ...(p.fee ? { fee: p.fee } : {}), ...(p.season ? { season: p.season } : {}), ...(p.address ? { address: p.address } : {}),
+      ...(p.photo ? { photo: p.photo } : {}), ...(p.hours ? { hours: p.hours } : {}), ...(p.fee ? { fee: p.fee } : {}), ...(p.season ? { season: p.season } : {}), ...(p.address ? { address: p.address } : {}), featured: !!p.featured,
       // Only when the change is about closing/reopening (the key is present, null = reopen): an ordinary edit must not touch it.
       ...("closure" in p ? { closure: p.closure ?? null, closure_note: p.closure ? p.closureNote ?? null : null, closed_on: p.closure ? p.closedOn ?? null : null } : {}) }),
     fromRow: r => ({ id: r.id as string, name: r.name as string, category: r.category_id as string, district: nul(r.district as string),
       regionId: r.state_id as string, lat: r.lat as number, lng: r.lng as number, desc: nul(r.description as string), phone: nul(r.phone as string),
       website: nul(r.website as string), approx: r.approx ? true : undefined, visited: nul(r.visited as string), notes: nul(r.notes as string),
-      photo: nul(r.photo as string), hours: nul(r.hours as string), fee: nul(r.fee as string), season: nul(r.season as string), address: nul(r.address as string),
+      photo: nul(r.photo as string), hours: nul(r.hours as string), fee: nul(r.fee as string), season: nul(r.season as string), address: nul(r.address as string), featured: r.featured ? true : undefined,
       closure: (r.closure as Place["closure"]) ?? undefined, closureNote: nul(r.closure_note as string), closedOn: nul(r.closed_on as string),
       status: r.status as Place["status"], reviewNote: nul(r.review_note as string), updatedAt: nul(r.updated_at as string) })
   } : null, base);
@@ -306,7 +307,7 @@ export default function App() {
         visited: /^\d{4}-\d{2}-\d{2}$/.test(r.visited) ? r.visited : undefined,
         website: /^https?:\/\//i.test(r.website ?? "") ? String(r.website).slice(0, LIMITS.website) : undefined, approx: r.approx === true || r.approx === "true" ? true : undefined,
         photo: /^https:\/\//i.test(r.photo ?? "") ? String(r.photo).slice(0, LIMITS.photo) : undefined,
-        hours: str(r.hours, LIMITS.hours), fee: str(r.fee, LIMITS.fee), season: str(r.season, LIMITS.season), address: str(r.address, LIMITS.address)
+        hours: str(r.hours, LIMITS.hours), fee: str(r.fee, LIMITS.fee), season: str(r.season, LIMITS.season), address: str(r.address, LIMITS.address), featured: r.featured === true || r.featured === "true" ? true : undefined
       });
     });
     const ok = await placeStore.addMany(added);
@@ -319,12 +320,14 @@ export default function App() {
   const canEdit = supabase ? signedIn : false;
 
   return (
-    <div className="app">
+    // Only Home has the title bar (name, region, settings). Other pages give the space to their content and keep just the menu:
+    // the bottom tab bar on phones, a slim rail at the left on wide screens.
+    <div className={"app" + (page === "home" ? "" : " bare")}>
       <a className="skip-link" href="#main" onClick={e => { e.preventDefault(); document.getElementById("main")?.focus(); }}>Skip to content</a>
       <header>
-        <p className="site-name"><a href="#/" className="brand">Explore Hack</a></p>
-        <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion}
-          open={regionOpen} onOpen={() => setRegionOpen(true)} onClose={() => setRegionOpen(false)} />
+        {page === "home" && <p className="site-name"><a href="#/" className="brand">Explore Hack</a></p>}
+        {page === "home" && <RegionPicker countries={countries} country={country} state={state} onChoose={chooseRegion}
+          open={regionOpen} onOpen={() => setRegionOpen(true)} onClose={() => setRegionOpen(false)} />}
         <nav className="tabs" aria-label="Main menu">
           <a href="#/" aria-current={page === "home" ? "page" : undefined}><Icon name="home" size={22} /> Home</a>
           <a href="#/places" aria-current={page === "places" ? "page" : undefined}><Icon name="map" size={22} /> Places</a>
@@ -332,7 +335,7 @@ export default function App() {
           <a href="#/checklist" aria-current={page === "checklist" ? "page" : undefined}><Icon name="checklist" size={22} /> Checklist</a>
         </nav>
         {/* After the menu in the markup so it sits at the far right on wide screens; on phones the menu is a bottom bar and this stays at the right edge */}
-        <button type="button" className="icon-btn header-settings" aria-label={pending ? `Settings (${pending} to review)` : "Settings"} title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>
+        {page === "home" && <button type="button" className="icon-btn header-settings" aria-label={pending ? `Settings (${pending} to review)` : "Settings"} title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>}
         <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) goBack("#/"); }} />
       </header>
       <PwaBar showInstall={page === "home"} canEdit={canEdit} />
@@ -351,7 +354,7 @@ export default function App() {
           <PlacesPage key={state.id} placeId={arg ? safeDecode(arg) : null} onOpenPlace={openPlace} queryKey={query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1", fav: params.get("fav") === "1", trip: params.get("trip") === "1", district: params.get("district") }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSaveCategory={IS_ADMIN ? categoryStore.save : undefined} onDeleteCategory={categoryStore.remove} categoryUsage={categoryUsage} allRegions={allRegions} onAllRegions={supabase ? () => setAllRegions(v => !v) : undefined} regionNames={regionNames} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
             onSavePlace={placeStore.save} onDeletePlace={placeStore.remove} exportCount={exportRows.length} onExport={exportPlaces} onImport={importPlaces} />
         )}
-        {page === "home" && <HomePage onChangeRegion={() => setRegionOpen(true)} state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
+        {page === "home" && <HomePage canEdit={ADMIN} onChangeRegion={() => setRegionOpen(true)} state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
         {page === "checklist" && <ChecklistPage catalog={checklist} ready={dataReady} admin={IS_ADMIN} />}
         {page === "review" && <ReviewPage categories={categories} />}
         {page === "about" && <AboutPage />}

@@ -22,12 +22,16 @@ const fail = (msg: string) => notify(`Couldn't save: ${explainError(msg)}`, "err
 
 // A database that hasn't had the newest migration yet (e.g. supabase/address.sql) refuses rows with that column.
 // Leave such optional columns out and try again, rather than losing the whole save.
-const OPTIONAL = new Set(["address"]);
+const OPTIONAL = new Set(["address", "featured"]);
 type Write = (rows: Row[]) => PromiseLike<{ error: { message: string } | null }>;
 async function writeTolerant(write: Write, rows: Row[]) {
   let res = await write(rows);
-  const col = res.error?.message.match(/'(\w+)' column/)?.[1];
-  if (col && OPTIONAL.has(col)) res = await write(rows.map(({ [col]: _drop, ...rest }) => rest));
+  for (let tries = 0; tries < OPTIONAL.size && res.error; tries++) {
+    const col = res.error.message.match(/'(\w+)' column/)?.[1];
+    if (!col || !OPTIONAL.has(col)) break;
+    rows = rows.map(({ [col]: _drop, ...rest }) => rest);
+    res = await write(rows);
+  }
   return res;
 }
 

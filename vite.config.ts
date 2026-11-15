@@ -41,14 +41,19 @@ export default defineConfig(({ mode }) => {
           handler: "StaleWhileRevalidate",
           options: { cacheName: "regions", expiration: { maxEntries: 30 }, cacheableResponse: { statuses: [200] } }
         }, {
-          // Map tiles you have looked at keep working offline. Cache-first, capped so it can't grow without limit.
-          urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
+          // Map pieces you have looked at keep working offline. Cache-first, capped so it can't grow without limit.
+          urlPattern: /^https:\/\/tiles\.openfreemap\.org\/(planet|natural_earth)\/.+\.(pbf|png)$/,
           handler: "CacheFirst",
           options: {
             cacheName: "map-tiles",
-            expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 30 },
             cacheableResponse: { statuses: [0, 200] }
           }
+        }, {
+          // The map's style, fonts and symbols: shown from the cache straight away, refreshed in the background.
+          urlPattern: /^https:\/\/tiles\.openfreemap\.org\/(styles|fonts|sprites|planet$)/,
+          handler: "StaleWhileRevalidate",
+          options: { cacheName: "map-style", expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 }, cacheableResponse: { statuses: [0, 200] } }
         }]
       },
       manifest: {

@@ -6,8 +6,9 @@
   Cross-Origin-Opener-Policy: same-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Cross-Origin-Resource-Policy: same-origin
-  # Only this site's own code may run. If you change the map tile provider (VITE_TILE_URL), add its host to img-src.
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co https://tile.openstreetmap.org https://router.project-osrm.org https://nominatim.openstreetmap.org; frame-src https://challenges.cloudflare.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  # Only this site's own code may run. If you change the map style (VITE_MAP_STYLE), add its hosts to connect-src and img-src.
+  # The map draws in web workers started from blob: addresses (MapLibre).
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co https://tiles.openfreemap.org https://router.project-osrm.org https://nominatim.openstreetmap.org; frame-src https://challenges.cloudflare.com; worker-src 'self' blob:; child-src blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 # The service worker and page shell must always be re-checked so updates reach installed apps.
 /sw.js

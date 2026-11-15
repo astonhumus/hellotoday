@@ -6,7 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_KEY?: string;
   readonly VITE_ADMIN_ROUTE?: string;
   readonly VITE_TURNSTILE_SITE_KEY?: string;
-  readonly VITE_TILE_URL?: string;
+  readonly VITE_MAP_STYLE?: string;
+  readonly VITE_MAP_STYLE_DARK?: string;
   readonly VITE_ROUTING_URL?: string;
   readonly VITE_GEOCODER_URL?: string;
   readonly VITE_CONTACT_EMAIL?: string;
@@ -15,4 +16,3 @@ interface ImportMetaEnv {
 }
 
 
-declare module "leaflet-rotate"; // patches Leaflet in place; see src/lib/leafletRotate.ts

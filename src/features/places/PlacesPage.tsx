@@ -382,6 +382,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
       inTrip={trip.has(selected.id)} onToggleTrip={() => toggleTripStop(selected)}
       onToggleVisited={() => toggleVisited(selected)} admin={admin} canDelete={canDelete}
       onEdit={() => setDialog({ editing: selected })} onDelete={() => remove(selected)} onClosure={() => setClosing(selected)}
+      onToggleFeatured={admin ? () => { const { id, ...rest } = selected; onSavePlace({ ...rest, featured: !selected.featured || undefined }, id); } : undefined}
       distanceKm={me ? km(me, selected) : undefined} from={me ? { lat: me.lat, lng: me.lng } : undefined} onLocate={() => askLocation("fit")} locating={locating} />
   ) : missing ? (
     <EmptyState title="We couldn't find that place" hint="It may have been removed, or the link is incomplete." action={{ label: "See all places", onClick: () => onOpenPlace?.(null) }} />

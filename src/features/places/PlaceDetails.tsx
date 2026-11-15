@@ -29,6 +29,7 @@ interface Props {
   onEdit: () => void;
   onDelete: () => void;
   onClosure?: () => void;     // admin / contributor: close, archive or reopen
+  onToggleFeatured?: () => void; // admin / contributor: show it on the home page, or stop
   distanceKm?: number;        // straight-line distance from the visitor's GPS position, once known
   from?: { lat: number; lng: number }; // the visitor's GPS position, for the road distance
   onLocate?: () => void;      // ask for the position (or measure again)
@@ -36,7 +37,7 @@ interface Props {
 }
 
 /** Everything about one place, with the actions people actually want: directions, call, website, mark as visited. */
-export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorite, onToggleFavorite, inTrip, onToggleTrip, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete, onClosure, distanceKm, from, onLocate, locating }: Props) {
+export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorite, onToggleFavorite, inTrip, onToggleTrip, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete, onClosure, onToggleFeatured, distanceKm, from, onLocate, locating }: Props) {
   const [copied, setCopied] = useState(false);
   const [brokenPhoto, setBrokenPhoto] = useState(false);
   // The saved address, or (for places saved without one) the address OpenStreetMap gives for the spot.
@@ -79,9 +80,13 @@ export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorit
       <div className="pd-tags">
         <span className="pd-tag" style={c?.color ? { "--cat": c.color } as React.CSSProperties : undefined}><Icon name={c?.icon ?? "pin"} size={14} /> {c?.label ?? p.category}</span>
         {p.district && <span className="pd-tag plain">{p.district}</span>}
+        {p.featured && <span className="pd-tag featured"><Icon name="star" size={14} /> Featured</span>}
         {p.approx && <span className="pd-tag plain">Location is approximate</span>}
       </div>
 
+      <p className="pd-addr"><Icon name="pin" size={18} />
+        <span>{address ?? (looked ? "Address not available" : "Finding the address…")}{!p.address && address && <small> · from OpenStreetMap</small>}</span>
+      </p>
       {p.desc && <p className="pd-desc">{p.desc}</p>}
       {p.notes && <p className="pd-note">{p.notes}</p>}
       {facts.length > 0 && (
@@ -121,7 +126,6 @@ export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorit
       )}
 
       <ul className="pd-info">
-        <li><Icon name="map" /><span className="pd-addr">{address ?? (looked ? "Address not available" : "Finding the address…")}{!p.address && address && <small className="hint"> (from OpenStreetMap)</small>}</span></li>
         {p.phone && <li><Icon name="phone" /><a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}>{p.phone}</a></li>}
         {web && <li><Icon name="globe" /><a href={web} target="_blank" rel="noopener">{web.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "")}</a></li>}
         <li><Icon name="pin" /><span className="pd-coords">{coords}</span>
@@ -134,6 +138,12 @@ export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorit
       {admin && (
         <div className="pd-admin">
           <Button icon="edit" onClick={onEdit}>Edit place</Button>
+          {onToggleFeatured && (
+            <Button icon="star" className={p.featured ? "on" : ""} aria-pressed={!!p.featured} onClick={onToggleFeatured}
+              title={p.featured ? "Stop showing it on the home page" : "Show it under Featured places on the home page"}>
+              {p.featured ? "Featured on home" : "Feature on home"}
+            </Button>
+          )}
           {(onClosure || canDelete) && <Menu label="More admin actions" items={[
             ...(onClosure ? [{ label: p.closure ? "Change closure or reopen" : "Mark closed or archive", icon: "clock" as const, onClick: onClosure }] : []),
             ...(canDelete ? [{ label: "Delete place", icon: "trash" as const, danger: true, onClick: onDelete }] : [])

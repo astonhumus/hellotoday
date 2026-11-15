@@ -11,7 +11,7 @@ import { plural, safeHttps } from "../../lib/format";
 import "./home.css";
 
 const TILE_LIMIT = 6; // more categories than this: the rest sit behind "See all"
-const FEATURED = 6;
+const FEATURED = 12;
 
 interface Props {
   state?: StateInfo;   // undefined while the first data loads: the page shows placeholders so nothing jumps
@@ -19,22 +19,19 @@ interface Props {
   places: Place[];
   songCount: number;
   onChangeRegion?: () => void;
+  canEdit?: boolean;   // admin or contributor: may choose the featured places
 }
 
-// The same few places all day, a different few tomorrow: places with a picture first, then those with a description.
+// Only the places an admin or contributor chose to feature (nothing is picked automatically): those with a picture first, then by name.
 function pickFeatured(places: Place[]): Place[] {
-  const day = Math.floor(Date.now() / 86400000);
-  const hash = (id: string) => { let h = day; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
   return places
-    .filter(p => !p.closure && (p.status ?? "approved") === "approved")
-    .map(p => ({ p, rank: (safeHttps(p.photo) ? 0 : p.desc ? 1 : 2) * 1e10 + hash(p.id) % 1e9 }))
-    .sort((a, b) => a.rank - b.rank)
-    .slice(0, FEATURED)
-    .map(x => x.p);
+    .filter(p => p.featured && !p.closure && (p.status ?? "approved") === "approved")
+    .sort((a, b) => (safeHttps(a.photo) ? 0 : 1) - (safeHttps(b.photo) ? 0 : 1) || a.name.localeCompare(b.name))
+    .slice(0, FEATURED);
 }
 
 /** The front door: search, the categories as big tiles, shortcuts, and the other tools. Everything links into Places with a filter. */
-export function HomePage({ state, categories, places, songCount, onChangeRegion }: Props) {
+export function HomePage({ state, categories, places, songCount, onChangeRegion, canEdit = false }: Props) {
   const name = state?.name ?? "";
   usePageMeta(name ? `Explore ${name}: places to visit, eat and stay` : "Explore Hack: places to visit, eat and stay",
     `Tourist sites, picnic spots, snacks, hotels and resorts across ${name || "India"} on a map, plus song lyrics and a trip packing checklist. Works offline.`);
@@ -102,9 +99,26 @@ export function HomePage({ state, categories, places, songCount, onChangeRegion 
         </div>
       </section>
 
+      {/* Members see how to fill an empty row; visitors simply don't see the section until something is featured */}
+      {featured.length === 0 && canEdit && places.length > 0 && (
+        <section aria-labelledby="h-feat" className="feat-empty">
+          <h2 id="h-feat" className="home-h">Featured places</h2>
+          <div className="feat-hint">
+            <span className="rc-icon" aria-hidden="true"><Icon name="star" size={22} /></span>
+            <div>
+              <strong>Nothing featured yet</strong>
+              <p>Open a place and tap <b>Feature on home</b>, or tick “Feature on the home page” when adding one. Visitors see this row only once something is featured.</p>
+              <a className="btn" href="#/places">Choose places</a>
+            </div>
+          </div>
+        </section>
+      )}
       {featured.length > 0 && (
         <section aria-labelledby="h-feat">
-          <h2 id="h-feat" className="home-h">Featured places</h2>
+          <div className="home-h-row">
+            <h2 id="h-feat" className="home-h">Featured places</h2>
+            {canEdit && <a className="link" href="#/places">Change</a>}
+          </div>
           <ul className="featured">
             {featured.map(p => {
               const c = catById[p.category], photo = safeHttps(p.photo);

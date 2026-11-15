@@ -34,7 +34,7 @@ export function PlaceCard({ place: p, category: c, active, visited, favorite, di
           {stop != null && <span className="pc-stop">{stop}</span>}
         </span>
         <span className="pc-text">
-          <span className="pc-name">{p.name}</span>
+          <span className="pc-name">{p.name}{p.featured && <span className="pc-feat" title="Featured on the home page"><Icon name="star" size={14} /><span className="sr-only"> (featured)</span></span>}</span>
           <span className="pc-meta">{c?.label ?? p.category}{p.district ? ` · ${p.district}` : ""}{region ? ` · ${region}` : ""}{p.approx ? " · approx." : ""}{distanceKm != null ? ` · ${formatDistance(distanceKm)} away` : ""}</span>
           {p.desc && <span className="pc-desc">{p.desc}</span>}
           {p.closure && (

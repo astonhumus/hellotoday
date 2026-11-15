@@ -30,6 +30,7 @@ export interface Place {
   category: string;
   district?: string;
   address?: string; // street address; filled in from the map spot when not typed
+  featured?: boolean; // shown on the home page; chosen by an admin or contributor
   lat: number;
   lng: number;
   desc?: string;
