@@ -3,6 +3,8 @@ import type { Category, Place } from "../../types";
 import { formatCoords } from "../../lib/coords";
 import { appleMapsUrl, googleDirectionsUrl } from "../../lib/nav";
 import { formatDistance } from "../../lib/prefs";
+import { formatMinutes, useRoadRoute } from "../../lib/roads";
+import { useAddress } from "../../lib/address";
 import { formatDate, safeHttps } from "../../lib/format";
 import { notify } from "../../lib/ui";
 import { canSuggest, openSuggest } from "../../lib/suggest";
@@ -28,14 +30,18 @@ interface Props {
   onDelete: () => void;
   onClosure?: () => void;     // admin / contributor: close, archive or reopen
   distanceKm?: number;        // straight-line distance from the visitor's GPS position, once known
+  from?: { lat: number; lng: number }; // the visitor's GPS position, for the road distance
   onLocate?: () => void;      // ask for the position (or measure again)
   locating?: boolean;
 }
 
 /** Everything about one place, with the actions people actually want: directions, call, website, mark as visited. */
-export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorite, onToggleFavorite, inTrip, onToggleTrip, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete, onClosure, distanceKm, onLocate, locating }: Props) {
+export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorite, onToggleFavorite, inTrip, onToggleTrip, visitedOn, onToggleVisited, admin, canDelete, onEdit, onDelete, onClosure, distanceKm, from, onLocate, locating }: Props) {
   const [copied, setCopied] = useState(false);
   const [brokenPhoto, setBrokenPhoto] = useState(false);
+  // The saved address, or (for places saved without one) the address OpenStreetMap gives for the spot.
+  const { address, looked } = useAddress(p.lat, p.lng, p.address);
+  const { route: road, loading: roadLoading } = useRoadRoute(from ? [from, { lat: p.lat, lng: p.lng }] : null);
   const coords = formatCoords(p.lat, p.lng);
   const copy = () => navigator.clipboard?.writeText(coords).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
   const apple = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent); // the Apple Maps link only helps on Apple devices
@@ -104,8 +110,10 @@ export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorit
         <div className="pd-dist" aria-live="polite">
           <Icon name="locate" size={22} />
           <div className="pd-dist-text">
-            {distanceKm != null
-              ? <><strong>{formatDistance(distanceKm)}</strong> from your location<small>Straight-line distance. Roads are longer; use Directions for the route.</small></>
+            {road
+              ? <><strong>{formatDistance(road.km)} by road</strong> about {formatMinutes(road.minutes)} by car from your location<small>{distanceKm != null ? `${formatDistance(distanceKm)} in a straight line. ` : ""}Traffic and road conditions may add time.</small></>
+              : distanceKm != null
+              ? <><strong>{formatDistance(distanceKm)}</strong> in a straight line from your location<small>{roadLoading ? "Finding the road distance…" : "Road distance unavailable right now. Use Directions for the route."}</small></>
               : <><strong>How far is it from you?</strong><small>Uses your phone's GPS. Your position is never sent anywhere.</small></>}
           </div>
           <Button onClick={onLocate} disabled={locating}>{locating ? "Locating…" : distanceKm != null ? "Update" : "Check"}</Button>
@@ -113,6 +121,7 @@ export function PlaceDetails({ place: p, category: c, shareUrl, visited, favorit
       )}
 
       <ul className="pd-info">
+        <li><Icon name="map" /><span className="pd-addr">{address ?? (looked ? "Address not available" : "Finding the address…")}{!p.address && address && <small className="hint"> (from OpenStreetMap)</small>}</span></li>
         {p.phone && <li><Icon name="phone" /><a href={`tel:${p.phone.replace(/[^\d+]/g, "")}`}>{p.phone}</a></li>}
         {web && <li><Icon name="globe" /><a href={web} target="_blank" rel="noopener">{web.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "")}</a></li>}
         <li><Icon name="pin" /><span className="pd-coords">{coords}</span>

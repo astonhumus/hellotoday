@@ -16,6 +16,7 @@ import { plural } from "../../lib/format";
 import { formatDistance } from "../../lib/prefs";
 import { canSuggest, openSuggest } from "../../lib/suggest";
 import { googleRouteUrl } from "../../lib/nav";
+import { formatMinutes, useRoadRoute } from "../../lib/roads";
 import { searchPlaces, SEARCH_MAX } from "../../lib/search";
 import { canGoBack, goBack } from "../../lib/nav";
 import { rememberRecent } from "../../ui/SearchField";
@@ -305,16 +306,20 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
   const shareUrl = (p: Place) =>
     `${location.origin}${location.pathname}#/places/${encodeURIComponent(p.id)}?region=${encodeURIComponent(p.regionId ?? state.id)}&country=${encodeURIComponent(state.country ?? "IND")}`;
 
-  const tripKm = tripOnly ? pathKm([...(start ? [start] : []), ...filtered]) : 0;
+  const tripStops = tripOnly && !q.trim() ? [...(start ? [start] : []), ...filtered] : [];
+  const tripKm = tripOnly ? pathKm(tripStops) : 0;
+  const { route: tripRoad, loading: tripRoadLoading } = useRoadRoute(tripStops.length > 1 && tripStops.length <= 25 ? tripStops : null);
   const tripPanel = tripOnly && filtered.length > 0 && !q.trim() && (
     <div className="trip-panel">
-      <p><strong>{plural(filtered.length, "stop")}</strong> · about {formatDistance(tripKm)} in a straight line{start ? ", starting from you" : ""}</p>
+      <p><strong>{plural(filtered.length, "stop")}</strong> · {tripRoad
+        ? <>{formatDistance(tripRoad.km)} by road, about {formatMinutes(tripRoad.minutes)} driving</>
+        : <>about {formatDistance(tripKm)} in a straight line{tripRoadLoading ? " (finding the road distance…)" : ""}</>}{start ? ", starting from you" : ""}</p>
       <div className="trip-actions">
         <a className="btn primary" href={googleRouteUrl(filtered)} target="_blank" rel="noopener"><span className="sr-only">Open the route in </span>Open route in Google Maps</a>
         {!start && <Button icon="locate" disabled={locating} onClick={() => void askLocation("quiet")}>{locating ? "Locating…" : "Start from my location"}</Button>}
         <Button icon="trash" onClick={async () => { if (await confirmAsk(`Remove all ${plural(trip.count, "stop")} from your trip?`, { yes: "Clear trip", danger: true })) { trip.clear(); setTripOnly(false); } }}>Clear trip</Button>
       </div>
-      <p className="hint">The order is a quick estimate: always the nearest stop next. Distances are straight lines; the route in Google Maps follows real roads.</p>
+      <p className="hint">The order is a quick estimate: always the nearest stop next. Road distance and time are estimates without traffic.</p>
     </div>
   );
 
@@ -377,7 +382,7 @@ export function PlacesPage({ initial, queryKey, placeId = null, onOpenPlace, sta
       inTrip={trip.has(selected.id)} onToggleTrip={() => toggleTripStop(selected)}
       onToggleVisited={() => toggleVisited(selected)} admin={admin} canDelete={canDelete}
       onEdit={() => setDialog({ editing: selected })} onDelete={() => remove(selected)} onClosure={() => setClosing(selected)}
-      distanceKm={me ? km(me, selected) : undefined} onLocate={() => askLocation("fit")} locating={locating} />
+      distanceKm={me ? km(me, selected) : undefined} from={me ? { lat: me.lat, lng: me.lng } : undefined} onLocate={() => askLocation("fit")} locating={locating} />
   ) : missing ? (
     <EmptyState title="We couldn't find that place" hint="It may have been removed, or the link is incomplete." action={{ label: "See all places", onClick: () => onOpenPlace?.(null) }} />
   ) : null;

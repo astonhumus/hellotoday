@@ -29,6 +29,7 @@ export interface Place {
   name: string;
   category: string;
   district?: string;
+  address?: string; // street address; filled in from the map spot when not typed
   lat: number;
   lng: number;
   desc?: string;

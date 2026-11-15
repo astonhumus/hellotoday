@@ -20,6 +20,17 @@ interface Spec<T> {
 
 const fail = (msg: string) => notify(`Couldn't save: ${explainError(msg)}`, "error");
 
+// A database that hasn't had the newest migration yet (e.g. supabase/address.sql) refuses rows with that column.
+// Leave such optional columns out and try again, rather than losing the whole save.
+const OPTIONAL = new Set(["address"]);
+type Write = (rows: Row[]) => PromiseLike<{ error: { message: string } | null }>;
+async function writeTolerant(write: Write, rows: Row[]) {
+  let res = await write(rows);
+  const col = res.error?.message.match(/'(\w+)' column/)?.[1];
+  if (col && OPTIONAL.has(col)) res = await write(rows.map(({ [col]: _drop, ...rest }) => rest));
+  return res;
+}
+
 /**
  * Items stored as real rows in a Supabase table. `fallback` (the bundled JSON) is shown while loading
  * and when the database can't be reached, e.g. offline. Pass spec = null to stay inert.
@@ -90,7 +101,7 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
     const newId = id ?? "u-" + Date.now().toString(36);
     const next = { ...item, id: newId } as T;
     setRows(cur => { const base = cur ?? fallback; return base.some(x => x.id === newId) ? base.map(x => (x.id === newId ? next : x)) : [...base, next]; });
-    const { error } = await supabase.from(spec.table).upsert(scoped(spec.toRow(item, newId)));
+    const { error } = await writeTolerant(r => supabase!.from(spec.table).upsert(r), [scoped(spec.toRow(item, newId))]);
     if (error) { void fail(error.message); setRows(before); } // put the screen back: the change was NOT stored (also when offline)
     else if (!id && spec.propose) void notify("Thanks! Your submission is waiting for admin approval. Only you can see it until then.");
     loadSoon();
@@ -110,7 +121,7 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
     if (!supabase || !spec || !more.length) return true;
     // In chunks, so one huge import is not a single giant request.
     for (let i = 0; i < more.length; i += 200) {
-      const { error } = await supabase.from(spec.table).upsert(more.slice(i, i + 200).map(({ id, ...rest }) => scoped(spec.toRow(rest, id))));
+      const { error } = await writeTolerant(r => supabase!.from(spec.table).upsert(r), more.slice(i, i + 200).map(({ id, ...rest }) => scoped(spec.toRow(rest, id))));
       if (error) { void fail(error.message); loadSoon(); return false; }
     }
     loadSoon();

@@ -7,7 +7,12 @@ interface ImportMetaEnv {
   readonly VITE_ADMIN_ROUTE?: string;
   readonly VITE_TURNSTILE_SITE_KEY?: string;
   readonly VITE_TILE_URL?: string;
+  readonly VITE_ROUTING_URL?: string;
+  readonly VITE_GEOCODER_URL?: string;
   readonly VITE_CONTACT_EMAIL?: string;
   readonly VITE_SITE_URL?: string;
   readonly VITE_GSC_VERIFICATION?: string;
 }
+
+
+declare module "leaflet-rotate"; // patches Leaflet in place; see src/lib/leafletRotate.ts

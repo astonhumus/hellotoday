@@ -129,6 +129,11 @@
 .pd-dist-text strong { font-size: var(--text-md); }
 .pd-dist-text small { color: var(--text-2); font-size: var(--text-xs); }
 @media (max-width: 760px) { .map-locate { top: calc(var(--filter-bar-h) + var(--s-1) + var(--tap) + var(--s-2)); } }
+/* The compass shows under the GPS button once the map is turned (see MapView) */
+.map-compass { position: absolute; top: calc(var(--s-3) + 2 * (var(--tap) + var(--s-2))); right: var(--s-3); z-index: 999; }
+.map-compass svg { transition: transform .1s linear; }
+@media (max-width: 760px) { .map-compass { top: calc(var(--filter-bar-h) + var(--s-1) + 2 * (var(--tap) + var(--s-2))); } }
+.pd-addr { white-space: normal; }
 
 /* ── no pins until something is chosen: a hint over the map ── */
 /* ── pins that overlap merge into a numbered circle ── */

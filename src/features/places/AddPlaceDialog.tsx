@@ -7,6 +7,7 @@ import { PhotoField } from "./PhotoField";
 import { supabase } from "../../lib/supabase";
 import { useDirtyClose } from "../../lib/useDirtyClose";
 import { LIMITS } from "../../lib/limits";
+import { addressAt } from "../../lib/address";
 
 interface Props {
   categories: Category[];
@@ -38,14 +39,36 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
   const [hours, setHours] = useState(editing?.hours ?? "");
   const [fee, setFee] = useState(editing?.fee ?? "");
   const [season, setSeason] = useState(editing?.season ?? "");
+  // The address fills itself in from the map spot until someone types their own (then it is left alone).
+  const [address, setAddress] = useState(editing?.address ?? "");
+  const [addrAuto, setAddrAuto] = useState(!editing?.address);
+  const [addrLooking, setAddrLooking] = useState(false);
 
   useEffect(() => { dlg.current?.showModal(); }, []);
   const dirty = name !== (editing?.name ?? "") || district !== (editing?.district ?? "") || desc !== (editing?.desc ?? "") || phone !== (editing?.phone ?? "")
     || website !== (editing?.website ?? "") || notes !== (editing?.notes ?? "") || visited !== (editing?.visited ?? "") || category !== (editing?.category ?? categories[0]?.id ?? "")
     || coordText !== (editing ? formatCoords(editing.lat, editing.lng) : "") || approx !== (editing?.approx ?? false)
-    || photo !== (editing?.photo ?? "") || hours !== (editing?.hours ?? "") || fee !== (editing?.fee ?? "") || season !== (editing?.season ?? "");
+    || photo !== (editing?.photo ?? "") || hours !== (editing?.hours ?? "") || fee !== (editing?.fee ?? "") || season !== (editing?.season ?? "")
+    || (!addrAuto && address !== (editing?.address ?? ""));
   const cancel = useDirtyClose(dlg, dirty);
   const parsed = parseCoords(coordText);
+
+  // Look the address up once the pin stops moving (typing coordinates, dragging the pin).
+  const lookupAddress = (lat: number, lng: number) => {
+    setAddrLooking(true);
+    return addressAt(lat, lng).then(text => {
+      setAddrLooking(false);
+      if (text) setAddress(cur => (addrAutoRef.current ? text.slice(0, LIMITS.address) : cur));
+      return text;
+    });
+  };
+  const addrAutoRef = useRef(addrAuto);
+  addrAutoRef.current = addrAuto;
+  useEffect(() => {
+    if (!parsed || !addrAuto) return;
+    const t = window.setTimeout(() => void lookupAddress(parsed.lat, parsed.lng), 700);
+    return () => window.clearTimeout(t);
+  }, [parsed?.lat, parsed?.lng, addrAuto]); // eslint-disable-line react-hooks/exhaustive-deps
   const [locating, setLocating] = useState(false);
   const [accuracy, setAccuracy] = useState<number | null>(null);
 
@@ -68,13 +91,16 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!parsed || !name.trim()) return;
+    // No address typed and the lookup hasn't come back yet: give it a moment (it is remembered, so this is usually instant).
+    let addr = address.trim();
+    if (!addr && addrAuto) addr = (await Promise.race([addressAt(parsed.lat, parsed.lng), new Promise<null>(r => setTimeout(() => r(null), 3000))]))?.slice(0, LIMITS.address) ?? "";
     if (website.trim() && !safeUrl(website.trim())) return void notify("The website must start with http:// or https://", "error");
     if (photo.trim() && !/^https:\/\//i.test(photo.trim())) return void notify("The picture address must start with https://", "error");
     onSave({
-      name: name.trim(), category, district: district.trim() || undefined, lat: parsed.lat, lng: parsed.lng,
+      name: name.trim(), category, district: district.trim() || undefined, address: addr || undefined, lat: parsed.lat, lng: parsed.lng,
       desc: desc.trim() || undefined, phone: phone.trim() || undefined,
       website: safeUrl(website.trim()) || undefined, approx: approx || undefined,
       visited: visited || undefined, notes: notes.trim() || undefined,
@@ -114,6 +140,17 @@ export function AddPlaceDialog({ categories, districts, editing, center, zoom, o
             placeholder="24.8089, 93.9426" />
         </label>
         <p className={"hint" + (coordText && !parsed ? " bad" : "")}>{hint}</p>
+        <label>Address
+          <textarea value={address} rows={2} maxLength={LIMITS.address} placeholder={addrLooking ? "Looking up the address…" : "Filled in from the map spot, or type your own"}
+            onChange={e => { setAddress(e.target.value); setAddrAuto(!e.target.value.trim()); }} />
+        </label>
+        <p className="hint">
+          {addrLooking ? "Looking up the address for this spot…"
+            : addrAuto && address ? "Filled in from OpenStreetMap. Edit it if it isn't quite right."
+            : !parsed ? "Set the location first: the address is filled in from it."
+            : addrAuto ? "No address was found for this spot. You can type one."
+            : <>Your own address is kept. <button type="button" className="link" onClick={() => { setAddrAuto(true); setAddress(""); void lookupAddress(parsed.lat, parsed.lng); }}>Fill in from the map instead</button></>}
+        </p>
         <label>Description<textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} maxLength={1000} /></label>
         <details className="more" open={!!(editing && (editing.visited || editing.notes || editing.phone || editing.website || editing.approx || editing.photo || editing.hours || editing.fee || editing.season))}>
           <summary>More details</summary>

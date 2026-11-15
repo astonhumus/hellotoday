@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "../../lib/leafletRotate"; // map rotation (two-finger twist, Shift + wheel); must come after "leaflet"
 import type { Category, Place, StateInfo } from "../../types";
 import { loadJson, store } from "../../lib/data";
 import { Icon } from "../../ui/Icon";
 import { iconSvg } from "../../ui/icons";
 import { distanceKm } from "../../lib/geo";
 import { formatDistance } from "../../lib/prefs";
+import { formatMinutes, useRoadRoute } from "../../lib/roads";
 import { notify } from "../../lib/ui";
 import { useTheme } from "../../lib/theme";
 import "leaflet.markercluster";
@@ -76,6 +78,9 @@ const pinIcon = (glyph: string, state: PinState, color?: string) => {
   if (state === "selected") return L.divIcon({ className: "pin-wrap pin-ghost", html: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
   return L.divIcon({ className: "pin-wrap", html: `<span class="pin ${state}"${col ? ` style="--cat:${col}"` : ""}>${iconSvg(glyph, 14)}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 };
+
+/** A screen offset (pixels down) expressed in the map's unrotated pixel space, so panel-aware centring still works when the map is turned. */
+const screenShift = (map: L.Map, dy: number) => L.point(0, dy).rotate(-(map.getBearing?.() ?? 0) * Math.PI / 180);
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...kids: (Node | string)[]) {
   const node = Object.assign(document.createElement(tag), props);
@@ -162,12 +167,17 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     document.addEventListener("keydown", esc);
     return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
   }, [menu]);
+  const [bearing, setBearing] = useState(0); // how far the map is turned from north, in degrees
   const [ready, setReady] = useState(0); // bumps when the map is rebuilt, so the tiles are re-added
 
   // Border maps below the street tiles: they show through wherever a tile can't be loaded (offline, not cached yet).
   useEffect(() => {
     if (!host.current) return;
-    const map = L.map(host.current, { preferCanvas: true, zoomSnap: 0.5, worldCopyJump: false, maxZoom: 18 }) // maxZoom is needed up front by the pin clusters
+    const map = L.map(host.current, {
+      preferCanvas: true, zoomSnap: 0.5, worldCopyJump: false, maxZoom: 18,
+      // Turnable like Google Maps: twist with two fingers, or Shift + mouse wheel. The compass button turns it back to north.
+      rotate: true, touchRotate: true, shiftKeyRotate: true, rotateControl: false, bearing: 0
+    }) // maxZoom is needed up front by the pin clusters
       .setView(state.center, state.zoom);
     map.createPane("borders").style.zIndex = "150";   // under the tile pane (200)
     map.createPane("outline").style.zIndex = "250";   // over the tiles
@@ -176,6 +186,8 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     const host0 = host.current;
     const mark = () => { host0.dataset.zoom = String(map.getZoom()); }; // the current zoom, readable from outside (tests, debugging)
     map.on("zoomend", mark); mark();
+    const turned = () => setBearing(Math.round(map.getBearing()));
+    map.on("rotate", turned); setBearing(0);
     prevView.current = null; zoomedRef.current = false; setZoomedToMe(false);
     setReady(n => n + 1);
     // Pins that overlap merge into a numbered circle (tap to zoom in), so a crowded town stays readable and fast.
@@ -358,7 +370,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
   const [zoomedToMe, setZoomedToMe] = useState(false);
   const zoomIn = (map: L.Map, at: L.LatLngTuple, zoom: number) => {
     const { top, bottom } = insetsRef.current;
-    map.flyTo(map.unproject(map.project(at, zoom).add([0, (bottom - top) / 2]), zoom), zoom, { duration: 1.2 }); // the glide, as in Google Maps
+    map.flyTo(map.unproject(map.project(at, zoom).add(screenShift(map, (bottom - top) / 2)), zoom), zoom, { duration: 1.2 }); // the glide, as in Google Maps
   };
   useEffect(() => {
     const map = mapRef.current;
@@ -411,18 +423,27 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     } else onLocate?.();
   };
 
-  // A dashed line from you to the open place, labelled with the distance
+  // From you to the open place: the road route (like Google Maps), labelled with the road distance and driving time.
+  // Until the route arrives, or when there is none (offline), a dashed straight line labelled with the straight-line distance.
   const meLine = useRef<L.Polyline | null>(null);
+  const selPin = selectedId ? places.find(p => p.id === selectedId) : undefined;
+  const meShown = !!me && !(me.far && me.intent === "near");
+  const { route: meRoute } = useRoadRoute(meShown && me && selPin ? [{ lat: me.lat, lng: me.lng }, { lat: selPin.lat, lng: selPin.lng }] : null);
   useEffect(() => {
     const map = mapRef.current, m = selectedId ? pins.current.get(selectedId) : null;
     meLine.current?.remove();
     meLine.current = null;
     if (!map || !me || !m || !meMarker.current) return; // the marker only exists when you are inside the area the map shows
     const to = m.getLatLng();
+    if (meRoute && meRoute.line.length > 1) {
+      meLine.current = L.polyline(meRoute.line, { color: "#1a73e8", weight: 5, opacity: 0.85, lineJoin: "round", lineCap: "round", interactive: false })
+        .bindTooltip(`${formatDistance(meRoute.km)} · ${formatMinutes(meRoute.minutes)}`, { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
+      return;
+    }
     const dist = distanceKm(me, { lat: to.lat, lng: to.lng });
     meLine.current = L.polyline([[me.lat, me.lng], to], { color: token("--text"), weight: 2, dashArray: "6 6", interactive: false })
-      .bindTooltip(formatDistance(dist), { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
-  }, [me, selectedId, ready]);
+      .bindTooltip(`${formatDistance(dist)} straight`, { permanent: true, direction: "center", className: "dist-label" }).addTo(map);
+  }, [me, selectedId, ready, meRoute]);
 
   // The open place's own pin (see selectedIcon). It is rebuilt only when what it shows changes, so a data refresh doesn't replay the drop.
   const selMarker = useRef<{ key: string; marker: L.Marker } | null>(null);
@@ -433,7 +454,7 @@ export function MapView({ state, places, categories, selectedId, free = false, f
     const map = mapRef.current, m = selectedId ? pins.current.get(selectedId) : null;
     if (!map || !m) return;
     const zoom = Math.max(map.getZoom(), 14), { top, bottom } = insetsRef.current;
-    const centre = map.unproject(map.project(m.getLatLng(), zoom).add([0, (bottom - top) / 2]), zoom);
+    const centre = map.unproject(map.project(m.getLatLng(), zoom).add(screenShift(map, (bottom - top) / 2)), zoom);
     map.flyTo(centre, zoom, { duration: 0.6 }); // the selected pin is drawn above any group, so there is no need to zoom further to open one
   }, [selectedId, focusTick, !!selPlace, ready]); // eslint-disable-line react-hooks/exhaustive-deps -- a place opened from a link: fly once its pin and the map exist
   const selCat = selPlace ? categories[selPlace.category] ?? fallbackCategory() : null;
@@ -463,23 +484,41 @@ export function MapView({ state, places, categories, selectedId, free = false, f
         const at = map.latLngToContainerPoint(m.getLatLng());
         if (at.y > top + 24 && at.y < size.y - bottom - 24 && at.x > 0 && at.x < size.x) return; // already in the visible part
         const zoom = map.getZoom();
-        map.panTo(map.unproject(map.project(m.getLatLng(), zoom).add([0, (bottom - top) / 2]), zoom), { animate: false });
+        map.panTo(map.unproject(map.project(m.getLatLng(), zoom).add(screenShift(map, (bottom - top) / 2)), zoom), { animate: false });
       } catch { /* the map was being rebuilt: nothing to move */ }
     }, 900);
     return () => window.clearTimeout(timer);
   }, [selectedId, insets.top, insets.bottom]);
 
-  // "My trip": a line through the stops in visiting order
+  // "My trip": the road route through the stops in visiting order (a dashed straight line until it arrives, or when offline)
   const routeLine = useRef<L.Polyline | null>(null);
   const routeKey = route?.map(r => `${r.lat},${r.lng}`).join("|") ?? "";
+  const { route: tripRoad } = useRoadRoute(route && route.length > 1 && route.length <= 25 ? route : null);
   useEffect(() => {
     const map = mapRef.current;
     routeLine.current?.remove();
     routeLine.current = null;
     if (!map || !route || route.length < 2) return;
-    routeLine.current = L.polyline(route.map(r => [r.lat, r.lng] as L.LatLngTuple), { color: token("--accent"), weight: 4, opacity: 0.85, dashArray: "2 8", lineCap: "round", interactive: false }).addTo(map);
+    routeLine.current = tripRoad && tripRoad.line.length > 1
+      ? L.polyline(tripRoad.line, { color: token("--accent"), weight: 5, opacity: 0.85, lineJoin: "round", lineCap: "round", interactive: false }).addTo(map)
+      : L.polyline(route.map(r => [r.lat, r.lng] as L.LatLngTuple), { color: token("--accent"), weight: 4, opacity: 0.85, dashArray: "2 8", lineCap: "round", interactive: false }).addTo(map);
     return () => { routeLine.current?.remove(); routeLine.current = null; };
-  }, [routeKey, ready]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [routeKey, ready, tripRoad]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The compass, as in Google Maps: it shows once the map is turned, points north, and a tap turns the map back.
+  const northUp = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const from = map.getBearing(), delta = from > 180 ? 360 - from : -from, t0 = performance.now();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return void map.setBearing(0);
+    const step = (now: number) => {
+      if (mapRef.current !== map) return; // the map was rebuilt meanwhile
+      const k = Math.min(1, (now - t0) / 350), ease = 1 - (1 - k) ** 3;
+      map.setBearing(k < 1 ? from + delta * ease : 0);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
 
   // The layers menu never grows taller than the part of the map the list and filters leave free
   const [menuMax, setMenuMax] = useState(260);
@@ -526,6 +565,15 @@ export function MapView({ state, places, categories, selectedId, free = false, f
         <div className="map-locate">
           <button type="button" className={"map-layers" + (zoomedToMe ? " on" : "")} aria-pressed={zoomedToMe} aria-label={zoomedToMe ? "Zoom back out" : "Zoom to my location"} title={zoomedToMe ? "Zoom back out" : "My location"} disabled={locating} onClick={toggleLocate}>
             <Icon name="locate" />
+          </button>
+        </div>
+      )}
+      {bearing % 360 !== 0 && (
+        <div className="map-compass">
+          <button type="button" className="map-layers" aria-label="Turn the map back to north" title="Reset to north" onClick={northUp}>
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style={{ transform: `rotate(${bearing}deg)` }}>
+              <path d="M12 2.5 16 12h-8z" fill="#e53935" /><path d="M12 21.5 8 12h8z" fill="currentColor" opacity=".55" />
+            </svg>
           </button>
         </div>
       )}

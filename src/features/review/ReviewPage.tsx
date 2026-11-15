@@ -15,11 +15,11 @@ import "./review.css";
 type Row = Record<string, any>;
 interface Member { user_id: string; email: string; role: "admin" | "contributor"; auto_approve: boolean }
 
-const PLACE_FIELDS = ["name", "category_id", "district", "lat", "lng", "description", "phone", "website", "approx", "visited", "notes", "photo", "hours", "fee", "season", "closure", "closure_note"];
+const PLACE_FIELDS = ["name", "category_id", "district", "address", "lat", "lng", "description", "phone", "website", "approx", "visited", "notes", "photo", "hours", "fee", "season", "closure", "closure_note"];
 // What the reviewer reads instead of the database column names
 const FIELD_LABELS: Record<string, string> = {
   name: "Name", category_id: "Category", district: "District", lat: "Latitude", lng: "Longitude", description: "Description", phone: "Phone", website: "Website",
-  approx: "Location is approximate", visited: "Date last checked", notes: "Tips", photo: "Picture", hours: "Opening hours", fee: "Entry fee or price", season: "Best time to visit",
+  approx: "Location is approximate", visited: "Date last checked", notes: "Tips", photo: "Picture", hours: "Opening hours", fee: "Entry fee or price", season: "Best time to visit", address: "Address",
   closure: "Closed", closure_note: "Reason for closing", title: "Title", artist: "Artist", language: "Language", lyrics: "Lyrics", credit: "Credit / source"
 };
 const osmLink = (lat: number, lng: number) => `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
@@ -154,7 +154,7 @@ export function ReviewPage({ categories }: { categories: Category[] }) {
                 <span className="tag">by {who(p.owner_id)}</span>
               </div>
               {p.description && <p className="rv-body">{p.description}</p>}
-              {[["Opening hours", p.hours], ["Entry fee or price", p.fee], ["Best time to visit", p.season], ["Tips", p.notes], ["Picture", p.photo]].filter(([, v]) => v).map(([k, v]) => (
+              {[["Address", p.address], ["Opening hours", p.hours], ["Entry fee or price", p.fee], ["Best time to visit", p.season], ["Tips", p.notes], ["Picture", p.photo]].filter(([, v]) => v).map(([k, v]) => (
                 <p className="rv-body rv-line" key={String(k)}><b>{k}:</b> {String(v)}</p>
               ))}
               <a className="rv-map" href={osmLink(p.lat, p.lng)} target="_blank" rel="noopener noreferrer">Check the position on OpenStreetMap (opens a new tab)</a>

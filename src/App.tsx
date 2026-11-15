@@ -183,9 +183,10 @@ export default function App() {
   // With Supabase, places and songs are rows in their own tables; without it, edits are kept in this browser.
   const nul = <T,>(v: T | null | undefined) => v ?? undefined;
   const dbPlaces = useRows<Place>(supabase && state ? {
-    table: "places", kind: "place", columns: "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
-    // Older databases miss the newest columns until supabase/extras.sql (then archive.sql) has been run: try the shorter lists in turn.
+    table: "places", kind: "place", columns: "id,state_id,category_id,name,district,address,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
+    // Older databases miss the newest columns until supabase/extras.sql, archive.sql and address.sql have been run: try the shorter lists in turn.
     fallbackColumns: [
+      "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,photo,hours,fee,season,status,review_note,updated_at",
       "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,closure,closure_note,closed_on,status,review_note,updated_at",
       "id,state_id,category_id,name,district,lat,lng,description,phone,website,approx,visited,notes,status,review_note,updated_at"
     ], propose: !!member && !member.auto_approve, scope: allRegions ? undefined : { column: "state_id", value: state.id }, fixed: { column: "state_id", value: state.id },
@@ -193,13 +194,13 @@ export default function App() {
       description: p.desc ?? null, phone: p.phone ?? null, website: p.website ?? null, approx: !!p.approx,
       visited: p.visited ?? null, notes: p.notes ?? null,
       // The picture and the practical details are sent only when set, so a database that hasn't got the columns yet still saves places.
-      ...(p.photo ? { photo: p.photo } : {}), ...(p.hours ? { hours: p.hours } : {}), ...(p.fee ? { fee: p.fee } : {}), ...(p.season ? { season: p.season } : {}),
+      ...(p.photo ? { photo: p.photo } : {}), ...(p.hours ? { hours: p.hours } : {}), ...(p.fee ? { fee: p.fee } : {}), ...(p.season ? { season: p.season } : {}), ...(p.address ? { address: p.address } : {}),
       // Only when the change is about closing/reopening (the key is present, null = reopen): an ordinary edit must not touch it.
       ...("closure" in p ? { closure: p.closure ?? null, closure_note: p.closure ? p.closureNote ?? null : null, closed_on: p.closure ? p.closedOn ?? null : null } : {}) }),
     fromRow: r => ({ id: r.id as string, name: r.name as string, category: r.category_id as string, district: nul(r.district as string),
       regionId: r.state_id as string, lat: r.lat as number, lng: r.lng as number, desc: nul(r.description as string), phone: nul(r.phone as string),
       website: nul(r.website as string), approx: r.approx ? true : undefined, visited: nul(r.visited as string), notes: nul(r.notes as string),
-      photo: nul(r.photo as string), hours: nul(r.hours as string), fee: nul(r.fee as string), season: nul(r.season as string),
+      photo: nul(r.photo as string), hours: nul(r.hours as string), fee: nul(r.fee as string), season: nul(r.season as string), address: nul(r.address as string),
       closure: (r.closure as Place["closure"]) ?? undefined, closureNote: nul(r.closure_note as string), closedOn: nul(r.closed_on as string),
       status: r.status as Place["status"], reviewNote: nul(r.review_note as string), updatedAt: nul(r.updated_at as string) })
   } : null, base);
@@ -305,7 +306,7 @@ export default function App() {
         visited: /^\d{4}-\d{2}-\d{2}$/.test(r.visited) ? r.visited : undefined,
         website: /^https?:\/\//i.test(r.website ?? "") ? String(r.website).slice(0, LIMITS.website) : undefined, approx: r.approx === true || r.approx === "true" ? true : undefined,
         photo: /^https:\/\//i.test(r.photo ?? "") ? String(r.photo).slice(0, LIMITS.photo) : undefined,
-        hours: str(r.hours, LIMITS.hours), fee: str(r.fee, LIMITS.fee), season: str(r.season, LIMITS.season)
+        hours: str(r.hours, LIMITS.hours), fee: str(r.fee, LIMITS.fee), season: str(r.season, LIMITS.season), address: str(r.address, LIMITS.address)
       });
     });
     const ok = await placeStore.addMany(added);
