@@ -20,7 +20,7 @@ export function FooterLinks({ report }: { report?: { subject: string } }) {
         ? <button type="button" className="footer-btn" onClick={() => openSuggest({ kind: "place" })}>Suggest a place or report a problem</button>
         : href && <a href={href}>Report a problem</a>}
       {/* Deliberately quiet: small, grey, last. Only shown when the site has an admin backend and nobody is signed in. */}
-      {supabase && !signedIn && <a href="#/admin" className="admin-link">Admin sign in</a>}
+      {supabase && signedIn === false &&<a href="#/admin" className="admin-link">Admin sign in</a>}
     </div>
   );
 }

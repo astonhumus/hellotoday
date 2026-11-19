@@ -64,16 +64,29 @@ export default function App() {
   // With Supabase configured, only people listed in public.members may edit (see supabase/contributors.sql);
   // otherwise the local ?admin flag decides.
   const [member, setMember] = useState<Member | null>(null);
-  const [hasSession, setHasSession] = useState(false);
+  const [hasSession, setHasSession] = useState<boolean | null>(supabase ? null : false); // null until the saved session has been read
+  // The session comes back from storage at once, but the role needs a round trip to the database. Until that answer arrives
+  // (or if it fails) the role is unknown, and nothing may say "not approved" or hide admin pages for good.
+  const [roleKnown, setRoleKnown] = useState(!supabase);
   useEffect(() => {
     if (!supabase) return;
-    const check = (signedIn: boolean) => {
-      setHasSession(signedIn);
-      if (!signedIn) return setMember(null);
-      supabase!.rpc("my_role").then(({ data }) => setMember(data?.role ? (data as Member) : null));
+    let seq = 0, lastUser: string | null | undefined;
+    const check = (userId: string | null) => {
+      if (userId === lastUser) return; // token refreshes and the initial-session event repeat the same user: no new lookup
+      lastUser = userId;
+      const mine = ++seq;
+      setHasSession(!!userId);
+      if (!userId) { setMember(null); setRoleKnown(true); return; }
+      setRoleKnown(false);
+      supabase!.rpc("my_role").then(({ data, error }) => {
+        if (mine !== seq) return; // signed out or switched account meanwhile
+        if (error) { lastUser = undefined; return; } // offline or failed: stay "unknown"; the next auth event or a reload asks again
+        setMember(data?.role ? (data as Member) : null);
+        setRoleKnown(true);
+      });
     };
-    supabase.auth.getSession().then(({ data }) => check(!!data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, session) => check(!!session));
+    supabase.auth.getSession().then(({ data }) => check(data.session?.user.id ?? null));
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => check(session?.user.id ?? null));
     return () => data.subscription.unsubscribe();
   }, []);
   const signedIn = !!member;
@@ -84,7 +97,8 @@ export default function App() {
   const [route, arg] = path.split("/");
   const params = new URLSearchParams(query);
   const page = route === "places" ? "places" : route === "music" ? "music" : route === "checklist" ? "checklist"
-    : route === "review" && IS_ADMIN && supabase ? "review" : route === "about" ? "about" : route === "regions" ? "regions" : "home";
+    : route === "review" && IS_ADMIN && supabase ? "review" : route === "review" && hasSession !== false && !roleKnown ? "wait"
+    : route === "about" ? "about" : route === "regions" ? "regions" : "home";
 
   useEffect(trackHistory, []);
 
@@ -336,11 +350,11 @@ export default function App() {
         </nav>
         {/* After the menu in the markup so it sits at the far right on wide screens; on phones the menu is a bottom bar and this stays at the right edge */}
         {page === "home" && <button type="button" className="icon-btn header-settings" aria-label={pending ? `Settings (${pending} to review)` : "Settings"} title="Settings" onClick={() => setSettingsOpen(true)}><Icon name="settings" size={22} /></button>}
-        <AdminLogin hasSession={hasSession} isMember={signedIn} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) goBack("#/"); }} />
+        <AdminLogin hasSession={hasSession} isMember={signedIn || !roleKnown} show={isAdminRoute(route)} onClose={() => { if (isAdminRoute(route)) goBack("#/"); }} />
       </header>
       <PwaBar showInstall={page === "home"} canEdit={canEdit} />
       {settingsOpen && <SettingsDialog review={supabase && IS_ADMIN ? { pending } : undefined}
-        account={supabase && hasSession ? { approved: signedIn, onSignOut: () => { void supabase!.auth.signOut(); } } : undefined} country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
+        account={supabase && hasSession ? { approved: roleKnown ? signedIn : null, onSignOut: () => { void supabase!.auth.signOut(); } } : undefined} country={country} state={state} onClose={() => setSettingsOpen(false)} onChangeRegion={() => setRegionOpen(true)} />}
       <main id="main" tabIndex={-1}>
         <Suspense fallback={<SkeletonPage />}>
         {error && (
@@ -349,18 +363,20 @@ export default function App() {
             <button className="btn" onClick={() => location.reload()}>Reload</button>
           </div>
         )}
+        {page === "wait" && <SkeletonPage />}
         {page === "places" && !state && !error && <SkeletonPage />}
         {page === "places" && state && (
-          <PlacesPage key={state.id} placeId={arg ? safeDecode(arg) : null} onOpenPlace={openPlace} queryKey={query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1", fav: params.get("fav") === "1", trip: params.get("trip") === "1", district: params.get("district") }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSaveCategory={IS_ADMIN ? categoryStore.save : undefined} onDeleteCategory={categoryStore.remove} categoryUsage={categoryUsage} allRegions={allRegions} onAllRegions={supabase ? () => setAllRegions(v => !v) : undefined} regionNames={regionNames} loading={supabase ? dbPlaces.loading : false} ready={placesReady}
+          <PlacesPage key={state.id} placeId={arg ? safeDecode(arg) : null} onOpenPlace={openPlace} queryKey={query} initial={{ cat: params.get("cat"), q: params.get("q") ?? "", visited: params.get("visited") === "1", near: params.get("near") === "1", fav: params.get("fav") === "1", trip: params.get("trip") === "1", district: params.get("district") }} state={state} categories={categories} places={placeStore.items} localIds={placeStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSaveCategory={IS_ADMIN ? categoryStore.save : undefined} onDeleteCategory={categoryStore.remove} categoryUsage={categoryUsage} allRegions={allRegions} onAllRegions={supabase ? () => setAllRegions(v => !v) : undefined} regionNames={regionNames} loading={supabase ? dbPlaces.loading || !dbPlaces.synced : false}
+            ready={placesReady && (!supabase || dbPlaces.synced || placeStore.items.length > 0)}
             onSavePlace={placeStore.save} onDeletePlace={placeStore.remove} exportCount={exportRows.length} onExport={exportPlaces} onImport={importPlaces} />
         )}
-        {page === "home" && <HomePage canEdit={ADMIN} onChangeRegion={() => setRegionOpen(true)} state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
+        {page === "home" && <HomePage canEdit={ADMIN} synced={supabase ? dbPlaces.synced : placesReady} onChangeRegion={() => setRegionOpen(true)} state={state} categories={categories} places={placeStore.items} songCount={songStore.items.length} />}
         {page === "checklist" && <ChecklistPage catalog={checklist} ready={dataReady} admin={IS_ADMIN} />}
         {page === "review" && <ReviewPage categories={categories} />}
         {page === "about" && <AboutPage />}
         {page === "regions" && <RegionsPage countries={countries} countryId={countryId} stateId={state?.id} />}
         {page === "music" && (
-          <MusicPage ready={dataReady} songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ? safeDecode(arg) : null} open={id => go(id ? `#/music/${encodeURIComponent(id)}` : "#/music")} />
+          <MusicPage ready={dataReady && (!supabase || dbSongs.synced || songStore.items.length > 0)} loading={!!supabase && !dbSongs.synced} songs={songStore.items} localIds={songStore.localIds} admin={ADMIN} canDelete={IS_ADMIN} onSave={songStore.save} onDelete={songStore.remove} songId={arg ? safeDecode(arg) : null} open={id => go(id ? `#/music/${encodeURIComponent(id)}` : "#/music")} />
         )}
         </Suspense>
       </main>

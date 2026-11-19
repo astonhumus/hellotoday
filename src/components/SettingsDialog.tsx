@@ -19,7 +19,7 @@ interface Props {
   onChangeRegion: () => void;
   onClose: () => void;
   review?: { pending: number }; // admins only: a way to the review page
-  account?: { approved: boolean; onSignOut: () => void }; // set only while someone is signed in
+  account?: { approved: boolean | null; onSignOut: () => void }; // set only while someone is signed in
 }
 
 const THEMES: { id: Theme; label: string }[] = [{ id: "system", label: "Auto" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }];
@@ -105,7 +105,7 @@ export function SettingsDialog({ country, state, onChangeRegion, onClose, review
       {account && (
         <section className="set-row" aria-labelledby="set-account">
           <h3 id="set-account">Account</h3>
-          <p className="set-value">{account.approved ? "You are signed in." : "You are signed in, but this account isn't approved yet."}</p>
+          <p className="set-value">{account.approved === false ? "You are signed in, but this account isn't approved yet." : "You are signed in."}</p>
           <Button onClick={() => { dlg.current?.close(); account.onSignOut(); }}>Sign out</Button>
         </section>
       )}

@@ -42,6 +42,7 @@ async function writeTolerant(write: Write, rows: Row[]) {
 export function useRows<T extends { id: string; status?: string; updatedAt?: string }>(spec: Spec<T> | null, fallback: T[]) {
   const [rows, setRows] = useState<T[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [doneKey, setDoneKey] = useState(""); // the scope whose database answer (or failure) has arrived
   const table = spec?.table, scopeCol = spec?.scope?.column, scopeVal = spec?.scope?.value;
   const cacheKey = `rows:${table}:${scopeVal ?? "*"}`;
   const lastSig = useRef("");
@@ -65,6 +66,7 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
     }
     if (seq !== loadSeq.current) return; // a newer load is under way: don't let this older answer overwrite it
     setLoading(false);
+    setDoneKey(cacheKey);
     if (error) { console.warn(`Could not load ${spec.table}:`, error.message); return; } // keep whatever is showing (cached copy)
     const mapped = data.map(spec.fromRow);
     // Keep the same array when nothing changed, so the map and the list don't redraw after a background refresh.
@@ -132,5 +134,7 @@ export function useRows<T extends { id: string; status?: string; updatedAt?: str
     return true;
   };
 
-  return { items, loading, reload: load, localIds: useMemo(() => new Set<string>(), []), save, remove, addMany };
+  // True once the database has answered for the current scope, so screens can tell "really empty" from "still the bundled/cached copy".
+  const synced = !spec || doneKey === cacheKey;
+  return { items, loading, synced, reload: load, localIds: useMemo(() => new Set<string>(), []), save, remove, addMany };
 }

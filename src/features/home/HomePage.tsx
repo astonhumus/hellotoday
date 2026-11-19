@@ -20,6 +20,7 @@ interface Props {
   songCount: number;
   onChangeRegion?: () => void;
   canEdit?: boolean;   // admin or contributor: may choose the featured places
+  synced?: boolean;    // the places list is the final one (not the bundled copy shown while the database answers)
 }
 
 // Only the places an admin or contributor chose to feature (nothing is picked automatically): those with a picture first, then by name.
@@ -31,7 +32,7 @@ function pickFeatured(places: Place[]): Place[] {
 }
 
 /** The front door: search, the categories as big tiles, shortcuts, and the other tools. Everything links into Places with a filter. */
-export function HomePage({ state, categories, places, songCount, onChangeRegion, canEdit = false }: Props) {
+export function HomePage({ state, categories, places, songCount, onChangeRegion, canEdit = false, synced = true }: Props) {
   const name = state?.name ?? "";
   usePageMeta(name ? `Explore ${name}: places to visit, eat and stay` : "Explore Hack: places to visit, eat and stay",
     `Tourist sites, picnic spots, snacks, hotels and resorts across ${name || "India"} on a map, plus song lyrics and a trip packing checklist. Works offline.`);
@@ -100,7 +101,7 @@ export function HomePage({ state, categories, places, songCount, onChangeRegion,
       </section>
 
       {/* Members see how to fill an empty row; visitors simply don't see the section until something is featured */}
-      {featured.length === 0 && canEdit && places.length > 0 && (
+      {featured.length === 0 && canEdit && synced && places.length > 0 && (
         <section aria-labelledby="h-feat" className="feat-empty">
           <h2 id="h-feat" className="home-h">Featured places</h2>
           <div className="feat-hint">
@@ -171,7 +172,7 @@ export function HomePage({ state, categories, places, songCount, onChangeRegion,
         </a>
         <a className="row-card" href="#/music">
           <span className="rc-icon"><Icon name="music" size={22} /></span>
-          <span className="rc-text"><strong>Songs</strong><span>{plural(songCount, "song")}: lyrics by language and artist</span></span>
+          <span className="rc-text"><strong>Songs</strong><span>{songCount ? `${plural(songCount, "song")}: lyrics` : "Lyrics"} by language and artist</span></span>
         </a>
       </section>
 

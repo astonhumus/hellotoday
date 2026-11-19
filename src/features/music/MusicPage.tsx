@@ -24,6 +24,7 @@ interface Props {
   admin: boolean;
   canDelete: boolean;
   ready?: boolean; // the song list has arrived (or failed)
+  loading?: boolean; // the database hasn't answered yet: a song missing from the list may still come
   songId: string | null;
   open: (id: string | null) => void;
   onSave: (s: Omit<Song, "id">, id?: string) => void;
@@ -45,7 +46,7 @@ function FindOnline({ song, className = "" }: { song: Song; className?: string }
   );
 }
 
-export function MusicPage({ songs, localIds, admin, canDelete, ready = true, songId, open, onSave, onDelete }: Props) {
+export function MusicPage({ songs, localIds, admin, canDelete, ready = true, loading = false, songId, open, onSave, onDelete }: Props) {
   const song = songs.find(s => s.id === songId) ?? null;
   usePageMeta(song ? `${song.title}${song.lyrics.trim() ? " lyrics" : ""}` : "Song lyrics by language and artist",
     song ? `${song.lyrics.trim() ? "Lyrics of" : "Song:"} ${song.title}${song.artist ? ` by ${song.artist}` : ""}${song.language ? ` in ${song.language}` : ""}.` : "Read song lyrics, filtered by language (including Manipuri) and artist. Large text and auto-scroll for singing along.");
@@ -54,12 +55,13 @@ export function MusicPage({ songs, localIds, admin, canDelete, ready = true, son
   const artists = useMemo(() => uniq(songs.map(s => s.artist)), [songs]);
   const onEdit = (s: Song) => setDialog({ editing: s });
   const onRemove = async (s: Song) => { if (await confirmAsk(`Delete "${s.title}"?`, { yes: "Delete", danger: true })) { onDelete(s.id); open(null); } };
-  const missing = !!songId && !song && ready;
+  const missing = !!songId && !song && ready && !loading;
   return (
     <>
       {/* The list stays mounted while a song is open, so Back finds your search, filters and place in the list as you left them */}
       <SongList hidden={!!songId} ready={ready} songs={songs} localIds={localIds} admin={admin} canDelete={canDelete} onAdd={() => setDialog({ editing: null })} onEdit={onEdit} onDelete={onRemove} />
       {song && <Lyrics song={song} admin={admin} canDelete={canDelete} onBack={() => open(null)} onEdit={onEdit} onDelete={onRemove} />}
+      {songId && !song && !missing && <div className="page"><Skeleton rows={6} label="Loading song" /></div>}
       {missing && (
         <div className="page">
           <EmptyState title="We couldn't find that song" hint="It may have been removed, or the link is incomplete." action={{ label: "See all songs", onClick: () => open(null) }} />
